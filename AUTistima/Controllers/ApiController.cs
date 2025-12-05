@@ -13,7 +13,7 @@ namespace AUTistima.Controllers;
 /// API Controller para integração com app mobile e sistemas externos
 /// Preparado para futuro aplicativo iOS/Android
 /// </summary>
-[Route("api/[controller]")]
+[Route("api")]
 [ApiController]
 public class ApiController : ControllerBase
 {
