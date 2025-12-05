@@ -5,6 +5,7 @@ using AUTistima.Models;
 using AUTistima.ViewModels;
 using AUTistima.Models.Enums;
 using AUTistima.Data;
+using AUTistima.Services;
 
 namespace AUTistima.Controllers;
 
@@ -14,17 +15,20 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<AccountController> _logger;
+    private readonly IPushNotificationService _pushService;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ApplicationDbContext context,
-        ILogger<AccountController> logger)
+        ILogger<AccountController> logger,
+        IPushNotificationService pushService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
         _logger = logger;
+        _pushService = pushService;
     }
 
     // GET: Account/Login

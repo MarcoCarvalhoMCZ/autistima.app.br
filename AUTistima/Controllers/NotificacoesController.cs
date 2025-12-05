@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using AUTistima.Data;
 using AUTistima.Models;
+using AUTistima.Services;
 using System.Security.Claims;
 
 namespace AUTistima.Controllers;
@@ -15,11 +16,16 @@ public class NotificacoesController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<NotificacoesController> _logger;
+    private readonly IPushNotificationService _pushService;
 
-    public NotificacoesController(ApplicationDbContext context, ILogger<NotificacoesController> logger)
+    public NotificacoesController(
+        ApplicationDbContext context, 
+        ILogger<NotificacoesController> logger,
+        IPushNotificationService pushService)
     {
         _context = context;
         _logger = logger;
+        _pushService = pushService;
     }
 
     // GET: Notificacoes
@@ -138,7 +144,8 @@ public class NotificacoesController : Controller
         string titulo,
         string mensagem,
         TipoNotificacao tipo,
-        string? link = null)
+        string? link = null,
+        IPushNotificationService? pushService = null)
     {
         var notificacao = new Notification
         {
@@ -152,5 +159,58 @@ public class NotificacoesController : Controller
         
         context.Notifications.Add(notificacao);
         await context.SaveChangesAsync();
+        
+        // Enviar push notification se o serviço estiver disponível
+        if (pushService != null)
+        {
+            try
+            {
+                await pushService.EnviarParaUsuarioAsync(userId, titulo, mensagem, link);
+            }
+            catch (Exception)
+            {
+                // Log silencioso - push é best-effort
+            }
+        }
+    }
+    
+    // POST: Notificacoes/AtivarPush - Solicita permissão para push
+    [HttpPost]
+    public IActionResult AtivarPush()
+    {
+        // Este endpoint apenas marca o interesse do usuário
+        // A ativação real acontece no JavaScript do frontend
+        return Json(new { 
+            success = true, 
+            message = "Use o PushManager.requestPermission() no navegador"
+        });
+    }
+    
+    // POST: Notificacoes/TestarPush - Envia uma notificação de teste
+    [HttpPost]
+    public async Task<IActionResult> TestarPush()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Json(new { success = false, message = "Usuário não autenticado" });
+        
+        var enviados = await _pushService.EnviarParaUsuarioAsync(
+            userId,
+            "🧪 Teste de Notificação",
+            "Se você está vendo isso, as notificações push estão funcionando! 💜",
+            "/Notificacoes"
+        );
+        
+        if (enviados > 0)
+        {
+            return Json(new { success = true, message = $"Push enviado para {enviados} dispositivo(s)!" });
+        }
+        else
+        {
+            return Json(new { 
+                success = false, 
+                message = "Nenhum dispositivo registrado. Ative as notificações primeiro." 
+            });
+        }
     }
 }

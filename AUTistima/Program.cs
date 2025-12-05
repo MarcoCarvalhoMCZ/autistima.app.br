@@ -48,6 +48,7 @@ builder.Services.AddControllersWithViews();
 
 // Registrar serviços personalizados
 builder.Services.AddAIServices();
+builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 
 var app = builder.Build();
 

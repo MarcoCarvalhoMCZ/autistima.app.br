@@ -20,6 +20,35 @@
                 }
             </div>
 
+            <!-- Configuração de Push Notifications -->
+            <div class="card shadow-sm border-0 mb-4" id="push-config-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1">
+                                <i class="bi bi-phone-vibrate text-primary me-2"></i>
+                                Notificações Push
+                            </h6>
+                            <small class="text-muted" id="push-status">Verificando...</small>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary btn-sm" id="btn-ativar-push" style="display:none;">
+                                <i class="bi bi-bell-fill"></i> Ativar
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" id="btn-testar-push" style="display:none;">
+                                <i class="bi bi-send"></i> Testar
+                            </button>
+                            <span class="badge bg-success" id="push-ativo" style="display:none;">
+                                <i class="bi bi-check-circle"></i> Ativo
+                            </span>
+                            <span class="badge bg-warning text-dark" id="push-bloqueado" style="display:none;">
+                                <i class="bi bi-x-circle"></i> Bloqueado
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @if (TempData["Mensagem"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -132,5 +161,86 @@
         
         // Atualiza a cada 30 segundos
         setInterval(atualizarBadge, 30000);
+        
+        // Gerenciar Push Notifications
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusEl = document.getElementById('push-status');
+            const btnAtivar = document.getElementById('btn-ativar-push');
+            const btnTestar = document.getElementById('btn-testar-push');
+            const badgeAtivo = document.getElementById('push-ativo');
+            const badgeBloqueado = document.getElementById('push-bloqueado');
+            
+            if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                statusEl.textContent = 'Seu navegador não suporta notificações push';
+                return;
+            }
+            
+            const permission = Notification.permission;
+            
+            if (permission === 'granted') {
+                statusEl.textContent = 'Notificações ativadas neste dispositivo';
+                badgeAtivo.style.display = 'inline';
+                btnTestar.style.display = 'inline-block';
+                
+                // Tentar registrar subscription se ainda não existir
+                try {
+                    await window.PushManager?.subscribe();
+                } catch (e) {
+                    console.log('Subscription já existe ou erro:', e);
+                }
+            } else if (permission === 'denied') {
+                statusEl.textContent = 'Notificações bloqueadas. Altere nas configurações do navegador.';
+                badgeBloqueado.style.display = 'inline';
+            } else {
+                statusEl.textContent = 'Receba notificações mesmo quando não estiver no site';
+                btnAtivar.style.display = 'inline-block';
+            }
+            
+            // Botão Ativar
+            btnAtivar.addEventListener('click', async () => {
+                btnAtivar.disabled = true;
+                btnAtivar.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Ativando...';
+                
+                try {
+                    const result = await window.PushManager?.requestPermission();
+                    if (result === 'granted') {
+                        statusEl.textContent = 'Notificações ativadas!';
+                        badgeAtivo.style.display = 'inline';
+                        btnAtivar.style.display = 'none';
+                        btnTestar.style.display = 'inline-block';
+                    } else {
+                        statusEl.textContent = 'Permissão negada';
+                        badgeBloqueado.style.display = 'inline';
+                        btnAtivar.style.display = 'none';
+                    }
+                } catch (e) {
+                    statusEl.textContent = 'Erro ao ativar: ' + e.message;
+                    btnAtivar.disabled = false;
+                    btnAtivar.innerHTML = '<i class="bi bi-bell-fill"></i> Ativar';
+                }
+            });
+            
+            // Botão Testar
+            btnTestar.addEventListener('click', async () => {
+                btnTestar.disabled = true;
+                btnTestar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                
+                try {
+                    const response = await fetch('/Notificacoes/TestarPush', { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert('✅ ' + data.message);
+                    } else {
+                        alert('⚠️ ' + data.message);
+                    }
+                } catch (e) {
+                    alert('Erro: ' + e.message);
+                }
+                
+                btnTestar.disabled = false;
+                btnTestar.innerHTML = '<i class="bi bi-send"></i> Testar';
+            });
+        });
     </script>
 }

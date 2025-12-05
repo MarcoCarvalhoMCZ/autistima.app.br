@@ -322,9 +322,8 @@
         
         // Push Notifications
         const PushManager = {
-            // Chave pública VAPID (você precisa gerar uma par de chaves para produção)
-            // Use: npx web-push generate-vapid-keys
-            publicKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U',
+            // Chave pública VAPID gerada para o AUTistima
+            publicKey: 'BOKb5iYep92uFFR-z-HIYYEUQK2A3TKlKKYxcTl-kSIIsQD9N-emBMcN72ybhyPd_Fg8mLaS2k4RLUuRyJcSkFM',
             
             async checkPermission() {
                 if (!('Notification' in window)) {

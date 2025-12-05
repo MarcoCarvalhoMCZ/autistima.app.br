@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AUTistima.Data;
 using AUTistima.Models;
+using AUTistima.Services;
 using System.Security.Claims;
 
 namespace AUTistima.Controllers;
@@ -16,15 +17,18 @@ public class AcolhimentoController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<AcolhimentoController> _logger;
+    private readonly IPushNotificationService _pushService;
 
     public AcolhimentoController(
         ApplicationDbContext context, 
         UserManager<ApplicationUser> userManager,
-        ILogger<AcolhimentoController> logger)
+        ILogger<AcolhimentoController> logger,
+        IPushNotificationService pushService)
     {
         _context = context;
         _userManager = userManager;
         _logger = logger;
+        _pushService = pushService;
     }
 
     // GET: Acolhimento
@@ -125,7 +129,8 @@ public class AcolhimentoController : Controller
                     "💕 Alguém acolheu sua mensagem!",
                     $"{usuarioAcolheu?.NomeCompleto ?? "Alguém"} enviou um acolhimento para você.",
                     TipoNotificacao.Acolhimento,
-                    $"/Acolhimento/Details/{postId}"
+                    $"/Acolhimento/Details/{postId}",
+                    _pushService
                 );
             }
         }
@@ -179,7 +184,8 @@ public class AcolhimentoController : Controller
                 "💬 Novo comentário na sua mensagem",
                 $"{usuarioComentou?.NomeCompleto ?? "Alguém"} comentou: \"{(conteudo.Length > 50 ? conteudo.Substring(0, 50) + "..." : conteudo)}\"",
                 TipoNotificacao.Comentario,
-                $"/Acolhimento/Details/{postId}"
+                $"/Acolhimento/Details/{postId}",
+                _pushService
             );
         }
 
