@@ -1,0 +1,87 @@
+@model IEnumerable<AUTistima.Models.Post>
+@{
+    ViewData["Title"] = "Minhas Publicações";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Suas publicações na Central de Acolhimento</p>
+    </div>
+    <a asp-area="" asp-controller="Acolhimento" asp-action="Create" class="btn" style="background-color: #F28B82; color: white;">
+        <i class="bi bi-plus-circle me-2"></i>Nova Publicação
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-chat-heart display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">Nenhuma publicação ainda</h4>
+            <p class="text-muted">
+                Compartilhe como você está se sentindo!<br>
+                A comunidade está aqui para acolher você. 💕
+            </p>
+            <a asp-area="" asp-controller="Acolhimento" asp-action="Create" class="btn mt-2" style="background-color: #F28B82; color: white;">
+                <i class="bi bi-chat-heart me-2"></i>Fazer Primeira Publicação
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var post in Model)
+        {
+            <div class="col-12">
+                <div class="card border-0 shadow-sm @(!post.Ativo ? "opacity-50" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>@post.DataCriacao.ToString("dd/MM/yyyy 'às' HH:mm")
+                            </small>
+                            @if (!post.Ativo)
+                            {
+                                <span class="badge bg-secondary">Removido</span>
+                            }
+                        </div>
+                        
+                        <p class="mb-3">@post.Conteudo</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex gap-3">
+                                <span class="text-muted small">
+                                    <i class="bi bi-heart-fill" style="color: #F28B82;"></i>
+                                    @post.Acolhimentos.Count acolhimentos
+                                </span>
+                                <span class="text-muted small">
+                                    <i class="bi bi-chat"></i>
+                                    @post.Comentarios.Count comentários
+                                </span>
+                            </div>
+                            
+                            @if (post.Ativo)
+                            {
+                                <a asp-area="" asp-controller="Acolhimento" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye me-1"></i>Ver no Feed
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="mt-4">
+    <div class="card border-0" style="background-color: rgba(242, 139, 130, 0.1);">
+        <div class="card-body">
+            <h6 class="mb-2"><i class="bi bi-heart me-2" style="color: #F28B82;"></i>Sobre o Acolhimento</h6>
+            <p class="mb-0 small text-muted">
+                A Central de Acolhimento é um espaço seguro para você desabafar, compartilhar alegrias e dificuldades.
+                Quando outras mães "acolhem" sua publicação, elas estão dizendo: <em>"Eu te entendo, eu te vejo, você não está sozinha."</em>
+            </p>
+        </div>
+    </div>
+</div>

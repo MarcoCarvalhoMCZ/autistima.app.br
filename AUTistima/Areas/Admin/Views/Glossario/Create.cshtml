@@ -1,0 +1,81 @@
+@model GlossaryTerm
+@{
+    ViewData["Title"] = "Novo Termo";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Novo Termo do Glossário
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label asp-for="TermoTecnico" class="form-label"></label>
+                                <input asp-for="TermoTecnico" class="form-control" placeholder="Ex: TEA, ABA, PEP-R..." required />
+                                <span asp-validation-for="TermoTecnico" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label asp-for="Categoria" class="form-label"></label>
+                                <input asp-for="Categoria" class="form-control" list="categorias" placeholder="Ex: Diagnóstico, Terapia..." />
+                                <datalist id="categorias">
+                                    <option>Diagnóstico</option>
+                                    <option>Terapia</option>
+                                    <option>Educação</option>
+                                    <option>Comportamento</option>
+                                    <option>Comunicação</option>
+                                    <option>Direitos</option>
+                                    <option>Saúde</option>
+                                </datalist>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="ExplicacaoSimples" class="form-label"></label>
+                                <textarea asp-for="ExplicacaoSimples" class="form-control" rows="4" 
+                                          placeholder="Explique de forma simples e acessível..." required></textarea>
+                                <span asp-validation-for="ExplicacaoSimples" class="text-danger"></span>
+                                <div class="form-text">Use linguagem clara e acolhedora, como se estivesse explicando para uma mãe.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="ExemploUso" class="form-label"></label>
+                                <textarea asp-for="ExemploUso" class="form-control" rows="2" 
+                                          placeholder="Ex: 'O terapeuta disse que meu filho tem hiperfoco...'"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Fonte" class="form-label"></label>
+                                <input asp-for="Fonte" class="form-control" placeholder="Ex: DSM-5, CID-11, etc." />
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-salmon">
+                                <i class="bi bi-check-lg me-2"></i>Criar Termo
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

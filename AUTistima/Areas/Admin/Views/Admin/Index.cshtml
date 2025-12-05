@@ -1,0 +1,510 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard Administrativo";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-speedometer2 me-2"></i>
+                Dashboard Administrativo
+            </h1>
+            <p class="text-muted">Visão geral do sistema AUTistima</p>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-salmon-light rounded-3 p-3">
+                            <i class="bi bi-people-fill fs-3 text-salmon"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalUsuarios</h3>
+                            <span class="text-muted">Total Usuários</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Index" asp-controller="Usuarios" class="text-decoration-none small">
+                        Ver todos <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-heart-fill fs-3 text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalMaes</h3>
+                            <span class="text-muted">Mães Cadastradas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-hospital fs-3 text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalProfissionaisSaude</h3>
+                            <span class="text-muted">Profissionais Saúde</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-warning bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-mortarboard fs-3 text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalProfissionaisEducacao</h3>
+                            <span class="text-muted">Profissionais Educação</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Segunda linha de cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-primary bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-building fs-3 text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalEmpresas</h3>
+                            <span class="text-muted">Empresas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-secondary bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-person-hearts fs-3 text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalFilhos</h3>
+                            <span class="text-muted">Filhos Cadastrados</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-danger bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-bank fs-3 text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalEscolas</h3>
+                            <span class="text-muted">Escolas</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Index" asp-controller="Escolas" class="text-decoration-none small">
+                        Ver todas <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-dark bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-lightbulb fs-3 text-dark"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalManejos</h3>
+                            <span class="text-muted">Dicas de Manejo</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Index" asp-controller="Manejos" class="text-decoration-none small">
+                        Ver todos <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terceira linha -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-salmon-light rounded-3 p-3">
+                            <i class="bi bi-chat-heart fs-3 text-salmon"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalPosts</h3>
+                            <span class="text-muted">Posts Acolhimento</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-briefcase fs-3 text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalOportunidades</h3>
+                            <span class="text-muted">Oportunidades</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Index" asp-controller="Oportunidades" class="text-decoration-none small">
+                        Ver todas <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-clipboard2-pulse fs-3 text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalServicos</h3>
+                            <span class="text-muted">Serviços</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Index" asp-controller="Servicos" class="text-decoration-none small">
+                        Ver todos <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-warning bg-opacity-10 rounded-3 p-3">
+                            <i class="bi bi-book fs-3 text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h3 class="mb-0">@ViewBag.TotalGlossario</h3>
+                            <span class="text-muted">Termos Glossário</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Index" asp-controller="Glossario" class="text-decoration-none small">
+                        Ver todos <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning-charge me-2"></i>
+                        Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <a asp-action="Create" asp-controller="Usuarios" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-person-plus me-2"></i>Novo Usuário
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a asp-action="Create" asp-controller="Glossario" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-plus-circle me-2"></i>Novo Termo
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a asp-action="Create" asp-controller="Escolas" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-bank me-2"></i>Nova Escola
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a asp-action="Create" asp-controller="Servicos" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-clipboard2-pulse me-2"></i>Novo Serviço
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gerenciamento de Tabelas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-salmon text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-database me-2"></i>
+                        Gerenciamento de Tabelas
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tabela</th>
+                                    <th>Descrição</th>
+                                    <th class="text-center">Registros</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-people text-primary me-2"></i>
+                                        <strong>Usuários</strong>
+                                    </td>
+                                    <td class="text-muted">Mães, profissionais, empresas e administradores</td>
+                                    <td class="text-center"><span class="badge bg-primary">@ViewBag.TotalUsuarios</span></td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Usuarios" asp-action="Index" class="btn btn-outline-primary" title="Listar">
+                                                <i class="bi bi-list"></i>
+                                            </a>
+                                            <a asp-controller="Usuarios" asp-action="Create" class="btn btn-outline-success" title="Adicionar">
+                                                <i class="bi bi-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-bank text-danger me-2"></i>
+                                        <strong>Escolas</strong>
+                                    </td>
+                                    <td class="text-muted">Escolas cadastradas no sistema</td>
+                                    <td class="text-center"><span class="badge bg-danger">@ViewBag.TotalEscolas</span></td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Escolas" asp-action="Index" class="btn btn-outline-primary" title="Listar">
+                                                <i class="bi bi-list"></i>
+                                            </a>
+                                            <a asp-controller="Escolas" asp-action="Create" class="btn btn-outline-success" title="Adicionar">
+                                                <i class="bi bi-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-clipboard2-pulse text-info me-2"></i>
+                                        <strong>Serviços de Saúde</strong>
+                                    </td>
+                                    <td class="text-muted">CAPS, clínicas, profissionais e serviços de saúde</td>
+                                    <td class="text-center"><span class="badge bg-info">@ViewBag.TotalServicos</span></td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Servicos" asp-action="Index" class="btn btn-outline-primary" title="Listar">
+                                                <i class="bi bi-list"></i>
+                                            </a>
+                                            <a asp-controller="Servicos" asp-action="Create" class="btn btn-outline-success" title="Adicionar">
+                                                <i class="bi bi-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-lightbulb text-warning me-2"></i>
+                                        <strong>Manejos</strong>
+                                    </td>
+                                    <td class="text-muted">Dicas e saberes compartilhados pelas mães</td>
+                                    <td class="text-center"><span class="badge bg-warning text-dark">@ViewBag.TotalManejos</span></td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Manejos" asp-action="Index" class="btn btn-outline-primary" title="Listar">
+                                                <i class="bi bi-list"></i>
+                                            </a>
+                                            <a asp-controller="Manejos" asp-action="Create" class="btn btn-outline-success" title="Adicionar">
+                                                <i class="bi bi-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-book text-success me-2"></i>
+                                        <strong>Glossário</strong>
+                                    </td>
+                                    <td class="text-muted">Mini dicionário de termos sobre autismo</td>
+                                    <td class="text-center"><span class="badge bg-success">@ViewBag.TotalGlossario</span></td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Glossario" asp-action="Index" class="btn btn-outline-primary" title="Listar">
+                                                <i class="bi bi-list"></i>
+                                            </a>
+                                            <a asp-controller="Glossario" asp-action="Create" class="btn btn-outline-success" title="Adicionar">
+                                                <i class="bi bi-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-briefcase text-secondary me-2"></i>
+                                        <strong>Oportunidades</strong>
+                                    </td>
+                                    <td class="text-muted">Vagas de emprego e oportunidades para PCD</td>
+                                    <td class="text-center"><span class="badge bg-secondary">@ViewBag.TotalOportunidades</span></td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Oportunidades" asp-action="Index" class="btn btn-outline-primary" title="Listar">
+                                                <i class="bi bi-list"></i>
+                                            </a>
+                                            <a asp-controller="Oportunidades" asp-action="Create" class="btn btn-outline-success" title="Adicionar">
+                                                <i class="bi bi-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-chat-heart text-salmon me-2"></i>
+                                        <strong>Posts de Acolhimento</strong>
+                                    </td>
+                                    <td class="text-muted">Publicações da central de acolhimento</td>
+                                    <td class="text-center"><span class="badge bg-salmon">@ViewBag.TotalPosts</span></td>
+                                    <td class="text-center">
+                                        <span class="text-muted small">Gerenciado pelas mães</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-people-fill text-info me-2"></i>
+                                        <strong>Filhos Cadastrados</strong>
+                                    </td>
+                                    <td class="text-muted">Crianças cadastradas pelas mães</td>
+                                    <td class="text-center"><span class="badge bg-info">@ViewBag.TotalFilhos</span></td>
+                                    <td class="text-center">
+                                        <span class="text-muted small">Gerenciado pelas mães</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-clipboard-check text-purple me-2"></i>
+                                        <strong>Triagens</strong>
+                                    </td>
+                                    <td class="text-muted">Solicitações de triagem das escolas</td>
+                                    <td class="text-center"><span class="badge bg-purple">@ViewBag.TotalTriagens</span></td>
+                                    <td class="text-center">
+                                        <span class="text-muted small">Via área profissional</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Configurações do Sistema -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>
+                        Configurações do Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a asp-controller="Configuracoes" asp-action="Email" class="card text-decoration-none h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-envelope fs-2 text-primary mb-2"></i>
+                                    <h6 class="mb-1">E-mail (SMTP)</h6>
+                                    <small class="text-muted">Configurar servidor de e-mail</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-controller="Configuracoes" asp-action="IA" class="card text-decoration-none h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-robot fs-2 text-success mb-2"></i>
+                                    <h6 class="mb-1">Inteligência Artificial</h6>
+                                    <small class="text-muted">Configurar API de IA</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-controller="Configuracoes" asp-action="Todas" class="card text-decoration-none h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-sliders fs-2 text-warning mb-2"></i>
+                                    <h6 class="mb-1">Todas as Configurações</h6>
+                                    <small class="text-muted">Ver/editar todas as configs</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-salmon { background-color: #F28B82; }
+    .text-salmon { color: #F28B82; }
+    .badge.bg-salmon { background-color: #F28B82 !important; }
+    .bg-purple { background-color: #9c27b0; }
+    .text-purple { color: #9c27b0; }
+    .badge.bg-purple { background-color: #9c27b0 !important; }
+</style>

@@ -1,0 +1,175 @@
+@model AUTistima.Models.Opportunity
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Nova Oportunidade";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Publicar Nova Oportunidade
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="NovaOportunidade" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <!-- Título -->
+                        <div class="col-12">
+                            <label asp-for="Titulo" class="form-label fw-semibold"></label>
+                            <input asp-for="Titulo" class="form-control" placeholder="Ex: Assistente Administrativo - Home Office" />
+                            <span asp-validation-for="Titulo" class="text-danger"></span>
+                        </div>
+                        
+                        <!-- Tipo -->
+                        <div class="col-md-6">
+                            <label asp-for="Tipo" class="form-label fw-semibold"></label>
+                            <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoOportunidade>()">
+                                <option value="">Selecione o tipo</option>
+                            </select>
+                            <span asp-validation-for="Tipo" class="text-danger"></span>
+                        </div>
+                        
+                        <!-- Salário -->
+                        <div class="col-md-6">
+                            <label asp-for="ValorSalario" class="form-label fw-semibold"></label>
+                            <input asp-for="ValorSalario" class="form-control" placeholder="Ex: R$ 2.500 a R$ 3.000" />
+                        </div>
+                        
+                        <!-- Descrição -->
+                        <div class="col-12">
+                            <label asp-for="Descricao" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Descricao" class="form-control" rows="4" 
+                                      placeholder="Descreva a oportunidade, atividades principais e perfil desejado..."></textarea>
+                            <span asp-validation-for="Descricao" class="text-danger"></span>
+                        </div>
+                        
+                        <!-- Requisitos -->
+                        <div class="col-md-6">
+                            <label asp-for="Requisitos" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Requisitos" class="form-control" rows="3" 
+                                      placeholder="Liste os requisitos necessários..."></textarea>
+                        </div>
+                        
+                        <!-- Benefícios -->
+                        <div class="col-md-6">
+                            <label asp-for="Beneficios" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Beneficios" class="form-control" rows="3" 
+                                      placeholder="Liste os benefícios oferecidos..."></textarea>
+                        </div>
+                        
+                        <!-- Localização -->
+                        <div class="col-md-8">
+                            <label asp-for="Cidade" class="form-label fw-semibold"></label>
+                            <input asp-for="Cidade" class="form-control" placeholder="Ex: São Paulo" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="Estado" class="form-label fw-semibold"></label>
+                            <select asp-for="Estado" class="form-select">
+                                <option value="">UF</option>
+                                <option value="AC">AC</option>
+                                <option value="AL">AL</option>
+                                <option value="AP">AP</option>
+                                <option value="AM">AM</option>
+                                <option value="BA">BA</option>
+                                <option value="CE">CE</option>
+                                <option value="DF">DF</option>
+                                <option value="ES">ES</option>
+                                <option value="GO">GO</option>
+                                <option value="MA">MA</option>
+                                <option value="MT">MT</option>
+                                <option value="MS">MS</option>
+                                <option value="MG">MG</option>
+                                <option value="PA">PA</option>
+                                <option value="PB">PB</option>
+                                <option value="PR">PR</option>
+                                <option value="PE">PE</option>
+                                <option value="PI">PI</option>
+                                <option value="RJ">RJ</option>
+                                <option value="RN">RN</option>
+                                <option value="RS">RS</option>
+                                <option value="RO">RO</option>
+                                <option value="RR">RR</option>
+                                <option value="SC">SC</option>
+                                <option value="SP">SP</option>
+                                <option value="SE">SE</option>
+                                <option value="TO">TO</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Flexibilidade -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Flexibilidade</label>
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input asp-for="PermiteHomeOffice" class="form-check-input" />
+                                                <label asp-for="PermiteHomeOffice" class="form-check-label">
+                                                    <i class="bi bi-house text-success me-1"></i>
+                                                    Permite Home Office
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input asp-for="HorarioFlexivel" class="form-check-input" />
+                                                <label asp-for="HorarioFlexivel" class="form-check-label">
+                                                    <i class="bi bi-clock text-info me-1"></i>
+                                                    Horário Flexível
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted mt-2 d-block">
+                                        <i class="bi bi-lightbulb me-1"></i>
+                                        Oportunidades flexíveis atraem mais mães atípicas qualificadas!
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contato -->
+                        <div class="col-md-6">
+                            <label asp-for="Contato" class="form-label fw-semibold"></label>
+                            <input asp-for="Contato" class="form-control" placeholder="E-mail ou telefone para contato" />
+                        </div>
+                        
+                        <!-- Link Externo -->
+                        <div class="col-md-6">
+                            <label asp-for="LinkExterno" class="form-label fw-semibold"></label>
+                            <input asp-for="LinkExterno" class="form-control" type="url" placeholder="https://..." />
+                        </div>
+                        
+                        <!-- Data Expiração -->
+                        <div class="col-md-6">
+                            <label asp-for="DataExpiracao" class="form-label fw-semibold"></label>
+                            <input asp-for="DataExpiracao" class="form-control" type="date" />
+                            <small class="text-muted">Deixe em branco para não expirar</small>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="MinhasOportunidades" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>Publicar Oportunidade
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,149 @@
+@model IEnumerable<AUTistima.Models.ScreeningRequest>
+@using AUTistima.Models.Enums
+@inject Microsoft.AspNetCore.Identity.UserManager<AUTistima.Models.ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Triagens";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var isProfSaude = currentUser?.TipoPerfil == TipoPerfil.ProfissionalSaude;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        @if (isProfSaude)
+        {
+            <p class="text-muted mb-0">Triagens pendentes de avaliação</p>
+        }
+        else
+        {
+            <p class="text-muted mb-0">Triagens solicitadas por você</p>
+        }
+    </div>
+    @if (!isProfSaude)
+    {
+        <a asp-action="NovaTriagem" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Nova Solicitação
+        </a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-clipboard-check display-1 text-muted mb-3"></i>
+            @if (isProfSaude)
+            {
+                <h4 class="text-muted">Nenhuma triagem pendente</h4>
+                <p class="text-muted">Todas as triagens foram avaliadas! 🎉</p>
+            }
+            else
+            {
+                <h4 class="text-muted">Nenhuma triagem solicitada</h4>
+                <p class="text-muted">Solicite uma triagem quando identificar sinais de TEA em algum aluno.</p>
+                <a asp-action="NovaTriagem" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-circle me-2"></i>Solicitar Triagem
+                </a>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Aluno</th>
+                        <th>Escola</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var triagem in Model)
+                    {
+                        <tr>
+                            <td>
+                                <code>@(triagem.CodigoIdentificador ?? $"TRI-{triagem.Id:D5}")</code>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(triagem.NomeAluno))
+                                {
+                                    <span>@triagem.NomeAluno</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Anonimizado</span>
+                                }
+                                @if (triagem.IdadeAluno.HasValue)
+                                {
+                                    <small class="text-muted d-block">@triagem.IdadeAluno anos - @triagem.SerieAno</small>
+                                }
+                            </td>
+                            <td>@triagem.Escola?.Nome</td>
+                            <td>
+                                @switch (triagem.Status)
+                                {
+                                    case StatusTriagem.Pendente:
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock me-1"></i>Pendente
+                                        </span>
+                                        break;
+                                    case StatusTriagem.EmAvaliacao:
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-search me-1"></i>Em Avaliação
+                                        </span>
+                                        break;
+                                    case StatusTriagem.Encaminhado:
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-arrow-right-circle me-1"></i>Encaminhado
+                                        </span>
+                                        break;
+                                    case StatusTriagem.Concluido:
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Concluído
+                                        </span>
+                                        break;
+                                    case StatusTriagem.Cancelado:
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-x-circle me-1"></i>Cancelado
+                                        </span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <small>@triagem.DataSolicitacao.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="DetalhesTriagem" asp-route-id="@triagem.Id" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>
+                                    @(isProfSaude ? "Avaliar" : "Ver")
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (isProfSaude)
+{
+    <div class="mt-4">
+        <div class="card border-0 bg-info bg-opacity-10">
+            <div class="card-body">
+                <h6 class="text-info mb-2"><i class="bi bi-info-circle me-2"></i>Sobre o processo de triagem</h6>
+                <p class="mb-0 small text-muted">
+                    As triagens são solicitadas por educadores que identificam sinais de TEA em alunos. 
+                    Sua avaliação é fundamental para orientar o encaminhamento adequado das famílias. 
+                    Lembre-se: a triagem não é diagnóstico, mas uma ferramenta de identificação precoce.
+                </p>
+            </div>
+        </div>
+    </div>
+}

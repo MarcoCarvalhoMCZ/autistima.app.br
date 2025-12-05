@@ -79,11 +79,57 @@
                                     <i class="bi bi-person-circle me-1"></i> @User.Identity.Name
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                    @inject Microsoft.AspNetCore.Identity.UserManager<AUTistima.Models.ApplicationUser> UserManager
+                                    @{
+                                        var currentUser = await UserManager.GetUserAsync(User);
+                                        if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Administrador)
+                                        {
+                                            <li><a class="dropdown-item text-danger fw-semibold" asp-area="Admin" asp-controller="Admin" asp-action="Index">
+                                                <i class="bi bi-gear me-2"></i>Administração
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude || 
+                                                 currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao)
+                                        {
+                                            <li><a class="dropdown-item text-primary fw-semibold" asp-area="Profissional" asp-controller="Profissional" asp-action="Index">
+                                                <i class="bi bi-person-badge me-2"></i>Área do Profissional
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Empresa)
+                                        {
+                                            <li><a class="dropdown-item text-success fw-semibold" asp-area="Empresa" asp-controller="Empresa" asp-action="Index">
+                                                <i class="bi bi-building me-2"></i>Área da Empresa
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Governo)
+                                        {
+                                            <li><a class="dropdown-item fw-semibold" style="color: #6f42c1;" asp-area="Governo" asp-controller="Governo" asp-action="Index">
+                                                <i class="bi bi-bank me-2"></i>Painel Governamental
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Mae)
+                                        {
+                                            <li><a class="dropdown-item fw-semibold" style="color: #F28B82;" asp-area="Mae" asp-controller="Mae" asp-action="Index">
+                                                <i class="bi bi-house-heart me-2"></i>Meu Espaço
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        }
+                                    }
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">
                                         <i class="bi bi-person me-2"></i>Meu Perfil
                                     </a></li>
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="MeusFilhos">
-                                        <i class="bi bi-people me-2"></i>Meus Filhos
+                                    @if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Mae)
+                                    {
+                                        <li><a class="dropdown-item" asp-area="" asp-controller="Filhos" asp-action="Index">
+                                            <i class="bi bi-people me-2"></i>Meus Filhos
+                                        </a></li>
+                                    }
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="ChangePassword">
+                                        <i class="bi bi-key me-2"></i>Alterar Senha
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
@@ -105,7 +151,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="btn btn-salmon ms-2" asp-controller="Account" asp-action="Register">
-                                    Cadastre-se
+                                    <i class="bi bi-heart me-1"></i> Faça Parte
                                 </a>
                             </li>
                         }

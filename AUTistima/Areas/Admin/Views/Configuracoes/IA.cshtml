@@ -1,0 +1,254 @@
+@model AUTistima.Models.IAConfigViewModel
+@{
+    ViewData["Title"] = "Configurações de IA";
+    var apiKeyConfigurada = ViewBag.ApiKeyConfigurada as bool? ?? false;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Configurações</a></li>
+                <li class="breadcrumb-item active">Inteligência Artificial</li>
+            </ol>
+        </nav>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-robot me-2"></i>Configurações de Inteligência Artificial
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="IA" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <!-- Status -->
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input asp-for="Ativo" class="form-check-input" role="switch" id="iaAtivo">
+                                <label class="form-check-label" for="iaAtivo">
+                                    <strong>Chat com IA Ativo</strong>
+                                </label>
+                            </div>
+                            <small class="text-muted">Ative para disponibilizar o chat de orientação para as mães</small>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- Provedor -->
+                        <div class="col-md-4">
+                            <label asp-for="Provedor" class="form-label fw-semibold"></label>
+                            <select asp-for="Provedor" class="form-select">
+                                <option value="OpenAI">OpenAI (GPT)</option>
+                                <option value="Azure">Azure OpenAI</option>
+                                <option value="Anthropic">Anthropic (Claude)</option>
+                                <option value="Google">Google (Gemini)</option>
+                                <option value="Groq">Groq</option>
+                                <option value="Ollama">Ollama (Local)</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+
+                        <!-- Modelo -->
+                        <div class="col-md-4">
+                            <label asp-for="Modelo" class="form-label fw-semibold"></label>
+                            <select asp-for="Modelo" class="form-select" id="modeloSelect">
+                                <optgroup label="OpenAI">
+                                    <option value="gpt-4o">GPT-4o (Recomendado)</option>
+                                    <option value="gpt-4o-mini">GPT-4o Mini (Econômico)</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                </optgroup>
+                                <optgroup label="Anthropic">
+                                    <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                                    <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                                </optgroup>
+                                <optgroup label="Google">
+                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                </optgroup>
+                            </select>
+                            <input type="text" class="form-control mt-2 d-none" id="modeloCustom" placeholder="Modelo personalizado">
+                        </div>
+
+                        <!-- API Key -->
+                        <div class="col-md-4">
+                            <label asp-for="ApiKey" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="ApiKey" class="form-control" type="password"
+                                       placeholder="@(apiKeyConfigurada ? "sk-••••••••••••••••" : "sk-...")" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            @if (apiKeyConfigurada)
+                            {
+                                <small class="text-success"><i class="bi bi-check-circle me-1"></i>API Key configurada</small>
+                            }
+                            else
+                            {
+                                <small class="text-warning"><i class="bi bi-exclamation-circle me-1"></i>API Key não configurada</small>
+                            }
+                        </div>
+
+                        <!-- API URL (opcional) -->
+                        <div class="col-md-6">
+                            <label asp-for="ApiUrl" class="form-label fw-semibold"></label>
+                            <input asp-for="ApiUrl" class="form-control" placeholder="https://api.openai.com/v1 (opcional)" />
+                            <small class="text-muted">Use apenas para provedores alternativos ou self-hosted</small>
+                        </div>
+
+                        <!-- Temperatura -->
+                        <div class="col-md-3">
+                            <label asp-for="Temperatura" class="form-label fw-semibold"></label>
+                            <input asp-for="Temperatura" class="form-control" type="number" step="0.1" min="0" max="2" />
+                            <small class="text-muted">0 = preciso, 2 = criativo</small>
+                        </div>
+
+                        <!-- Max Tokens -->
+                        <div class="col-md-3">
+                            <label asp-for="MaxTokens" class="form-label fw-semibold"></label>
+                            <input asp-for="MaxTokens" class="form-control" type="number" min="100" max="128000" />
+                            <small class="text-muted">Limite por resposta</small>
+                        </div>
+
+                        <!-- System Prompt -->
+                        <div class="col-12">
+                            <label asp-for="SystemPrompt" class="form-label fw-semibold">
+                                Prompt do Sistema
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-2" onclick="resetPrompt()">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Restaurar padrão
+                                </button>
+                            </label>
+                            <textarea asp-for="SystemPrompt" class="form-control" rows="10" 
+                                      placeholder="Instruções para o comportamento da IA..."></textarea>
+                            <small class="text-muted">
+                                Define como a IA deve se comportar. Este prompt é enviado em todas as conversas.
+                            </small>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary" onclick="testarIA()">
+                                <i class="bi bi-lightning me-2"></i>Testar Conexão
+                            </button>
+                        </div>
+                        <div>
+                            <a asp-action="Index" class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-arrow-left me-2"></i>Voltar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i>Salvar Configurações
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info sobre custos -->
+        <div class="card border-0 bg-info bg-opacity-10 mt-4">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle me-2"></i>Sobre Custos e Uso</h6>
+                <ul class="mb-0 small text-muted">
+                    <li><strong>GPT-4o Mini</strong> é a opção mais econômica para volume alto de conversas</li>
+                    <li><strong>GPT-4o</strong> oferece melhor qualidade para orientações mais complexas</li>
+                    <li>A <strong>Temperatura</strong> de 0.7 é ideal para respostas equilibradas entre precisão e naturalidade</li>
+                    <li>Monitore o uso através do dashboard do provedor para controlar custos</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Aviso de responsabilidade -->
+        <div class="alert alert-warning border-0 mt-4">
+            <div class="d-flex">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <h6 class="alert-heading mb-1">Importante!</h6>
+                    <p class="mb-0 small">
+                        O chat com IA é uma ferramenta de <strong>orientação inicial</strong> e <strong>acolhimento</strong>. 
+                        Ele <strong>não substitui</strong> profissionais de saúde. Certifique-se de que o prompt do sistema 
+                        deixa claro que a IA não faz diagnósticos e sempre recomenda buscar profissionais especializados.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function togglePassword(btn) {
+            const input = btn.previousElementSibling;
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+
+        function resetPrompt() {
+            if (confirm('Restaurar o prompt para o valor padrão?')) {
+                document.getElementById('SystemPrompt').value = `Você é uma assistente virtual acolhedora do AUTistima, uma plataforma de apoio para mães atípicas (mães de pessoas autistas).
+
+Seu papel é:
+1. Acolher e ouvir as mães com empatia e carinho
+2. Fornecer informações básicas sobre autismo (TEA - Transtorno do Espectro Autista)
+3. Orientar sobre direitos, benefícios e serviços disponíveis
+4. Sugerir estratégias de manejo do dia-a-dia (sempre ressaltando que não substitui profissionais)
+5. Indicar quando procurar ajuda profissional especializada
+
+IMPORTANTE:
+- Nunca faça diagnósticos ou prescrições médicas
+- Sempre recomende consulta com profissionais para questões de saúde
+- Use linguagem acolhedora e empática
+- Valide os sentimentos das mães
+- Lembre que cada criança autista é única
+- Respeite o conhecimento de vivência das mães
+
+Você fala português brasileiro e usa emojis com moderação para criar um ambiente acolhedor 💕`;
+            }
+        }
+
+        function testarIA() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testando...';
+            btn.disabled = true;
+
+            fetch('@Url.Action("TestarIA")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(err => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert('❌ Erro ao testar conexão');
+            });
+        }
+    </script>
+}

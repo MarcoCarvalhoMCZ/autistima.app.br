@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using AUTistima.Data;
 using AUTistima.Models;
+using AUTistima.Models.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,11 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+// Rota para área administrativa
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
@@ -77,6 +83,40 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Erro ao aplicar migrations do banco de dados.");
+    }
+    
+    // Criar usuário administrador padrão
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var adminEmail = "lorena@autistima.app.br";
+        
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser == null)
+        {
+            adminUser = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                NomeCompleto = "Lorena - Administradora",
+                TipoPerfil = TipoPerfil.Administrador,
+                EmailConfirmed = true,
+                Ativo = true,
+                DataCadastro = DateTime.UtcNow
+            };
+            
+            var result = await userManager.CreateAsync(adminUser, "Lorena@2025");
+            if (result.Succeeded)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogInformation("Usuário administrador criado: {Email}", adminEmail);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Erro ao criar usuário administrador.");
     }
 }
 

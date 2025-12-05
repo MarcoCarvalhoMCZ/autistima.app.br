@@ -1,0 +1,171 @@
+@model AUTistima.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Meu Painel";
+    var ultimosPosts = ViewBag.UltimosPosts as IEnumerable<AUTistima.Models.Post> ?? Enumerable.Empty<AUTistima.Models.Post>();
+}
+
+<div class="row g-4">
+    <!-- Boas-vindas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(90deg, #F28B82 0%, #d57a73 100%); color: white;">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2">
+                            <i class="bi bi-heart me-2"></i>
+                            Olá, @Model?.NomeCompleto.Split(' ').First()! 💕
+                        </h3>
+                        <p class="mb-0 opacity-75">
+                            Este é o seu espaço especial. Aqui você pode gerenciar informações dos seus filhos,
+                            compartilhar manejos que funcionam com sua família e conectar-se com outras mães atípicas.
+                            <strong>Você não está sozinha!</strong>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <i class="bi bi-person-heart" style="font-size: 5rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                     style="width: 60px; height: 60px; background-color: rgba(242, 139, 130, 0.15);">
+                    <i class="bi bi-people-fill fs-3" style="color: #F28B82;"></i>
+                </div>
+                <h2 class="mb-0">@(ViewBag.TotalFilhos ?? 0)</h2>
+                <p class="text-muted mb-0 small">Filhos Cadastrados</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center">
+                <a asp-action="MeusFilhos" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i>Ver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                     style="width: 60px; height: 60px; background-color: rgba(25, 135, 84, 0.15);">
+                    <i class="bi bi-lightbulb-fill text-success fs-3"></i>
+                </div>
+                <h2 class="mb-0">@(ViewBag.TotalManejos ?? 0)</h2>
+                <p class="text-muted mb-0 small">Manejos Compartilhados</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center">
+                <a asp-action="MeusManejos" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i>Ver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                     style="width: 60px; height: 60px; background-color: rgba(13, 110, 253, 0.15);">
+                    <i class="bi bi-chat-heart-fill text-primary fs-3"></i>
+                </div>
+                <h2 class="mb-0">@(ViewBag.TotalPosts ?? 0)</h2>
+                <p class="text-muted mb-0 small">Publicações</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center">
+                <a asp-action="MeusPosts" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i>Ver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                     style="width: 60px; height: 60px; background-color: rgba(255, 193, 7, 0.15);">
+                    <i class="bi bi-hand-thumbs-up-fill text-warning fs-3"></i>
+                </div>
+                <h2 class="mb-0">@(ViewBag.TotalAcolhimentosRecebidos ?? 0)</h2>
+                <p class="text-muted mb-0 small">Acolhimentos Recebidos</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-area="" asp-controller="Filhos" asp-action="Create" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-plus-circle me-2"></i>Cadastrar Filho
+                    </a>
+                    <a asp-area="" asp-controller="Manejos" asp-action="Create" class="btn btn-outline-success text-start">
+                        <i class="bi bi-lightbulb me-2"></i>Compartilhar Manejo
+                    </a>
+                    <a asp-area="" asp-controller="Acolhimento" asp-action="Create" class="btn btn-outline-danger text-start" style="border-color: #F28B82; color: #F28B82;">
+                        <i class="bi bi-chat-heart me-2"></i>Desabafar na Central
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Publicações -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Suas Últimas Publicações</h6>
+            </div>
+            <div class="card-body">
+                @if (ultimosPosts.Any())
+                {
+                    @foreach (var post in ultimosPosts)
+                    {
+                        <div class="border-bottom pb-2 mb-2">
+                            <p class="mb-1 small">
+                                @(post.Conteudo.Length > 80 ? post.Conteudo.Substring(0, 80) + "..." : post.Conteudo)
+                            </p>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>@post.DataCriacao.ToString("dd/MM/yyyy")
+                                <span class="ms-2">
+                                    <i class="bi bi-heart me-1"></i>@post.Acolhimentos.Count acolhimentos
+                                </span>
+                            </small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center my-3">
+                        Você ainda não publicou nada.<br>
+                        <a asp-area="" asp-controller="Acolhimento" asp-action="Create">Compartilhe como você está! 💕</a>
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mensagem motivacional -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0" style="background-color: rgba(242, 139, 130, 0.1);">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-quote fs-1" style="color: #F28B82; opacity: 0.5;"></i>
+                <p class="lead mb-0 fst-italic" style="color: #d57a73;">
+                    "Ser mãe atípica é ter força que nem você mesma sabia que tinha."
+                </p>
+                <small class="text-muted">— Comunidade AUTistima</small>
+            </div>
+        </div>
+    </div>
+</div>

@@ -16,9 +16,18 @@
                     em prol da inclusão e do diagnóstico precoce.
                 </p>
                 <div class="d-flex gap-3 flex-wrap justify-content-lg-start justify-content-center">
-                    <a asp-controller="Account" asp-action="Register" class="btn btn-salmon btn-lg">
-                        <i class="bi bi-heart me-2"></i>Faça Parte
-                    </a>
+                    @if (!User.Identity?.IsAuthenticated ?? true)
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-salmon btn-lg">
+                            <i class="bi bi-heart me-2"></i>Faça Parte
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Acolhimento" asp-action="Index" class="btn btn-salmon btn-lg">
+                            <i class="bi bi-heart me-2"></i>Central de Acolhimento
+                        </a>
+                    }
                     <a asp-controller="Home" asp-action="Sobre" class="btn btn-outline-blue btn-lg">
                         <i class="bi bi-info-circle me-2"></i>Saiba Mais
                     </a>
@@ -217,6 +226,8 @@
 </section>
 
 <!-- CTA Final -->
+@if (!User.Identity?.IsAuthenticated ?? true)
+{
 <section class="section text-center">
     <div class="container">
         <h2>Pronta para fazer parte?</h2>
@@ -234,3 +245,4 @@
         </div>
     </div>
 </section>
+}

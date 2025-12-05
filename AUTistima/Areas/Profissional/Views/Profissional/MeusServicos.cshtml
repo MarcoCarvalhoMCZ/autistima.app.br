@@ -1,0 +1,100 @@
+@model IEnumerable<AUTistima.Models.Service>
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Meus Serviços";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Gerencie os serviços que você oferece à comunidade</p>
+    </div>
+    <a asp-action="NovoServico" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Novo Serviço
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-clipboard2-pulse display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">Nenhum serviço cadastrado</h4>
+            <p class="text-muted">Cadastre seus serviços para que mães atípicas possam encontrá-lo!</p>
+            <a asp-action="NovoServico" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle me-2"></i>Cadastrar Serviço
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var servico in Model)
+        {
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">@servico.Especialidade</span>
+                        @if (servico.Verificado)
+                        {
+                            <span class="badge bg-success"><i class="bi bi-patch-check me-1"></i>Verificado</span>
+                        }
+                        @if (!servico.Ativo)
+                        {
+                            <span class="badge bg-secondary">Inativo</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@servico.NomeProfissional</h5>
+                        <p class="card-text text-muted small">
+                            @if (!string.IsNullOrEmpty(servico.Descricao))
+                            {
+                                @(servico.Descricao.Length > 150 ? servico.Descricao.Substring(0, 150) + "..." : servico.Descricao)
+                            }
+                        </p>
+                        
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            @if (servico.AtendeOnline)
+                            {
+                                <span class="badge bg-info-subtle text-info">
+                                    <i class="bi bi-camera-video me-1"></i>Online
+                                </span>
+                            }
+                            <span class="badge bg-secondary-subtle text-secondary">
+                                @servico.TipoAtendimento
+                            </span>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(servico.Cidade))
+                        {
+                            <p class="mb-1 small">
+                                <i class="bi bi-geo-alt text-muted me-1"></i>
+                                @servico.Cidade/@servico.Estado
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(servico.ValorConsulta))
+                        {
+                            <p class="mb-0 small text-success fw-semibold">
+                                <i class="bi bi-currency-dollar me-1"></i>@servico.ValorConsulta
+                            </p>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <div class="btn-group btn-group-sm">
+                            <a asp-action="EditarServico" asp-route-id="@servico.Id" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i>Editar
+                            </a>
+                            <form asp-action="ExcluirServico" asp-route-id="@servico.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Tem certeza que deseja excluir este serviço?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

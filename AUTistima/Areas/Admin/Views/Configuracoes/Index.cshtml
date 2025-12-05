@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Configurações do Sistema";
+}
+
+<div class="row g-4">
+    <!-- Header -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-danger text-white">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2">
+                            <i class="bi bi-gear me-2"></i>
+                            Configurações do Sistema
+                        </h3>
+                        <p class="mb-0 opacity-75">
+                            Gerencie as configurações globais da plataforma AUTistima, incluindo integrações com serviços externos.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <i class="bi bi-sliders" style="font-size: 5rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Configuração -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-envelope-fill text-primary fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Configurações de E-mail</h5>
+                        <small class="text-muted">SMTP, credenciais e envio</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-3">
+                    Configure o servidor SMTP para envio de e-mails da plataforma, como notificações, 
+                    recuperação de senha e confirmações de cadastro.
+                </p>
+                <a asp-action="Email" class="btn btn-primary">
+                    <i class="bi bi-gear me-2"></i>Configurar E-mail
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-robot text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Inteligência Artificial</h5>
+                        <small class="text-muted">Chat inteligente e orientações</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-3">
+                    Configure a integração com APIs de IA (OpenAI, Azure, etc.) para o chat de orientação 
+                    que ajuda mães com dúvidas iniciais sobre autismo.
+                </p>
+                <a asp-action="IA" class="btn btn-success">
+                    <i class="bi bi-gear me-2"></i>Configurar IA
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-database-fill text-warning fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Todas as Configurações</h5>
+                        <small class="text-muted">Visualização técnica</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-3">
+                    Visualize todas as configurações do sistema em formato técnico. 
+                    Útil para debug e verificação de valores.
+                </p>
+                <a asp-action="Todas" class="btn btn-warning">
+                    <i class="bi bi-list-ul me-2"></i>Ver Todas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100 bg-light">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-secondary bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-shield-lock text-secondary fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">Segurança</h5>
+                        <small class="text-muted">Em desenvolvimento</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-3">
+                    Configurações de segurança, políticas de senha, autenticação de dois fatores 
+                    e outras opções de proteção. <em>(Em breve)</em>
+                </p>
+                <button class="btn btn-secondary" disabled>
+                    <i class="bi bi-clock me-2"></i>Em Breve
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Aviso importante -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-warning border-0">
+            <div class="d-flex">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <h6 class="alert-heading mb-1">Atenção!</h6>
+                    <p class="mb-0 small">
+                        As configurações aqui são sensíveis e afetam o funcionamento de toda a plataforma. 
+                        Certifique-se de que você entende cada configuração antes de alterá-la. 
+                        Dados como senhas e API keys são armazenados de forma segura e nunca são exibidos em texto puro após salvos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

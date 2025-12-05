@@ -1,0 +1,219 @@
+@model AUTistima.Models.EmailConfigViewModel
+@{
+    ViewData["Title"] = "Configurações de E-mail";
+    var senhaConfigurada = ViewBag.SenhaConfigurada as bool? ?? false;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Configurações</a></li>
+                <li class="breadcrumb-item active">E-mail</li>
+            </ol>
+        </nav>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-envelope me-2"></i>Configurações de E-mail (SMTP)
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Email" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <!-- Status -->
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input asp-for="Ativo" class="form-check-input" role="switch" id="emailAtivo">
+                                <label class="form-check-label" for="emailAtivo">
+                                    <strong>Serviço de E-mail Ativo</strong>
+                                </label>
+                            </div>
+                            <small class="text-muted">Desative para não enviar e-mails do sistema</small>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- Servidor SMTP -->
+                        <div class="col-md-8">
+                            <label asp-for="SmtpServer" class="form-label fw-semibold"></label>
+                            <input asp-for="SmtpServer" class="form-control" placeholder="Ex: smtp.gmail.com" />
+                            <span asp-validation-for="SmtpServer" class="text-danger"></span>
+                        </div>
+
+                        <!-- Porta -->
+                        <div class="col-md-4">
+                            <label asp-for="SmtpPort" class="form-label fw-semibold"></label>
+                            <input asp-for="SmtpPort" class="form-control" type="number" />
+                            <span asp-validation-for="SmtpPort" class="text-danger"></span>
+                            <small class="text-muted">587 (TLS) ou 465 (SSL)</small>
+                        </div>
+
+                        <!-- E-mail -->
+                        <div class="col-md-6">
+                            <label asp-for="EmailRemetente" class="form-label fw-semibold"></label>
+                            <input asp-for="EmailRemetente" class="form-control" type="email" placeholder="noreply@autistima.app.br" />
+                            <span asp-validation-for="EmailRemetente" class="text-danger"></span>
+                        </div>
+
+                        <!-- Nome do Remetente -->
+                        <div class="col-md-6">
+                            <label asp-for="NomeRemetente" class="form-label fw-semibold"></label>
+                            <input asp-for="NomeRemetente" class="form-control" placeholder="AUTistima" />
+                        </div>
+
+                        <!-- Usuário -->
+                        <div class="col-md-6">
+                            <label asp-for="SmtpUsuario" class="form-label fw-semibold"></label>
+                            <input asp-for="SmtpUsuario" class="form-control" placeholder="usuario@email.com" />
+                            <span asp-validation-for="SmtpUsuario" class="text-danger"></span>
+                        </div>
+
+                        <!-- Senha -->
+                        <div class="col-md-6">
+                            <label asp-for="SmtpSenha" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="SmtpSenha" class="form-control" type="password" 
+                                       placeholder="@(senhaConfigurada ? "••••••••••• (manter atual)" : "Digite a senha")" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            @if (senhaConfigurada)
+                            {
+                                <small class="text-success"><i class="bi bi-check-circle me-1"></i>Senha configurada. Deixe em branco para manter.</small>
+                            }
+                            else
+                            {
+                                <small class="text-warning"><i class="bi bi-exclamation-circle me-1"></i>Nenhuma senha configurada.</small>
+                            }
+                        </div>
+
+                        <!-- SSL -->
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="UsarSsl" class="form-check-input" id="usarSsl">
+                                <label class="form-check-label" for="usarSsl">
+                                    Usar SSL/TLS (recomendado)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary" onclick="testarEmail()">
+                                <i class="bi bi-send me-2"></i>Enviar E-mail de Teste
+                            </button>
+                        </div>
+                        <div>
+                            <a asp-action="Index" class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-arrow-left me-2"></i>Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Salvar Configurações
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dicas -->
+        <div class="card border-0 bg-light mt-4">
+            <div class="card-body">
+                <h6><i class="bi bi-lightbulb me-2"></i>Dicas de Configuração</h6>
+                <ul class="mb-0 small text-muted">
+                    <li><strong>Gmail:</strong> smtp.gmail.com, porta 587, usar "Senha de App" (não a senha da conta)</li>
+                    <li><strong>Outlook/Hotmail:</strong> smtp-mail.outlook.com, porta 587</li>
+                    <li><strong>SendGrid:</strong> smtp.sendgrid.net, porta 587, usuário: apikey</li>
+                    <li><strong>Amazon SES:</strong> email-smtp.[região].amazonaws.com, porta 587</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Teste -->
+<div class="modal fade" id="testeEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-envelope-check me-2"></i>Testar E-mail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">E-mail de destino para teste:</label>
+                    <input type="email" class="form-control" id="emailTeste" placeholder="seu@email.com">
+                </div>
+                <div id="resultadoTeste"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" onclick="enviarEmailTeste()">
+                    <i class="bi bi-send me-2"></i>Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function togglePassword(btn) {
+            const input = btn.previousElementSibling;
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+
+        function testarEmail() {
+            new bootstrap.Modal(document.getElementById('testeEmailModal')).show();
+        }
+
+        function enviarEmailTeste() {
+            const email = document.getElementById('emailTeste').value;
+            const resultado = document.getElementById('resultadoTeste');
+            
+            if (!email) {
+                resultado.innerHTML = '<div class="alert alert-warning">Informe um e-mail</div>';
+                return;
+            }
+
+            resultado.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2"></div>Enviando...</div>';
+
+            fetch('@Url.Action("TestarEmail")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: 'emailDestino=' + encodeURIComponent(email)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    resultado.innerHTML = '<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i>' + data.message + '</div>';
+                } else {
+                    resultado.innerHTML = '<div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i>' + data.message + '</div>';
+                }
+            })
+            .catch(err => {
+                resultado.innerHTML = '<div class="alert alert-danger">Erro ao enviar</div>';
+            });
+        }
+    </script>
+}

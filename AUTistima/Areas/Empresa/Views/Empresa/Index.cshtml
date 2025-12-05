@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Dashboard Empresa";
+}
+
+<div class="row g-4">
+    <!-- Boas-vindas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2">
+                            <i class="bi bi-building me-2"></i>
+                            Bem-vindo(a) à Área da Empresa
+                        </h3>
+                        <p class="mb-0 opacity-75">
+                            Aqui você pode publicar oportunidades de trabalho flexíveis para mães atípicas,
+                            contribuindo para a inclusão e apoiando essas mulheres extraordinárias.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <i class="bi bi-briefcase" style="font-size: 5rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-briefcase-fill text-primary fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.TotalOportunidades ?? 0)</h2>
+                        <p class="text-muted mb-0">Total de Oportunidades</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a asp-action="MinhasOportunidades" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>Ver Todas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.OportunidadesAtivas ?? 0)</h2>
+                        <p class="text-muted mb-0">Oportunidades Ativas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a asp-action="NovaOportunidade" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i>Nova Oportunidade
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a asp-action="NovaOportunidade" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-plus-circle d-block fs-3 mb-2"></i>
+                            Publicar Nova Vaga
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-action="MinhasOportunidades" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-list-ul d-block fs-3 mb-2"></i>
+                            Gerenciar Oportunidades
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-area="" asp-controller="Home" asp-action="Sobre" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-info-circle d-block fs-3 mb-2"></i>
+                            Sobre o AUTistima
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Por que contratar mães atípicas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="bi bi-heart me-2 text-salmon"></i>Por que contratar mães atípicas?</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="d-flex">
+                            <i class="bi bi-star-fill text-warning me-2"></i>
+                            <div>
+                                <strong>Resiliência</strong>
+                                <p class="text-muted mb-0 small">São mulheres que superam desafios diariamente</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="d-flex">
+                            <i class="bi bi-clock-fill text-primary me-2"></i>
+                            <div>
+                                <strong>Organização</strong>
+                                <p class="text-muted mb-0 small">Gerenciam múltiplas demandas com eficiência</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex">
+                            <i class="bi bi-people-fill text-success me-2"></i>
+                            <div>
+                                <strong>Empatia</strong>
+                                <p class="text-muted mb-0 small">Desenvolvem habilidades interpessoais excepcionais</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

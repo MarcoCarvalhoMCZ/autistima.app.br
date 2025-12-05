@@ -1,0 +1,177 @@
+@{
+    ViewData["Title"] = "Dashboard Governamental";
+}
+
+<div class="row g-4">
+    <!-- Boas-vindas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(90deg, #6f42c1 0%, #432874 100%);">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2">
+                            <i class="bi bi-bank me-2"></i>
+                            Painel Governamental
+                        </h3>
+                        <p class="mb-0 opacity-75">
+                            Acompanhe indicadores, estatísticas de triagem e a evolução da política pública
+                            de identificação precoce de sinais de TEA nas escolas do município.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <i class="bi bi-graph-up-arrow" style="font-size: 5rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-salmon bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-people-fill text-salmon fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.TotalMaes ?? 0)</h2>
+                        <p class="text-muted mb-0">Mães Cadastradas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-clipboard-data text-primary fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.TotalTriagens ?? 0)</h2>
+                        <p class="text-muted mb-0">Total de Triagens</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-hourglass-split text-warning fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.TriagensPendentes ?? 0)</h2>
+                        <p class="text-muted mb-0">Aguardando Avaliação</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-building text-info fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.TotalEscolas ?? 0)</h2>
+                        <p class="text-muted mb-0">Escolas Cadastradas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-check-circle text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.TriagensRealizadas ?? 0)</h2>
+                        <p class="text-muted mb-0">Triagens Realizadas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="bi bi-hospital text-danger fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">@(ViewBag.EncaminhadasSaude ?? 0)</h2>
+                        <p class="text-muted mb-0">Encaminhadas à Saúde</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Acesso Rápido</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a asp-action="Estatisticas" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-graph-up d-block fs-3 mb-2"></i>
+                            Ver Estatísticas
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a asp-action="Triagens" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-clipboard-data d-block fs-3 mb-2"></i>
+                            Consultar Triagens
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a asp-action="Escolas" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-building d-block fs-3 mb-2"></i>
+                            Visualizar Escolas
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a asp-area="" asp-controller="Home" asp-action="Sobre" class="btn btn-outline-secondary w-100 py-3">
+                            <i class="bi bi-info-circle d-block fs-3 mb-2"></i>
+                            Sobre o Projeto
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body">
+                <h5><i class="bi bi-info-circle me-2"></i>Sobre esta área</h5>
+                <p class="mb-0 text-muted">
+                    Esta área é dedicada aos gestores públicos para acompanhamento de indicadores
+                    do programa AUTistima. Aqui você pode visualizar estatísticas de triagem,
+                    acompanhar o fluxo de encaminhamentos e monitorar a cobertura do programa
+                    nas escolas do município.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

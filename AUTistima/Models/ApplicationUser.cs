@@ -26,14 +26,44 @@ public class ApplicationUser : IdentityUser
     [Display(Name = "Foto de Perfil")]
     public string? FotoPerfilUrl { get; set; }
     
+    // Dados Pessoais
+    [Display(Name = "Data de Nascimento")]
+    [DataType(DataType.Date)]
+    public DateTime? DataNascimento { get; set; }
+    
+    [StringLength(14)]
+    [Display(Name = "CPF")]
+    public string? CPF { get; set; }
+    
+    [StringLength(12)]
+    [Display(Name = "RG")]
+    public string? RG { get; set; }
+    
+    // Endereço Completo
+    [StringLength(9)]
+    [Display(Name = "CEP")]
+    public string? CEP { get; set; }
+    
+    [StringLength(200)]
+    [Display(Name = "Endereço")]
+    public string? Endereco { get; set; }
+    
+    [StringLength(10)]
+    [Display(Name = "Número")]
+    public string? NumeroEndereco { get; set; }
+    
+    [StringLength(100)]
+    [Display(Name = "Complemento")]
+    public string? Complemento { get; set; }
+    
+    [StringLength(100)]
+    public string? Bairro { get; set; }
+    
     [StringLength(100)]
     public string? Cidade { get; set; }
     
     [StringLength(2)]
     public string? Estado { get; set; }
-    
-    [StringLength(100)]
-    public string? Bairro { get; set; }
     
     public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
     

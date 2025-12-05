@@ -1,0 +1,147 @@
+@model IEnumerable<AUTistima.Models.School>
+@{
+    ViewData["Title"] = "Escolas";
+    var cidadeAtual = ViewBag.Cidade as string;
+    var paginaAtual = (int)(ViewBag.PaginaAtual ?? 1);
+    var totalPaginas = (int)(ViewBag.TotalPaginas ?? 1);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Escolas cadastradas no município</p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Buscar por Cidade</label>
+                <input type="text" name="cidade" class="form-control" 
+                       placeholder="Digite o nome da cidade" value="@cidadeAtual" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Buscar
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(cidadeAtual))
+            {
+                <div class="col-md-2">
+                    <a href="@Url.Action("Escolas")" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x me-1"></i>Limpar
+                    </a>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-building display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">Nenhuma escola encontrada</h4>
+            <p class="text-muted">Não há escolas cadastradas com os filtros selecionados.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Escola</th>
+                        <th>Tipo</th>
+                        <th>Localização</th>
+                        <th>Contato</th>
+                        <th class="text-center">Sala de Recursos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var escola in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@escola.Nome</strong>
+                                @if (!string.IsNullOrEmpty(escola.CNPJ))
+                                {
+                                    <small class="text-muted d-block">CNPJ: @escola.CNPJ</small>
+                                }
+                            </td>
+                            <td>
+                                @if (escola.EscolaPublica)
+                                {
+                                    <span class="badge bg-primary">Pública</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Particular</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(escola.Cidade))
+                                {
+                                    <span>@escola.Cidade/@escola.Estado</span>
+                                    @if (!string.IsNullOrEmpty(escola.Bairro))
+                                    {
+                                        <small class="text-muted d-block">@escola.Bairro</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(escola.Telefone))
+                                {
+                                    <span>@escola.Telefone</span>
+                                }
+                                @if (!string.IsNullOrEmpty(escola.Email))
+                                {
+                                    <small class="text-muted d-block">@escola.Email</small>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (escola.PossuiSalaRecursos)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check"></i> Sim</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Não</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paginação -->
+    @if (totalPaginas > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(paginaAtual == 1 ? "disabled" : "")">
+                    <a class="page-link" href="?pagina=@(paginaAtual - 1)&cidade=@cidadeAtual">Anterior</a>
+                </li>
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="page-item @(i == paginaAtual ? "active" : "")">
+                        <a class="page-link" href="?pagina=@i&cidade=@cidadeAtual">@i</a>
+                    </li>
+                }
+                <li class="page-item @(paginaAtual == totalPaginas ? "disabled" : "")">
+                    <a class="page-link" href="?pagina=@(paginaAtual + 1)&cidade=@cidadeAtual">Próxima</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

@@ -128,7 +128,142 @@ public class AccountController : Controller
         {
             return NotFound();
         }
-        return View(user);
+        
+        var viewModel = new ProfileViewModel
+        {
+            Id = user.Id,
+            NomeCompleto = user.NomeCompleto,
+            Email = user.Email ?? "",
+            PhoneNumber = user.PhoneNumber,
+            TipoPerfil = user.TipoPerfil,
+            SobreMim = user.SobreMim,
+            DataNascimento = user.DataNascimento,
+            CPF = user.CPF,
+            RG = user.RG,
+            CEP = user.CEP,
+            Endereco = user.Endereco,
+            NumeroEndereco = user.NumeroEndereco,
+            Complemento = user.Complemento,
+            Bairro = user.Bairro,
+            Cidade = user.Cidade,
+            Estado = user.Estado,
+            CNPJ = user.CNPJ,
+            NomeEmpresa = user.NomeEmpresa,
+            RegistroProfissional = user.RegistroProfissional,
+            Especialidade = user.Especialidade,
+            FotoPerfilUrl = user.FotoPerfilUrl
+        };
+        
+        return View(viewModel);
+    }
+    
+    // POST: Account/Profile
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Profile(ProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+        
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        
+        // Atualizar dados básicos
+        user.NomeCompleto = model.NomeCompleto;
+        user.PhoneNumber = model.PhoneNumber;
+        user.SobreMim = model.SobreMim;
+        
+        // Dados pessoais
+        user.DataNascimento = model.DataNascimento;
+        user.CPF = model.CPF;
+        user.RG = model.RG;
+        
+        // Endereço
+        user.CEP = model.CEP;
+        user.Endereco = model.Endereco;
+        user.NumeroEndereco = model.NumeroEndereco;
+        user.Complemento = model.Complemento;
+        user.Bairro = model.Bairro;
+        user.Cidade = model.Cidade;
+        user.Estado = model.Estado;
+        
+        // Dados de Empresa (se aplicável)
+        if (user.TipoPerfil == TipoPerfil.Empresa)
+        {
+            user.CNPJ = model.CNPJ;
+            user.NomeEmpresa = model.NomeEmpresa;
+        }
+        
+        // Dados de Profissional (se aplicável)
+        if (user.TipoPerfil == TipoPerfil.ProfissionalSaude || user.TipoPerfil == TipoPerfil.ProfissionalEducacao)
+        {
+            user.RegistroProfissional = model.RegistroProfissional;
+            user.Especialidade = model.Especialidade;
+        }
+        
+        user.FotoPerfilUrl = model.FotoPerfilUrl;
+        
+        var result = await _userManager.UpdateAsync(user);
+        
+        if (result.Succeeded)
+        {
+            TempData["Mensagem"] = "Perfil atualizado com sucesso! 💕";
+            return RedirectToAction(nameof(Profile));
+        }
+        
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+        
+        return View(model);
+    }
+    
+    // GET: Account/ChangePassword
+    [Authorize]
+    public IActionResult ChangePassword()
+    {
+        return View();
+    }
+    
+    // POST: Account/ChangePassword
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+        
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        
+        var result = await _userManager.ChangePasswordAsync(user, model.SenhaAtual, model.NovaSenha);
+        
+        if (result.Succeeded)
+        {
+            await _signInManager.RefreshSignInAsync(user);
+            TempData["Mensagem"] = "Senha alterada com sucesso! 🔐";
+            return RedirectToAction(nameof(Profile));
+        }
+        
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, TranslateError(error.Code));
+        }
+        
+        return View(model);
     }
 
     // GET: Account/AccessDenied

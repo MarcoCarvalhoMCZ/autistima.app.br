@@ -1,0 +1,202 @@
+@{
+    ViewData["Title"] = "Dashboard Profissional";
+    var tipoProfissional = ViewBag.TipoProfissional;
+}
+
+<div class="row g-4">
+    <!-- Boas-vindas -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2">
+                            <i class="bi bi-hand-thumbs-up me-2"></i>
+                            Bem-vindo(a) à Área do Profissional
+                        </h3>
+                        <p class="mb-0 opacity-75">
+                            @if (tipoProfissional == AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude)
+                            {
+                                <text>Aqui você pode gerenciar seus serviços, avaliar triagens e contribuir com a comunidade de mães atípicas.</text>
+                            }
+                            else
+                            {
+                                <text>Aqui você pode solicitar triagens, acompanhar o status das avaliações e apoiar a identificação precoce de sinais de TEA.</text>
+                            }
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <i class="bi bi-person-badge" style="font-size: 5rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (tipoProfissional == AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude)
+    {
+        <!-- Cards Profissional de Saúde -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-clipboard2-pulse text-success fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@(ViewBag.TotalServicos ?? 0)</h2>
+                            <p class="text-muted mb-0">Meus Serviços Cadastrados</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="MeusServicos" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-eye me-1"></i>Ver Serviços
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-hourglass-split text-warning fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@(ViewBag.TriagensPendentes ?? 0)</h2>
+                            <p class="text-muted mb-0">Triagens Aguardando Avaliação</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Triagens" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-clipboard-check me-1"></i>Avaliar Triagens
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas Saúde -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a asp-area="" asp-controller="Saude" asp-action="Create" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle d-block fs-3 mb-2"></i>
+                                Cadastrar Novo Serviço
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-action="Triagens" class="btn btn-outline-success w-100 py-3">
+                                <i class="bi bi-clipboard-check d-block fs-3 mb-2"></i>
+                                Ver Triagens Pendentes
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-area="" asp-controller="Manejos" asp-action="Create" class="btn btn-outline-info w-100 py-3">
+                                <i class="bi bi-lightbulb d-block fs-3 mb-2"></i>
+                                Validar Manejos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Cards Profissional de Educação -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-clipboard-data text-primary fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@(ViewBag.TriagensCriadas ?? 0)</h2>
+                            <p class="text-muted mb-0">Triagens Solicitadas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-action="Triagens" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye me-1"></i>Ver Minhas Triagens
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-building text-info fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@(ViewBag.TotalEscolas ?? 0)</h2>
+                            <p class="text-muted mb-0">Escolas Cadastradas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-area="" asp-controller="Escolas" asp-action="Index" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-eye me-1"></i>Ver Escolas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas Educação -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a asp-area="" asp-controller="Triagem" asp-action="Create" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle d-block fs-3 mb-2"></i>
+                                Nova Solicitação de Triagem
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-action="Triagens" class="btn btn-outline-success w-100 py-3">
+                                <i class="bi bi-clipboard-check d-block fs-3 mb-2"></i>
+                                Acompanhar Triagens
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-area="" asp-controller="Glossario" asp-action="Index" class="btn btn-outline-info w-100 py-3">
+                                <i class="bi bi-book d-block fs-3 mb-2"></i>
+                                Consultar Glossário
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Informações -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body">
+                <h5><i class="bi bi-info-circle me-2"></i>Sobre a Área do Profissional</h5>
+                <p class="mb-0 text-muted">
+                    Esta área é dedicada aos profissionais de saúde e educação que fazem parte da rede AUTistima.
+                    Aqui você pode contribuir com a identificação precoce de sinais de TEA, oferecer seus serviços
+                    e apoiar as mães atípicas em sua jornada.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

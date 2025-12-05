@@ -1,0 +1,108 @@
+@model School
+@{
+    ViewData["Title"] = "Nova Escola";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nova Escola
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label asp-for="Nome" class="form-label"></label>
+                                <input asp-for="Nome" class="form-control" required />
+                                <span asp-validation-for="Nome" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label asp-for="CNPJ" class="form-label"></label>
+                                <input asp-for="CNPJ" class="form-control" />
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Endereco" class="form-label"></label>
+                                <input asp-for="Endereco" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Bairro" class="form-label"></label>
+                                <input asp-for="Bairro" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Cidade" class="form-label"></label>
+                                <input asp-for="Cidade" class="form-control" />
+                            </div>
+
+                            <div class="col-md-2">
+                                <label asp-for="Estado" class="form-label"></label>
+                                <select asp-for="Estado" class="form-select">
+                                    <option value="">UF</option>
+                                    @foreach (var uf in new[] { "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" })
+                                    {
+                                        <option value="@uf">@uf</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label asp-for="CEP" class="form-label"></label>
+                                <input asp-for="CEP" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Telefone" class="form-label"></label>
+                                <input asp-for="Telefone" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" type="email" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="mt-2">
+                                    <div class="form-check form-check-inline">
+                                        <input asp-for="EscolaPublica" class="form-check-input" type="checkbox" />
+                                        <label asp-for="EscolaPublica" class="form-check-label">Escola Pública</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input asp-for="PossuiSalaRecursos" class="form-check-input" type="checkbox" />
+                                        <label asp-for="PossuiSalaRecursos" class="form-check-label">Sala de Recursos</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-salmon">
+                                <i class="bi bi-check-lg me-2"></i>Cadastrar Escola
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

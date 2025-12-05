@@ -1,0 +1,113 @@
+@model AUTistima.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Meu Perfil";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header text-white" style="background-color: #F28B82;">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-heart me-2"></i>Meu Perfil
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AtualizarPerfil" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <!-- Nome -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nome Completo</label>
+                            <input type="text" name="nomeCompleto" class="form-control" 
+                                   value="@Model?.NomeCompleto" required />
+                        </div>
+                        
+                        <!-- E-mail (somente leitura) -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">E-mail</label>
+                            <input type="email" class="form-control" value="@Model?.Email" readonly disabled />
+                            <small class="text-muted">O e-mail não pode ser alterado por aqui.</small>
+                        </div>
+                        
+                        <!-- Sobre Mim -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Sobre Mim</label>
+                            <textarea name="sobreMim" class="form-control" rows="3" 
+                                      placeholder="Conte um pouco sobre você e sua jornada...">@Model?.SobreMim</textarea>
+                            <small class="text-muted">Esta informação pode ser visível para outras mães.</small>
+                        </div>
+                        
+                        <!-- Localização -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Cidade</label>
+                            <input type="text" name="cidade" class="form-control" 
+                                   value="@Model?.Cidade" placeholder="Ex: São Paulo" />
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="">UF</option>
+                                @{
+                                    var estados = new[] { "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" };
+                                }
+                                @foreach (var uf in estados)
+                                {
+                                    <option value="@uf" selected="@(Model?.Estado == uf)">@uf</option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Bairro</label>
+                            <input type="text" name="bairro" class="form-control" value="@Model?.Bairro" />
+                        </div>
+                        
+                        <!-- Informações do cadastro -->
+                        <div class="col-12">
+                            <hr class="my-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        Membro desde: @Model?.DataCadastro.ToString("dd/MM/yyyy")
+                                    </small>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-badge me-1"></i>
+                                        Perfil: Mãe Atípica 💕
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn" style="background-color: #F28B82; color: white;">
+                            <i class="bi bi-check-circle me-2"></i>Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dica de Segurança -->
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8">
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <h6 class="mb-2"><i class="bi bi-shield-lock me-2"></i>Segurança da Conta</h6>
+                <p class="mb-0 small text-muted">
+                    Para alterar sua senha ou excluir sua conta, entre em contato com nosso suporte através do e-mail
+                    <strong>contato@autistima.app.br</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

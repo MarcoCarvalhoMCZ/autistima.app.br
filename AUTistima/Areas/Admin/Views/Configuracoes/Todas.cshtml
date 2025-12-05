@@ -1,0 +1,135 @@
+@model IEnumerable<AUTistima.Models.SystemConfiguration>
+@{
+    ViewData["Title"] = "Todas as Configurações";
+}
+
+<div class="row">
+    <div class="col-12">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Configurações</a></li>
+                <li class="breadcrumb-item active">Todas</li>
+            </ol>
+        </nav>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-database me-2"></i>Todas as Configurações do Sistema
+                    </h5>
+                    <span class="badge bg-dark">@Model.Count() registros</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-database display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Nenhuma configuração cadastrada ainda.</p>
+                        <p class="text-muted small">Configure E-mail ou IA para criar as primeiras configurações.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Categoria</th>
+                                    <th>Chave</th>
+                                    <th>Valor</th>
+                                    <th>Descrição</th>
+                                    <th class="text-center">Status</th>
+                                    <th>Atualização</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var categoriaAtual = "";
+                                }
+                                @foreach (var config in Model)
+                                {
+                                    if (config.Categoria != categoriaAtual)
+                                    {
+                                        categoriaAtual = config.Categoria;
+                                        <tr class="table-secondary">
+                                            <td colspan="6">
+                                                <strong>
+                                                    @switch (categoriaAtual)
+                                                    {
+                                                        case "Email":
+                                                            <i class="bi bi-envelope me-2"></i>
+                                                            break;
+                                                        case "IA":
+                                                            <i class="bi bi-robot me-2"></i>
+                                                            break;
+                                                        default:
+                                                            <i class="bi bi-gear me-2"></i>
+                                                            break;
+                                                    }
+                                                    @categoriaAtual
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    }
+                                    <tr>
+                                        <td></td>
+                                        <td><code>@config.Chave</code></td>
+                                        <td>
+                                            @if (config.DadoSensivel)
+                                            {
+                                                <span class="text-muted fst-italic">
+                                                    <i class="bi bi-lock me-1"></i>
+                                                    ••••••••••••
+                                                </span>
+                                            }
+                                            else if (config.Valor.Length > 50)
+                                            {
+                                                <span title="@config.Valor">
+                                                    @config.Valor.Substring(0, 50)...
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                @config.Valor
+                                            }
+                                        </td>
+                                        <td class="text-muted small">@config.Descricao</td>
+                                        <td class="text-center">
+                                            @if (config.Ativo)
+                                            {
+                                                <span class="badge bg-success">Ativo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inativo</span>
+                                            }
+                                        </td>
+                                        <td class="small">
+                                            @if (config.DataAtualizacao.HasValue)
+                                            {
+                                                @config.DataAtualizacao.Value.ToString("dd/MM/yyyy HH:mm")
+                                            }
+                                            else
+                                            {
+                                                @config.DataCriacao.ToString("dd/MM/yyyy HH:mm")
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>

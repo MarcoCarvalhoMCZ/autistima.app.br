@@ -50,6 +50,9 @@ public class AcolhimentoController : Controller
     [Authorize]
     public async Task<IActionResult> Create([Bind("Conteudo,PermitirComentarios")] Post post)
     {
+        // Remove validação de UserId pois será definido no servidor
+        ModelState.Remove("UserId");
+        
         if (ModelState.IsValid)
         {
             post.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -62,6 +65,13 @@ public class AcolhimentoController : Controller
             TempData["Mensagem"] = "Sua mensagem foi compartilhada com carinho. Você não está sozinha! 💕";
             return RedirectToAction(nameof(Index));
         }
+        
+        // Log dos erros de validação para debug
+        foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            _logger.LogWarning("Erro de validação: {Error}", error.ErrorMessage);
+        }
+        
         return View(post);
     }
 

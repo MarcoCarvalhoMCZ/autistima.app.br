@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "Estatísticas";
+    var triagensPorMes = ViewBag.TriagensPorMes as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var escolasPorCidade = ViewBag.EscolasPorCidade as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var servicosPorEspecialidade = ViewBag.ServicosPorEspecialidade as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Relatórios e análises para gestão de políticas públicas</p>
+    </div>
+    <button class="btn btn-outline-secondary" onclick="window.print();">
+        <i class="bi bi-printer me-2"></i>Imprimir
+    </button>
+</div>
+
+<div class="row g-4">
+    <!-- Triagens por Mês -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Triagens por Mês (Últimos 12 meses)</h6>
+            </div>
+            <div class="card-body">
+                @if (triagensPorMes.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Período</th>
+                                    <th class="text-end">Total de Triagens</th>
+                                    <th style="width: 50%">Visualização</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var maxTriagens = triagensPorMes.Any() ? triagensPorMes.Max(x => (int)x.Total) : 1;
+                                }
+                                @foreach (var item in triagensPorMes)
+                                {
+                                    var percentual = maxTriagens > 0 ? ((int)item.Total * 100 / maxTriagens) : 0;
+                                    <tr>
+                                        <td>@item.Periodo</td>
+                                        <td class="text-end"><strong>@item.Total</strong></td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-primary" style="width: @percentual%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center my-5">Nenhuma triagem registrada ainda.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Serviços por Especialidade -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Serviços por Especialidade</h6>
+            </div>
+            <div class="card-body">
+                @if (servicosPorEspecialidade.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in servicosPorEspecialidade)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                @item.Especialidade
+                                <span class="badge bg-primary rounded-pill">@item.Total</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted text-center my-4">Nenhum serviço cadastrado.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Escolas por Cidade -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0"><i class="bi bi-building me-2"></i>Escolas por Cidade (Top 10)</h6>
+            </div>
+            <div class="card-body">
+                @if (escolasPorCidade.Any())
+                {
+                    <div class="row">
+                        @foreach (var item in escolasPorCidade)
+                        {
+                            <div class="col-md-4 col-sm-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-geo-alt text-muted me-2"></i>
+                                    <span>@item.Cidade</span>
+                                    <span class="badge bg-secondary ms-auto">@item.Total escolas</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center my-4">Nenhuma escola com cidade informada.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumo -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light border-0">
+            <div class="card-body">
+                <h6><i class="bi bi-lightbulb me-2"></i>Análise</h6>
+                <p class="mb-0 text-muted small">
+                    Os dados apresentados podem auxiliar na definição de políticas públicas de identificação precoce 
+                    de TEA. Recomenda-se expandir a cobertura de triagens em escolas com baixa adesão e garantir 
+                    disponibilidade de profissionais de saúde nas especialidades com maior demanda.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

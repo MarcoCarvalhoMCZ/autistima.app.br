@@ -1,0 +1,67 @@
+@model Manejo
+@{
+    ViewData["Title"] = "Editar Manejo";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil me-2"></i>
+                        Editar Manejo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="DataCriacao" />
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Titulo" class="form-label"></label>
+                                <input asp-for="Titulo" class="form-control" required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Categoria" class="form-label"></label>
+                                <select asp-for="Categoria" asp-items="Html.GetEnumSelectList<CategoriaManejo>()" class="form-select"></select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="FaixaEtariaIndicada" class="form-label">Faixa Etária Indicada</label>
+                                <input asp-for="FaixaEtariaIndicada" class="form-control" placeholder="Ex: 2-5 anos" />
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Descricao" class="form-label"></label>
+                                <textarea asp-for="Descricao" class="form-control" rows="5"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input asp-for="ValidadoPorEspecialista" class="form-check-input" type="checkbox" />
+                                    <label asp-for="ValidadoPorEspecialista" class="form-check-label">Aprovado</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-salmon">
+                                <i class="bi bi-check-lg me-2"></i>Salvar
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

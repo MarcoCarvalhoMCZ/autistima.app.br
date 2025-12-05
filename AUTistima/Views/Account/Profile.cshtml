@@ -1,22 +1,24 @@
-@model AUTistima.Models.ApplicationUser
+@model AUTistima.ViewModels.ProfileViewModel
 @using AUTistima.Models.Enums
 @{
     ViewData["Title"] = "Meu Perfil";
+    var estados = new[] { "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" };
 }
 
 <div class="container py-4">
     <div class="row">
+        <!-- Coluna Lateral -->
         <div class="col-lg-4 mb-4">
-            <!-- Card do Perfil -->
             <div class="card shadow-sm border-0">
                 <div class="card-body text-center p-4">
-                    <div class="avatar-large bg-salmon text-white mx-auto mb-3">
+                    <div class="avatar-large bg-salmon text-white mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                         @(Model.NomeCompleto?.Substring(0, 1).ToUpper() ?? "U")
                     </div>
                     <h4 class="fw-bold mb-1">@Model.NomeCompleto</h4>
-                    <p class="text-muted mb-3">
+                    <p class="text-muted mb-2">
                         @switch (Model.TipoPerfil)
                         {
+                            case TipoPerfil.Administrador: <text>⚙️ Administrador</text> break;
                             case TipoPerfil.Mae: <text>👩 Mãe Atípica</text> break;
                             case TipoPerfil.ProfissionalSaude: <text>🩺 Profissional de Saúde</text> break;
                             case TipoPerfil.ProfissionalEducacao: <text>📚 Profissional de Educação</text> break;
@@ -24,230 +26,202 @@
                             case TipoPerfil.Governo: <text>🏛️ Governo</text> break;
                         }
                     </p>
-                    
-                    @if (Model.TipoPerfil == TipoPerfil.Empresa && !string.IsNullOrEmpty(Model.NomeEmpresa))
+                    <p class="mb-0"><i class="bi bi-envelope me-1"></i> @Model.Email</p>
+                    @if (!string.IsNullOrEmpty(Model.Cidade))
                     {
-                        <p class="mb-2"><strong>@Model.NomeEmpresa</strong></p>
-                        @if (!string.IsNullOrEmpty(Model.CNPJ))
-                        {
-                            <small class="text-muted">CNPJ: @Model.CNPJ</small>
-                        }
-                    }
-                    
-                    @if ((Model.TipoPerfil == TipoPerfil.ProfissionalSaude || Model.TipoPerfil == TipoPerfil.ProfissionalEducacao) 
-                         && !string.IsNullOrEmpty(Model.RegistroProfissional))
-                    {
-                        <p class="mb-0">
-                            <span class="badge bg-success">
-                                <i class="bi bi-patch-check me-1"></i>
-                                @Model.RegistroProfissional
-                            </span>
+                        <p class="text-muted mb-0 small mt-1">
+                            <i class="bi bi-geo-alt me-1"></i>@Model.Cidade@(!string.IsNullOrEmpty(Model.Estado) ? $" - {Model.Estado}" : "")
                         </p>
                     }
                 </div>
-                <div class="card-footer bg-transparent border-0 text-center pb-4">
-                    <a href="#" class="btn btn-outline-salmon">
-                        <i class="bi bi-pencil me-1"></i>
-                        Editar Perfil
-                    </a>
-                </div>
             </div>
-
-            <!-- Informações de Contato -->
+            
+            <!-- Ações Rápidas -->
             <div class="card shadow-sm border-0 mt-4">
-                <div class="card-header bg-light py-3">
-                    <h6 class="mb-0">
-                        <i class="bi bi-person-lines-fill me-2"></i>
-                        Informações
-                    </h6>
-                </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <small class="text-muted">E-mail</small>
-                        <p class="mb-0">@Model.Email</p>
+                    <h6 class="text-muted mb-3"><i class="bi bi-lightning me-2"></i>Ações Rápidas</h6>
+                    <div class="d-grid gap-2">
+                        <a asp-action="ChangePassword" class="btn btn-outline-secondary">
+                            <i class="bi bi-key me-2"></i>Alterar Senha
+                        </a>
+                        @if (Model.TipoPerfil == TipoPerfil.Mae)
+                        {
+                            <a asp-controller="Filhos" asp-action="Index" class="btn btn-outline-salmon">
+                                <i class="bi bi-people me-2"></i>Meus Filhos
+                            </a>
+                        }
                     </div>
-                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
-                    {
-                        <div class="mb-3">
-                            <small class="text-muted">Telefone</small>
-                            <p class="mb-0">@Model.PhoneNumber</p>
-                        </div>
-                    }
-                    @if (!string.IsNullOrEmpty(Model.Cidade))
-                    {
-                        <div class="mb-0">
-                            <small class="text-muted">Localização</small>
-                            <p class="mb-0">@Model.Cidade @(!string.IsNullOrEmpty(Model.Estado) ? $"- {Model.Estado}" : "")</p>
-                        </div>
-                    }
                 </div>
             </div>
         </div>
 
+        <!-- Formulário de Edição -->
         <div class="col-lg-8">
-            <!-- Estatísticas -->
-            @if (Model.TipoPerfil == TipoPerfil.Mae)
-            {
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <div class="card text-center border-salmon">
-                            <div class="card-body py-3">
-                                <h3 class="mb-0 text-salmon">@(ViewBag.TotalPosts ?? 0)</h3>
-                                <small class="text-muted">Posts</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card text-center border-yellow">
-                            <div class="card-body py-3">
-                                <h3 class="mb-0 text-warning">@(ViewBag.TotalManejos ?? 0)</h3>
-                                <small class="text-muted">Manejos</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card text-center border-info">
-                            <div class="card-body py-3">
-                                <h3 class="mb-0 text-info">@(ViewBag.TotalAcolhimentos ?? 0)</h3>
-                                <small class="text-muted">Acolhimentos</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Minhas atividades -->
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0">
-                        <i class="bi bi-activity me-2"></i>
-                        Minhas Atividades
-                    </h5>
+                <div class="card-header bg-salmon text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Editar Perfil</h5>
                 </div>
-                <div class="card-body">
-                    <!-- Tabs -->
-                    <ul class="nav nav-tabs mb-4" role="tablist">
-                        @if (Model.TipoPerfil == TipoPerfil.Mae)
-                        {
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#posts">
-                                    <i class="bi bi-chat-heart me-1"></i>
-                                    Meus Posts
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#manejos">
-                                    <i class="bi bi-lightbulb me-1"></i>
-                                    Meus Manejos
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#filhos">
-                                    <i class="bi bi-people me-1"></i>
-                                    Meus Filhos
-                                </button>
-                            </li>
-                        }
-                        @if (Model.TipoPerfil == TipoPerfil.ProfissionalSaude)
-                        {
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#triagens">
-                                    <i class="bi bi-clipboard2-pulse me-1"></i>
-                                    Triagens
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#validacoes">
-                                    <i class="bi bi-patch-check me-1"></i>
-                                    Validações
-                                </button>
-                            </li>
-                        }
+                <div class="card-body p-4">
+                    <form asp-action="Profile" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="Email" />
+                        <input type="hidden" asp-for="TipoPerfil" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Dados Básicos -->
+                        <h6 class="text-muted border-bottom pb-2 mb-3">
+                            <i class="bi bi-person-circle me-2"></i>Dados Básicos
+                        </h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="NomeCompleto" class="form-label"></label>
+                                <input asp-for="NomeCompleto" class="form-control" />
+                                <span asp-validation-for="NomeCompleto" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label"></label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="(00) 00000-0000" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="SobreMim" class="form-label"></label>
+                                <textarea asp-for="SobreMim" class="form-control" rows="3" placeholder="Conte um pouco sobre você..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Dados Pessoais -->
+                        <h6 class="text-muted border-bottom pb-2 mb-3">
+                            <i class="bi bi-card-text me-2"></i>Dados Pessoais
+                        </h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label asp-for="DataNascimento" class="form-label"></label>
+                                <input asp-for="DataNascimento" class="form-control" type="date" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="CPF" class="form-label"></label>
+                                <input asp-for="CPF" class="form-control" placeholder="000.000.000-00" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RG" class="form-label"></label>
+                                <input asp-for="RG" class="form-control" />
+                            </div>
+                        </div>
+
+                        <!-- Endereço -->
+                        <h6 class="text-muted border-bottom pb-2 mb-3">
+                            <i class="bi bi-geo-alt me-2"></i>Endereço
+                        </h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <label asp-for="CEP" class="form-label"></label>
+                                <input asp-for="CEP" class="form-control" placeholder="00000-000" id="cep" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Endereco" class="form-label"></label>
+                                <input asp-for="Endereco" class="form-control" id="endereco" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="NumeroEndereco" class="form-label"></label>
+                                <input asp-for="NumeroEndereco" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Complemento" class="form-label"></label>
+                                <input asp-for="Complemento" class="form-control" placeholder="Apto, bloco, etc." />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Bairro" class="form-label"></label>
+                                <input asp-for="Bairro" class="form-control" id="bairro" />
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="Cidade" class="form-label"></label>
+                                <input asp-for="Cidade" class="form-control" id="cidade" />
+                            </div>
+                            <div class="col-md-1">
+                                <label asp-for="Estado" class="form-label"></label>
+                                <select asp-for="Estado" class="form-select" id="estado">
+                                    <option value="">UF</option>
+                                    @foreach (var uf in estados)
+                                    {
+                                        <option value="@uf">@uf</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
                         @if (Model.TipoPerfil == TipoPerfil.Empresa)
                         {
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#oportunidades">
-                                    <i class="bi bi-briefcase me-1"></i>
-                                    Oportunidades
-                                </button>
-                            </li>
+                            <!-- Dados da Empresa -->
+                            <h6 class="text-muted border-bottom pb-2 mb-3">
+                                <i class="bi bi-building me-2"></i>Dados da Empresa
+                            </h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label asp-for="NomeEmpresa" class="form-label"></label>
+                                    <input asp-for="NomeEmpresa" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CNPJ" class="form-label"></label>
+                                    <input asp-for="CNPJ" class="form-control" placeholder="00.000.000/0000-00" />
+                                </div>
+                            </div>
                         }
-                    </ul>
 
-                    <!-- Tab Content -->
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="posts">
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-chat-heart fs-1 mb-2 d-block"></i>
-                                <p>Seus posts aparecerão aqui.</p>
-                                <a asp-controller="Acolhimento" asp-action="Create" class="btn btn-salmon">
-                                    <i class="bi bi-plus-lg me-1"></i>
-                                    Criar Post
-                                </a>
+                        @if (Model.TipoPerfil == TipoPerfil.ProfissionalSaude || Model.TipoPerfil == TipoPerfil.ProfissionalEducacao)
+                        {
+                            <!-- Dados do Profissional -->
+                            <h6 class="text-muted border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-badge me-2"></i>Dados Profissionais
+                            </h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label asp-for="RegistroProfissional" class="form-label"></label>
+                                    <input asp-for="RegistroProfissional" class="form-control" placeholder="Ex: CRM 12345/AL" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Especialidade" class="form-label"></label>
+                                    <select asp-for="Especialidade" class="form-select" asp-items="Html.GetEnumSelectList<Especialidade>()">
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
                             </div>
+                        }
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-salmon">
+                                <i class="bi bi-check-lg me-1"></i>Salvar Alterações
+                            </button>
                         </div>
-                        <div class="tab-pane fade" id="manejos">
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-lightbulb fs-1 mb-2 d-block"></i>
-                                <p>Seus manejos aparecerão aqui.</p>
-                                <a asp-controller="Manejos" asp-action="Create" class="btn btn-yellow">
-                                    <i class="bi bi-plus-lg me-1"></i>
-                                    Compartilhar Manejo
-                                </a>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="filhos">
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-people fs-1 mb-2 d-block"></i>
-                                <p>Cadastre seus filhos para acompanhar seu desenvolvimento.</p>
-                                <a href="#" class="btn btn-blue">
-                                    <i class="bi bi-plus-lg me-1"></i>
-                                    Adicionar Filho
-                                </a>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="triagens">
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-clipboard2-pulse fs-1 mb-2 d-block"></i>
-                                <p>Suas triagens aparecerão aqui.</p>
-                                <a asp-controller="Triagem" asp-action="Fila" class="btn btn-blue">
-                                    <i class="bi bi-list-check me-1"></i>
-                                    Ver Fila de Triagens
-                                </a>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="validacoes">
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-patch-check fs-1 mb-2 d-block"></i>
-                                <p>Manejos que você validou aparecerão aqui.</p>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="oportunidades">
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-briefcase fs-1 mb-2 d-block"></i>
-                                <p>Suas oportunidades aparecerão aqui.</p>
-                                <a asp-controller="Oportunidades" asp-action="Create" class="btn btn-salmon">
-                                    <i class="bi bi-plus-lg me-1"></i>
-                                    Publicar Oportunidade
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .avatar-large {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-</style>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Busca automática de CEP usando ViaCEP
+        document.getElementById('cep')?.addEventListener('blur', function() {
+            const cep = this.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('endereco').value = data.logradouro || '';
+                            document.getElementById('bairro').value = data.bairro || '';
+                            document.getElementById('cidade').value = data.localidade || '';
+                            document.getElementById('estado').value = data.uf || '';
+                        }
+                    })
+                    .catch(err => console.log('Erro ao buscar CEP:', err));
+            }
+        });
+    </script>
+}

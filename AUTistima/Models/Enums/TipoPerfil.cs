@@ -6,6 +6,11 @@ namespace AUTistima.Models.Enums;
 public enum TipoPerfil
 {
     /// <summary>
+    /// Administrador do sistema
+    /// </summary>
+    Administrador = 0,
+    
+    /// <summary>
     /// Mãe atípica - mãe de pessoa autista
     /// </summary>
     Mae = 1,

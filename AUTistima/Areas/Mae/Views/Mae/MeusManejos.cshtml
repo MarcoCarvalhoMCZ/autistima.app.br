@@ -1,0 +1,117 @@
+@model IEnumerable<AUTistima.Models.Manejo>
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Meus Manejos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Manejos e dicas que você compartilhou com a comunidade</p>
+    </div>
+    <a asp-area="" asp-controller="Manejos" asp-action="Create" class="btn btn-success">
+        <i class="bi bi-plus-circle me-2"></i>Novo Manejo
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-lightbulb display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">Nenhum manejo compartilhado</h4>
+            <p class="text-muted">
+                Compartilhe estratégias que funcionam com sua família!<br>
+                Seu conhecimento de vivência pode ajudar outras mães. 💕
+            </p>
+            <a asp-area="" asp-controller="Manejos" asp-action="Create" class="btn btn-success mt-2">
+                <i class="bi bi-plus-circle me-2"></i>Compartilhar Primeiro Manejo
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Título</th>
+                        <th>Categoria</th>
+                        <th class="text-center">Validado</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var manejo in Model)
+                    {
+                        <tr class="@(!manejo.Ativo ? "table-secondary" : "")">
+                            <td>
+                                <strong>@manejo.Titulo</strong>
+                                @if (!string.IsNullOrEmpty(manejo.FaixaEtariaIndicada))
+                                {
+                                    <small class="text-muted d-block">@manejo.FaixaEtariaIndicada</small>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">@manejo.Categoria</span>
+                            </td>
+                            <td class="text-center">
+                                @if (manejo.ValidadoPorEspecialista)
+                                {
+                                    <span class="badge bg-success" title="Validado por especialista">
+                                        <i class="bi bi-patch-check"></i>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (manejo.Ativo)
+                                {
+                                    <span class="badge bg-success">Ativo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inativo</span>
+                                }
+                            </td>
+                            <td>
+                                <small>@manejo.DataCriacao.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-area="" asp-controller="Manejos" asp-action="Details" asp-route-id="@manejo.Id"
+                                       class="btn btn-outline-secondary" title="Ver">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-area="" asp-controller="Manejos" asp-action="Edit" asp-route-id="@manejo.Id"
+                                       class="btn btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <div class="card border-0 bg-light">
+        <div class="card-body">
+            <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>O que são Manejos?</h6>
+            <p class="mb-0 small text-muted">
+                <strong>Manejos</strong> são "saberes não cientificizados" - conhecimento de vivência que você, como mãe atípica, 
+                desenvolveu ao longo da jornada. São estratégias práticas que funcionam no dia a dia e que podem ajudar 
+                outras mães. Quando um profissional de saúde valida um manejo, ele ganha um selo especial! 
+            </p>
+        </div>
+    </div>
+</div>
