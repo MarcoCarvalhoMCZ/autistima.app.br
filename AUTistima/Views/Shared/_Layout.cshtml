@@ -36,251 +36,858 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AUTistima.styles.css" asp-append-version="true" />
+    
+    <!-- Sidebar Styles -->
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 0px;
+            --topbar-height: 60px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #FFFFFF 0%, #FFF9F9 100%);
+            border-right: 1px solid rgba(242, 139, 130, 0.2);
+            z-index: 1040;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--color-salmon) 0%, #E57373 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .sidebar-header .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .sidebar-header .user-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .sidebar-header .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-salmon);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .sidebar-header .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .sidebar-header .user-type {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .sidebar-section {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-nav-item {
+            margin: 2px 0.75rem;
+        }
+        
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #555;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .sidebar-nav-link:hover {
+            background: rgba(242, 139, 130, 0.1);
+            color: var(--color-salmon);
+        }
+        
+        .sidebar-nav-link.active {
+            background: var(--color-salmon);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .sidebar-nav-link i {
+            font-size: 1.2rem;
+            width: 28px;
+            margin-right: 0.75rem;
+        }
+        
+        .sidebar-nav-link .badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+        }
+        
+        /* Divider */
+        .sidebar-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(242,139,130,0.3), transparent);
+            margin: 0.5rem 1.5rem;
+        }
+        
+        /* Perfil específico colors */
+        .sidebar-nav-link.admin { color: #dc3545; }
+        .sidebar-nav-link.admin:hover, .sidebar-nav-link.admin.active { background: #dc3545; color: white; }
+        
+        .sidebar-nav-link.profissional { color: #0d6efd; }
+        .sidebar-nav-link.profissional:hover, .sidebar-nav-link.profissional.active { background: #0d6efd; color: white; }
+        
+        .sidebar-nav-link.empresa { color: #198754; }
+        .sidebar-nav-link.empresa:hover, .sidebar-nav-link.empresa.active { background: #198754; color: white; }
+        
+        .sidebar-nav-link.governo { color: #6f42c1; }
+        .sidebar-nav-link.governo:hover, .sidebar-nav-link.governo.active { background: #6f42c1; color: white; }
+        
+        .sidebar-nav-link.mae { color: #F28B82; }
+        .sidebar-nav-link.mae:hover, .sidebar-nav-link.mae.active { background: #F28B82; color: white; }
+        
+        /* Toggle Button */
+        .sidebar-toggle {
+            position: fixed;
+            top: 12px;
+            left: 15px;
+            z-index: 1050;
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            color: var(--color-salmon);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--color-salmon);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .sidebar-toggle i {
+            font-size: 1.4rem;
+            transition: transform 0.3s;
+        }
+        
+        .sidebar.show ~ .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+        
+        /* Close button inside sidebar */
+        .sidebar-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        
+        .sidebar-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1035;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Main content adjustment */
+        .main-wrapper {
+            transition: margin-left 0.3s;
+        }
+        
+        /* Navbar simplificada */
+        .navbar-autistima {
+            padding-left: 70px !important;
+        }
+        
+        /* Desktop: sidebar pode ficar fixa */
+        @@media (min-width: 992px) {
+            .sidebar.show ~ .main-wrapper {
+                margin-left: var(--sidebar-width);
+            }
+            
+            .sidebar.show ~ .navbar-autistima {
+                padding-left: calc(var(--sidebar-width) + 15px) !important;
+            }
+            
+            .sidebar-overlay {
+                display: none;
+            }
+        }
+        
+        /* Footer do sidebar */
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(242,139,130,0.2);
+            background: #f8f9fa;
+            margin-top: auto;
+        }
+        
+        .sidebar-footer .btn {
+            width: 100%;
+        }
+        
+        /* PWA install no sidebar */
+        .sidebar-pwa-install {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            margin: 0.75rem;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .sidebar-pwa-install .btn {
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Skip link para acessibilidade -->
     <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
     
-    <header>
+    @inject Microsoft.AspNetCore.Identity.UserManager<AUTistima.Models.ApplicationUser> UserManager
+    @{
+        var currentUser = await UserManager.GetUserAsync(User);
+        var tipoPerfil = currentUser?.TipoPerfil;
+        var userName = currentUser?.NomeCompleto ?? User.Identity?.Name ?? "Usuário";
+        // Pegar primeiro nome
+        var firstName = userName.Split(' ').FirstOrDefault() ?? userName;
+        var userInitial = !string.IsNullOrEmpty(userName) ? userName[0].ToString().ToUpper() : "U";
+        
+        string tipoPerfilDisplay = tipoPerfil switch
+        {
+            AUTistima.Models.Enums.TipoPerfil.Administrador => "Administrador",
+            AUTistima.Models.Enums.TipoPerfil.Mae => "Mãe Atípica",
+            AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude => "Profissional de Saúde",
+            AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao => "Profissional de Educação",
+            AUTistima.Models.Enums.TipoPerfil.Empresa => "Empresa Parceira",
+            AUTistima.Models.Enums.TipoPerfil.Governo => "Gestor Público",
+            _ => "Visitante"
+        };
+        
+        string tipoPerfilClass = tipoPerfil switch
+        {
+            AUTistima.Models.Enums.TipoPerfil.Administrador => "admin",
+            AUTistima.Models.Enums.TipoPerfil.Mae => "mae",
+            AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude => "profissional",
+            AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao => "profissional",
+            AUTistima.Models.Enums.TipoPerfil.Empresa => "empresa",
+            AUTistima.Models.Enums.TipoPerfil.Governo => "governo",
+            _ => ""
+        };
+    }
+    
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu lateral">
+        <i class="bi bi-list"></i>
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menu lateral">
+        <div class="sidebar-header">
+            <button class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="logo">
+                <span style="opacity: 0.9;">AUT</span>istima
+            </div>
+            <p class="mb-0 small opacity-75">Rede de Apoio 💕</p>
+            
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="user-info d-flex align-items-center gap-3">
+                    <div class="user-avatar">@userInitial</div>
+                    <div>
+                        <div class="user-name">@userName</div>
+                        <span class="user-type">@tipoPerfilDisplay</span>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <nav class="d-flex flex-column" style="min-height: calc(100vh - 200px);">
+            <!-- Menu Principal -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Menu Principal</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-heart"></i> Início
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Acolhimento" asp-action="Index">
+                            <i class="bi bi-chat-heart"></i> Central de Acolhimento
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Manejos" asp-action="Index">
+                            <i class="bi bi-lightbulb"></i> Manejos
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Oportunidades" asp-action="Index">
+                            <i class="bi bi-briefcase"></i> Oportunidades
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Saude" asp-action="Index">
+                            <i class="bi bi-heart-pulse"></i> Saúde
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Glossario" asp-action="Index">
+                            <i class="bi bi-book"></i> Mini Dicionário
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item">
+                        <a class="sidebar-nav-link" asp-controller="Busca" asp-action="Index">
+                            <i class="bi bi-search"></i> Busca
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="sidebar-divider"></div>
+                
+                <!-- Menu específico por perfil -->
+                @if (tipoPerfil == AUTistima.Models.Enums.TipoPerfil.Administrador)
+                {
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">🔧 Administração</div>
+                        <ul class="sidebar-nav">
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link admin" asp-area="Admin" asp-controller="Admin" asp-action="Index">
+                                    <i class="bi bi-speedometer2"></i> Painel Admin
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link admin" asp-area="Admin" asp-controller="Usuarios" asp-action="Index">
+                                    <i class="bi bi-people"></i> Usuários
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link admin" asp-area="Admin" asp-controller="Manejos" asp-action="Index">
+                                    <i class="bi bi-lightbulb"></i> Manejos
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link admin" asp-area="Admin" asp-controller="Escolas" asp-action="Index">
+                                    <i class="bi bi-building"></i> Escolas
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link admin" asp-area="Admin" asp-controller="Glossario" asp-action="Index">
+                                    <i class="bi bi-journal-text"></i> Glossário
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link admin" asp-area="Admin" asp-controller="Configuracoes" asp-action="Index">
+                                    <i class="bi bi-gear"></i> Configurações
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else if (tipoPerfil == AUTistima.Models.Enums.TipoPerfil.Mae)
+                {
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">💕 Meu Espaço</div>
+                        <ul class="sidebar-nav">
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link mae" asp-area="Mae" asp-controller="Mae" asp-action="Index">
+                                    <i class="bi bi-house-heart"></i> Meu Cantinho
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link mae" asp-controller="Filhos" asp-action="Index">
+                                    <i class="bi bi-people-fill"></i> Meus Filhos
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link mae" asp-controller="Manejos" asp-action="MeusManejos">
+                                    <i class="bi bi-lightbulb-fill"></i> Minhas Dicas
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link mae" asp-controller="Triagem" asp-action="Index">
+                                    <i class="bi bi-clipboard-check"></i> Triagem
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else if (tipoPerfil == AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude || 
+                         tipoPerfil == AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao)
+                {
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">👨‍⚕️ Área Profissional</div>
+                        <ul class="sidebar-nav">
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link profissional" asp-area="Profissional" asp-controller="Profissional" asp-action="Index">
+                                    <i class="bi bi-person-badge"></i> Meu Painel
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link profissional" asp-area="Profissional" asp-controller="Profissional" asp-action="Agenda">
+                                    <i class="bi bi-calendar-check"></i> Agenda
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link profissional" asp-area="Profissional" asp-controller="Profissional" asp-action="Pacientes">
+                                    <i class="bi bi-people"></i> Pacientes
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link profissional" asp-controller="Manejos" asp-action="Validar">
+                                    <i class="bi bi-check-circle"></i> Validar Manejos
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else if (tipoPerfil == AUTistima.Models.Enums.TipoPerfil.Empresa)
+                {
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">🏢 Área da Empresa</div>
+                        <ul class="sidebar-nav">
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link empresa" asp-area="Empresa" asp-controller="Empresa" asp-action="Index">
+                                    <i class="bi bi-building"></i> Meu Painel
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link empresa" asp-area="Empresa" asp-controller="Empresa" asp-action="Vagas">
+                                    <i class="bi bi-briefcase"></i> Minhas Vagas
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link empresa" asp-area="Empresa" asp-controller="Empresa" asp-action="Candidatos">
+                                    <i class="bi bi-people"></i> Candidatos
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link empresa" asp-area="Empresa" asp-controller="Empresa" asp-action="Selo">
+                                    <i class="bi bi-award"></i> Selo Empresa Amiga
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else if (tipoPerfil == AUTistima.Models.Enums.TipoPerfil.Governo)
+                {
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">🏛️ Gestão Pública</div>
+                        <ul class="sidebar-nav">
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link governo" asp-area="Governo" asp-controller="Governo" asp-action="Index">
+                                    <i class="bi bi-bank"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link governo" asp-area="Governo" asp-controller="Governo" asp-action="Indicadores">
+                                    <i class="bi bi-graph-up"></i> Indicadores
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link governo" asp-area="Governo" asp-controller="Governo" asp-action="Relatorios">
+                                    <i class="bi bi-file-earmark-bar-graph"></i> Relatórios
+                                </a>
+                            </li>
+                            <li class="sidebar-nav-item">
+                                <a class="sidebar-nav-link governo" asp-area="Governo" asp-controller="Governo" asp-action="Politicas">
+                                    <i class="bi bi-clipboard-data"></i> Políticas
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                
+                <div class="sidebar-divider"></div>
+                
+                <!-- Comunicação -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">📬 Comunicação</div>
+                    <ul class="sidebar-nav">
+                        <li class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Notificacoes" asp-action="Index">
+                                <i class="bi bi-bell"></i> Notificações
+                                <span id="sidebar-notif-badge" class="badge bg-danger" style="display: none;">0</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Chat" asp-action="Index">
+                                <i class="bi bi-chat-dots"></i> Mensagens
+                                <span id="sidebar-chat-badge" class="badge bg-primary" style="display: none;">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-divider"></div>
+                
+                <!-- Minha Conta -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">👤 Minha Conta</div>
+                    <ul class="sidebar-nav">
+                        <li class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Account" asp-action="Profile">
+                                <i class="bi bi-person-circle"></i> Meu Perfil
+                            </a>
+                        </li>
+                        <li class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Account" asp-action="ChangePassword">
+                                <i class="bi bi-key"></i> Alterar Senha
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- PWA Install -->
+                <div class="sidebar-pwa-install" id="sidebar-pwa-install" style="display: none;">
+                    <i class="bi bi-phone-fill text-primary fs-4 mb-2 d-block"></i>
+                    <p class="small mb-2">Instale o app!</p>
+                    <button class="btn btn-primary btn-sm" id="sidebar-pwa-btn">
+                        <i class="bi bi-download me-1"></i> Instalar
+                    </button>
+                </div>
+                
+                <!-- Footer -->
+                <div class="sidebar-footer mt-auto">
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Sair
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <!-- Não autenticado -->
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section">
+                    <ul class="sidebar-nav">
+                        <li class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Account" asp-action="Login">
+                                <i class="bi bi-box-arrow-in-right"></i> Entrar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-footer mt-auto">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-salmon">
+                        <i class="bi bi-heart me-2"></i>Faça Parte
+                    </a>
+                </div>
+            }
+        </nav>
+    </aside>
+    
+    <!-- Header simplificado -->
+    <header class="main-wrapper">
         <nav class="navbar navbar-expand-lg navbar-autistima">
-            <div class="container">
+            <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/logo.png" alt="" height="40" onerror="this.style.display='none'">
+                    <img src="~/images/logo.png" alt="" height="35" onerror="this.style.display='none'">
                     <span>
                         <span style="color: var(--color-salmon);">AUT</span>istima
                     </span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir menu de navegação">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-house-heart me-1"></i> Início
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Acolhimento" asp-action="Index">
-                                <i class="bi bi-chat-heart me-1"></i> Central de Acolhimento
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Manejos" asp-action="Index">
-                                <i class="bi bi-lightbulb me-1"></i> Manejos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Oportunidades" asp-action="Index">
-                                <i class="bi bi-briefcase me-1"></i> Oportunidades
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Saude" asp-action="Index">
-                                <i class="bi bi-heart-pulse me-1"></i> Saúde
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Glossario" asp-action="Index">
-                                <i class="bi bi-book me-1"></i> Mini Dicionário
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Busca" asp-action="Index">
-                                <i class="bi bi-search me-1"></i> Busca
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <!-- Ícone de Notificações -->
-                            <li class="nav-item">
-                                <a class="nav-link position-relative" asp-controller="Notificacoes" asp-action="Index" title="Notificações">
-                                    <i class="bi bi-bell fs-5"></i>
-                                    <span id="notificacao-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem;">
-                                        0
-                                    </span>
-                                </a>
-                            </li>
-                            <!-- Ícone de Chat -->
-                            <li class="nav-item">
-                                <a class="nav-link position-relative" asp-controller="Chat" asp-action="Index" title="Mensagens">
-                                    <i class="bi bi-chat-dots fs-5"></i>
-                                    <span id="chat-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none; font-size: 0.6rem;">
-                                        0
-                                    </span>
-                                </a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
-                                   data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-1"></i> @User.Identity.Name
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    @inject Microsoft.AspNetCore.Identity.UserManager<AUTistima.Models.ApplicationUser> UserManager
-                                    @{
-                                        var currentUser = await UserManager.GetUserAsync(User);
-                                        if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Administrador)
-                                        {
-                                            <li><a class="dropdown-item text-danger fw-semibold" asp-area="Admin" asp-controller="Admin" asp-action="Index">
-                                                <i class="bi bi-gear me-2"></i>Administração
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                        }
-                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.ProfissionalSaude || 
-                                                 currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao)
-                                        {
-                                            <li><a class="dropdown-item text-primary fw-semibold" asp-area="Profissional" asp-controller="Profissional" asp-action="Index">
-                                                <i class="bi bi-person-badge me-2"></i>Área do Profissional
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                        }
-                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Empresa)
-                                        {
-                                            <li><a class="dropdown-item text-success fw-semibold" asp-area="Empresa" asp-controller="Empresa" asp-action="Index">
-                                                <i class="bi bi-building me-2"></i>Área da Empresa
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                        }
-                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Governo)
-                                        {
-                                            <li><a class="dropdown-item fw-semibold" style="color: #6f42c1;" asp-area="Governo" asp-controller="Governo" asp-action="Index">
-                                                <i class="bi bi-bank me-2"></i>Painel Governamental
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                        }
-                                        else if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Mae)
-                                        {
-                                            <li><a class="dropdown-item fw-semibold" style="color: #F28B82;" asp-area="Mae" asp-controller="Mae" asp-action="Index">
-                                                <i class="bi bi-house-heart me-2"></i>Meu Espaço
-                                            </a></li>
-                                            <li><hr class="dropdown-divider"></li>
-                                        }
-                                    }
-                                    <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">
-                                        <i class="bi bi-person me-2"></i>Meu Perfil
-                                    </a></li>
-                                    @if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Mae)
-                                    {
-                                        <li><a class="dropdown-item" asp-area="" asp-controller="Filhos" asp-action="Index">
-                                            <i class="bi bi-people me-2"></i>Meus Filhos
-                                        </a></li>
-                                    }
-                                    <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="ChangePassword">
-                                        <i class="bi bi-key me-2"></i>Alterar Senha
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form asp-controller="Account" asp-action="Logout" method="post">
-                                            <button type="submit" class="dropdown-item">
-                                                <i class="bi bi-box-arrow-right me-2"></i>Sair
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Login">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-salmon ms-2" asp-controller="Account" asp-action="Register">
-                                    <i class="bi bi-heart me-1"></i> Faça Parte
-                                </a>
-                            </li>
-                        }
-                    </ul>
+                
+                <div class="d-flex align-items-center gap-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <!-- Notificações -->
+                        <a class="btn btn-link position-relative p-2" asp-controller="Notificacoes" asp-action="Index" title="Notificações">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span id="notificacao-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem;">0</span>
+                        </a>
+                        <!-- Chat -->
+                        <a class="btn btn-link position-relative p-2" asp-controller="Chat" asp-action="Index" title="Mensagens">
+                            <i class="bi bi-chat-dots fs-5"></i>
+                            <span id="chat-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="display: none; font-size: 0.6rem;">0</span>
+                        </a>
+                        <!-- Avatar -->
+                        <a class="btn btn-link p-1" asp-controller="Account" asp-action="Profile" title="Meu Perfil">
+                            <div class="rounded-circle bg-salmon text-white d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-weight: 600;">
+                                @userInitial
+                            </div>
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-salmon btn-sm" asp-controller="Account" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
+                        </a>
+                        <a class="btn btn-salmon btn-sm d-none d-md-inline-block" asp-controller="Account" asp-action="Register">
+                            <i class="bi bi-heart me-1"></i> Faça Parte
+                        </a>
+                    }
                 </div>
             </div>
         </nav>
     </header>
     
-    <div class="container">
-        <main role="main" id="main-content" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="footer-autistima">
+    <div class="main-wrapper">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <h5>
-                        <span style="color: var(--color-salmon);">AUT</span>istima
-                    </h5>
-                    <p class="mb-2">Política pública em forma de afeto.</p>
-                    <p class="small">Uma rede de apoio para mães atípicas, profissionais e empresas comprometidas com a inclusão.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <h6>Links Úteis</h6>
-                    <ul class="list-unstyled">
-                        <li><a asp-controller="Home" asp-action="Sobre">Sobre o Projeto</a></li>
-                        <li><a asp-controller="Glossario" asp-action="Index">Mini Dicionário</a></li>
-                        <li><a asp-controller="Saude" asp-action="Index">Encontrar Profissionais</a></li>
-                        <li><a asp-controller="Home" asp-action="Contato">Contato</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <h6>Precisa de Ajuda?</h6>
-                    <p class="small">
-                        CVV - Centro de Valorização da Vida<br>
-                        <strong>Ligue 188</strong> (24 horas)
-                    </p>
-                    <p class="small">
-                        CAPS - Centro de Atenção Psicossocial<br>
-                        Procure a unidade mais próxima
-                    </p>
-                </div>
-            </div>
-            <hr>
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="small mb-0">&copy; 2025 AUTistima. Todos os direitos reservados.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <a asp-controller="Home" asp-action="Privacidade" class="small me-3">Política de Privacidade</a>
-                    <a asp-controller="Home" asp-action="Termos" class="small">Termos de Uso</a>
-                </div>
-            </div>
+            <main role="main" id="main-content" class="pb-3 pt-3">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
+
+        <footer class="footer-autistima">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <h5>
+                            <span style="color: var(--color-salmon);">AUT</span>istima
+                        </h5>
+                        <p class="mb-2">Política pública em forma de afeto.</p>
+                        <p class="small">Uma rede de apoio para mães atípicas, profissionais e empresas comprometidas com a inclusão.</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <h6>Links Úteis</h6>
+                        <ul class="list-unstyled">
+                            <li><a asp-controller="Home" asp-action="Sobre">Sobre o Projeto</a></li>
+                            <li><a asp-controller="Glossario" asp-action="Index">Mini Dicionário</a></li>
+                            <li><a asp-controller="Saude" asp-action="Index">Encontrar Profissionais</a></li>
+                            <li><a asp-controller="Home" asp-action="Contato">Contato</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <h6>Precisa de Ajuda?</h6>
+                        <p class="small">
+                            CVV - Centro de Valorização da Vida<br>
+                            <strong>Ligue 188</strong> (24 horas)
+                        </p>
+                        <p class="small">
+                            CAPS - Centro de Atenção Psicossocial<br>
+                            Procure a unidade mais próxima
+                        </p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="small mb-0">&copy; 2025 AUTistima. Todos os direitos reservados.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <a asp-controller="Home" asp-action="Privacidade" class="small me-3">Política de Privacidade</a>
+                        <a asp-controller="Home" asp-action="Termos" class="small">Termos de Uso</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
     
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- Sidebar JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarPwaInstall = document.getElementById('sidebar-pwa-install');
+            const sidebarPwaBtn = document.getElementById('sidebar-pwa-btn');
+            
+            // Verificar preferência salva
+            const sidebarState = localStorage.getItem('sidebar-open');
+            if (sidebarState === 'true' && window.innerWidth >= 992) {
+                sidebar.classList.add('show');
+            }
+            
+            // Toggle sidebar
+            function toggleSidebar() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+                
+                // Salvar preferência em desktop
+                if (window.innerWidth >= 992) {
+                    localStorage.setItem('sidebar-open', sidebar.classList.contains('show'));
+                }
+            }
+            
+            // Fechar sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            }
+            
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarClose.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            
+            // Fechar ao clicar em link (mobile)
+            if (window.innerWidth < 992) {
+                document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                    link.addEventListener('click', closeSidebar);
+                });
+            }
+            
+            // Marcar link ativo
+            const currentPath = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath === href.toLowerCase()) {
+                    link.classList.add('active');
+                } else if (href && href !== '/' && currentPath.startsWith(href.toLowerCase())) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // PWA Install no sidebar
+            if (sidebarPwaInstall && sidebarPwaBtn) {
+                window.addEventListener('beforeinstallprompt', function(e) {
+                    e.preventDefault();
+                    window.deferredPrompt = e;
+                    sidebarPwaInstall.style.display = 'block';
+                });
+                
+                sidebarPwaBtn.addEventListener('click', async function() {
+                    if (window.deferredPrompt) {
+                        window.deferredPrompt.prompt();
+                        const { outcome } = await window.deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            sidebarPwaInstall.style.display = 'none';
+                        }
+                        window.deferredPrompt = null;
+                    }
+                });
+            }
+            
+            // ESC fecha sidebar
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                    closeSidebar();
+                }
+            });
+        });
+    </script>
     
     @if (User.Identity?.IsAuthenticated == true)
     {
         <script>
             // Atualiza badges de notificações e mensagens
             function atualizarBadges() {
-                // Notificações
+                // Notificações - navbar e sidebar
                 fetch('/Notificacoes/NaoLidas')
                     .then(r => r.json())
                     .then(data => {
-                        const badge = document.getElementById('notificacao-badge');
-                        if (badge && data.count !== undefined) {
-                            badge.textContent = data.count > 9 ? '9+' : data.count;
-                            badge.style.display = data.count > 0 ? 'inline' : 'none';
-                        }
+                        const badges = [
+                            document.getElementById('notificacao-badge'),
+                            document.getElementById('sidebar-notif-badge')
+                        ];
+                        badges.forEach(badge => {
+                            if (badge && data.count !== undefined) {
+                                badge.textContent = data.count > 9 ? '9+' : data.count;
+                                badge.style.display = data.count > 0 ? 'inline' : 'none';
+                            }
+                        });
                     })
                     .catch(() => {});
                 
-                // Mensagens
+                // Mensagens - navbar e sidebar
                 fetch('/Chat/NaoLidas')
                     .then(r => r.json())
                     .then(data => {
-                        const badge = document.getElementById('chat-badge');
-                        if (badge && data.count !== undefined) {
-                            badge.textContent = data.count > 9 ? '9+' : data.count;
-                            badge.style.display = data.count > 0 ? 'inline' : 'none';
-                        }
+                        const badges = [
+                            document.getElementById('chat-badge'),
+                            document.getElementById('sidebar-chat-badge')
+                        ];
+                        badges.forEach(badge => {
+                            if (badge && data.count !== undefined) {
+                                badge.textContent = data.count > 9 ? '9+' : data.count;
+                                badge.style.display = data.count > 0 ? 'inline' : 'none';
+                            }
+                        });
                     })
                     .catch(() => {});
             }
