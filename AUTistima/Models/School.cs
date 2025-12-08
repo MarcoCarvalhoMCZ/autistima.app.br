@@ -47,6 +47,12 @@ public class School
     [Display(Name = "Possui Sala de Recursos?")]
     public bool PossuiSalaRecursos { get; set; } = false;
     
+    [Display(Name = "Latitude")]
+    public double? Latitude { get; set; }
+    
+    [Display(Name = "Longitude")]
+    public double? Longitude { get; set; }
+    
     public bool Ativo { get; set; } = true;
     
     public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
