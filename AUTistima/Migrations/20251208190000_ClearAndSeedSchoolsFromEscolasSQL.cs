@@ -6,11 +6,15 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AUTistima.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedSchoolsFromEscolasSQL : Migration
+    public partial class ClearAndSeedSchoolsFromEscolasSQL : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Deletar todas as escolas existentes
+            migrationBuilder.Sql("DELETE FROM [autistima_sa_sql].[Schools]");
+            migrationBuilder.Sql("DBCC CHECKIDENT ('[autistima_sa_sql].[Schools]', RESEED, 0)");
+
             migrationBuilder.InsertData(
                 schema: "autistima_sa_sql",
                 table: "Schools",
