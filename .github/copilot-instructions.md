@@ -1,46 +1,74 @@
 # AUTistima - Instruções para Agentes de IA
 
 ## Visão Geral
-Rede de apoio digital para **mães atípicas** (mães de pessoas autistas). Stack: ASP.NET Core 9.0 MVC + SQL Server + EF Core 9.0 (schema: `autistima_sa_sql`).  
-**Idioma obrigatório**: pt-BR em TODO código, mensagens, labels, comentários e nomes de variáveis.
+Rede de apoio digital para **mães atípicas** (mães de pessoas autistas). **Stack**: ASP.NET Core 9.0 MVC + SQL Server + EF Core 9.0 (schema: `autistima_sa_sql`).  
+**Idioma obrigatório**: pt-BR em TODO código (variáveis, labels, comentários, mensagens).
 
-## Comandos Essenciais
+## Startup & Ambiente
+
+### Comandos Essenciais
 ```bash
-./testar.sh [porta]       # Executa projeto (libera porta, padrão 5000)
-cd AUTistima && dotnet ef migrations add NomeMigration  # Nova migration
+./testar.sh [porta]                      # Executa na porta (padrão 5000), libera port se necessário
+cd AUTistima && dotnet ef migrations add NomeMigração  # Nova migration
+dotnet run                               # Executa direto de AUTistima/
 ```
-> **Migrations aplicadas automaticamente** no startup (`Program.cs`). Não rodar `dotnet ef database update` manualmente.  
-> Admin padrão: `lorena@autistima.app.br` / `Lorena@2025`
 
-## Arquitetura: Autorização por TipoPerfil (NÃO usa ASP.NET Roles)
-O sistema usa enum `TipoPerfil` para autorização. **Verificação manual obrigatória** em cada controller de área:
+**CRÍTICO**: 
+- Migrations **aplicadas automaticamente** ao iniciar (`Program.cs` linhas 90+) — NUNCA rodar `dotnet ef database update` manualmente em dev
+- Admin padrão: `lorena@autistima.app.br` / `Lorena@2025` → **altere em produção**
+- Cookies: `ExpireTimeSpan = 30 dias`, `SlidingExpiration = true`
+
+## Arquitetura de Autorização
+
+### TipoPerfil (NÃO usa ASP.NET Roles)
+Sistema de autorização customizado via **enum `TipoPerfil`**. Cada área deve implementar verificação manual:
+
 ```csharp
-// Areas/Admin/Controllers/*.cs - padrão obrigatório
+// Areas/Admin/Controllers/XxxController.cs - obrigatório em TODA action de área
 private async Task<bool> IsAdmin() {
     var user = await _userManager.GetUserAsync(User);
     return user?.TipoPerfil == TipoPerfil.Administrador;
 }
-// Chamar no início de CADA action: if (!await IsAdmin()) return RedirectToAction("Index", "Home", new { area = "" });
+
+[HttpGet]
+public async Task<IActionResult> Index() {
+    if (!await IsAdmin()) return RedirectToAction("Index", "Home", new { area = "" });
+    // ... lógica
+}
 ```
 
-| Área | Perfis | Enum |
-|------|--------|------|
-| `/Admin/*` | Administrador | `TipoPerfil.Administrador` (0) |
-| `/Mae/*` | Mães atípicas | `TipoPerfil.Mae` (1) |
-| `/Profissional/*` | Saúde/Educação | `ProfissionalSaude` (2), `ProfissionalEducacao` (3) |
-| `/Empresa/*` | Empresas parceiras | `TipoPerfil.Empresa` (4) |
-| `/Governo/*` | Administração pública | `TipoPerfil.Governo` (5) |
+| Área | Enum | Valores | Controller Padrão |
+|------|------|---------|-------------------|
+| `/Admin/*` | `Administrador` | 0 | `Areas/Admin/Controllers/AdminController.cs` |
+| `/Mae/*` | `Mae` | 1 | `Areas/Mae/Controllers/...` |
+| `/Profissional/*` | `ProfissionalSaude` (2), `ProfissionalEducacao` (3) | 2-3 | `Areas/Profissional/Controllers/ProfissionalController.cs` |
+| `/Empresa/*` | `Empresa` | 4 | `Areas/Empresa/Controllers/...` |
+| `/Governo/*` | `Governo` | 5 | `Areas/Governo/Controllers/...` |
 
 ## Padrões de Controller
-```csharp
-// Injeção OBRIGATÓRIA: ApplicationDbContext, UserManager<ApplicationUser>, ILogger<T>
-// Obter usuário: User.FindFirstValue(ClaimTypes.NameIdentifier)
-// Feedback: TempData["Mensagem"] (sucesso) ou TempData["Erro"] (erro)
 
+### Injeção Obrigatória
+```csharp
+public class XxxController : Controller {
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ILogger<XxxController> _logger;
+    private readonly IActivityTrackingService _activityService;  // opcional para ações críticas
+
+    public XxxController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ILogger<XxxController> logger) {
+        _context = context;
+        _userManager = userManager;
+        _logger = logger;
+    }
+}
+```
+
+### Padrão CRUD Create (Exemplo Real)
+```csharp
 [HttpPost, ValidateAntiForgeryToken, Authorize]
-public async Task<IActionResult> Create([Bind("Campo1,Campo2")] Entidade item) {
-    ModelState.Remove("UserId");  // SEMPRE remover campos definidos no servidor
-    ModelState.Remove("Autor");   // Remover propriedades de navegação também
+public async Task<IActionResult> Create([Bind("Titulo,Descricao")] Post item) {
+    ModelState.Remove("UserId");      // SEMPRE remover campos server-side
+    ModelState.Remove("Autor");       // Remover navegações também
     
     item.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
     item.DataCriacao = DateTime.UtcNow;
@@ -50,160 +78,187 @@ public async Task<IActionResult> Create([Bind("Campo1,Campo2")] Entidade item) {
         _context.Add(item);
         await _context.SaveChangesAsync();
         
-        // Rastrear atividade (se aplicável)
-        // await _activityService.RegistrarAtividade(item.UserId, TipoAtividade.CriacaoPost, "Post", item.Id);
-
-        TempData["Mensagem"] = "Registro salvo com carinho! 💕";
+        // Log da atividade (APENAS para ações críticas)
+        // await _activityService.RegistrarAtividade(item.UserId, TipoAtividade.CriacaoPost);
+        
+        TempData["Mensagem"] = "Seu post foi compartilhado com carinho! 💕";
         return RedirectToAction(nameof(Index));
     }
     return View(item);
 }
 ```
 
+**Feedback**: SEMPRE usar emoji em `TempData["Mensagem"]` (sucesso) e `TempData["Erro"]` (erro).
+
 ## Padrões de Model
+
+### Template Base (Soft Delete Obrigatório)
 ```csharp
 public class ExemploModel {
     [Key] public int Id { get; set; }
     
     [Required(ErrorMessage = "Campo obrigatório")]
     [StringLength(200)]
-    [Display(Name = "Nome do Campo")]  // Labels em português
+    [Display(Name = "Seu Label em Português")]
     public string Campo { get; set; } = string.Empty;
     
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
-    public bool Ativo { get; set; } = true;  // Soft delete - NUNCA deletar fisicamente
+    public bool Ativo { get; set; } = true;  // Soft delete — NUNCA deletar fisicamente
     
-    // FK obrigatória para autor
+    // FK para autor (obrigatória)
     [Required] public string UserId { get; set; } = string.Empty;
     [ForeignKey("UserId")] public virtual ApplicationUser? Autor { get; set; }
 }
 ```
 
-### DbContext - Relacionamentos (`OnModelCreating`)
-- `DeleteBehavior.Restrict`: FK obrigatória (não permite excluir pai com filhos)
-- `DeleteBehavior.SetNull`: FK opcional (define null ao excluir pai)
-- `DeleteBehavior.Cascade`: Exclui filhos junto (usar com moderação)
-
-## Conceitos de Domínio Críticos
-| Termo | Significado |
-|-------|-------------|
-| **Manejos** | "Saberes não cientificizados" - estratégias práticas das mães (NÃO prescrições médicas). Validáveis por profissionais. Categorias: `CategoriaManejo` enum. |
-| **Central de Acolhimento** | Feed social onde posts são "acolhidos" (não "curtidos"). Controller: `AcolhimentoController.cs`. |
-| **Acolhimento** | Toggle like/unlike empático - modelo `PostAcolhimento` com índice único `(PostId, UserId)`. |
-| **Triagem** | Solicitação de avaliação (`ScreeningRequest`) por professor → aguardando profissional de saúde. |
-| **Chat** | Mensagens diretas entre usuários (`ChatController`). |
-
-### Fluxo de Notificações
+### Relacionamentos em `OnModelCreating` (DbContext)
 ```csharp
-// Criar notificação + push: usar método estático
+builder.Entity<Post>(entity => {
+    entity.ToTable("Posts");
+    entity.HasIndex(e => e.UserId);
+    
+    entity.HasOne(e => e.Autor)
+        .WithMany(u => u.Posts)
+        .HasForeignKey(e => e.UserId)
+        .OnDelete(DeleteBehavior.Restrict);  // Impede deletar usuário com posts
+});
+```
+
+**Estratégias de Delete**:
+- `Restrict`: FK obrigatória — não permite excluir pai se tem filhos
+- `SetNull`: FK opcional — define null ao excluir pai
+- `Cascade`: Exclui filhos junto (usar com cuidado)
+
+## Domínio Crítico
+
+| Termo | Significado | Referência |
+|-------|-------------|-----------|
+| **Manejos** | "Saberes não cientificizados" — estratégias práticas das mães (NÃO são prescrições). Validáveis por profissionais. | `Models/Manejo.cs`, enum `CategoriaManejo` |
+| **Acolhimento** | Reação empática (like) em posts. Toggle via `PostAcolhimento` com índice único `(PostId, UserId)`. | `Controllers/AcolhimentoController.cs` |
+| **Central** | Feed social onde posts são "acolhidos" (não "curtidos"). | `Controllers/AcolhimentoController.cs` |
+| **Triagem** | Solicitação de avaliação: Professor → aguarda Profissional Saúde → Parecer + Recomendações. | `Models/ScreeningRequest.cs`, `StatusTriagem` enum |
+| **Chat** | Mensagens diretas entre usuários (`ChatMessage`, `Conversation`). | `Controllers/ChatController.cs` |
+
+### Fluxo de Triagem
+```
+Professor (ProfissionalEducacao) cria ScreeningRequest
+  → Status = Pendente
+  ↓
+Profissional Saúde acessa e avalia
+  → Status = EmAvaliacao, adiciona ParecerProfissional
+  ↓
+Conclusão
+  → Status = Concluida, adiciona Recomendacoes + Encaminhamento
+  ↓
+Cancelada (se necessário)
+  → Status = Cancelada
+```
+**Ver**: `Areas/Profissional/Controllers/ProfissionalController.cs`
+
+## Serviços (DI em Program.cs)
+
+| Serviço | Interface | Responsabilidade | Registro |
+|---------|-----------|------------------|----------|
+| AIService | `IAIService` | Sugestões de manejos, termos glossário, profissionais (via IA ou fallback) | `AddAIServices()` |
+| PushNotification | `IPushNotificationService` | Push WebPush para PWA (chaves VAPID em appsettings) | `AddScoped<IPushNotificationService, PushNotificationService>()` |
+| ActivityTracking | `IActivityTrackingService` | Registra ações críticas (login, posts, acolhimentos) com IP/UserAgent | `AddScoped<IActivityTrackingService, ActivityTrackingService>()` |
+| Statistics | `IStatisticsService` | Dashboard: métricas, engajamento, snapshots diários | `AddScoped<IStatisticsService, StatisticsService>()` |
+
+### Exemplo: Notificações com Push
+```csharp
+// Em qualquer controller
 await NotificacoesController.CriarNotificacao(
-    _context, userId, "💕 Título", "Mensagem", TipoNotificacao.Acolhimento, "/link", _pushService);
+    _context, 
+    userId, 
+    "💕 Título empático", 
+    "Mensagem de suporte",
+    TipoNotificacao.Acolhimento,  // enum
+    "/Link/Para/Acao",
+    _pushService  // IPushNotificationService injetado
+);
 ```
-- `IPushNotificationService` injetado para push PWA (WebPush com chaves VAPID)
-- Tipos: `TipoNotificacao` enum (Acolhimento, Comentario, Sistema, etc.)
 
-### Entidades Principais (ver `ApplicationDbContext.cs`)
-- `ApplicationUser` → `Child`, `Post`, `Manejo`, `Service`, `Opportunity`, `Notification`, `UserActivity`
-- `Post` → `PostComment`, `PostAcolhimento`
-- `School` → `Child`, `ScreeningRequest`
-- `Conversation` → `ChatMessage`
-
-## Serviços Registrados (`Program.cs`)
-- `IAIService` / `BasicAIService`: Sugestões de manejos, termos do glossário, profissionais
-- `IPushNotificationService`: Notificações push para PWA
-- `IActivityTrackingService`: Rastreamento de atividades do usuário (`RegistrarAtividade`)
-- `IStatisticsService`: Métricas e dashboards (`ObterMetricasDashboard`)
-- Registro: `builder.Services.AddAIServices()` (extension method em `Services/AIService.cs`)
-
-## Monitoramento e Métricas (Aderência)
-Use `IStatisticsService` para dashboards e relatórios de aderência. **NÃO** faça contagens manuais no controller.
+### Exemplo: Rastreamento de Atividades
 ```csharp
-// Exemplo: Dashboard Admin
-var metricas = await _statisticsService.ObterMetricasDashboard();
-var engajamento = await _statisticsService.ObterMetricasEngajamento(); // Inclui Taxa de Aderência
-```
-- **Aderência**: Calculada via `EngagementMetrics.TaxaEngajamento` (usuários ativos / total).
-- **Snapshots**: O sistema gera snapshots diários automáticos para histórico.
-
-## Rastreamento de Atividades
-Sempre que uma ação relevante ocorrer (criar post, login, acolhimento), registrar via `IActivityTrackingService`:
-```csharp
+// Registro simples
 await _activityService.RegistrarAtividade(userId, TipoAtividade.Login);
-// Ou com contexto HTTP (IP, UserAgent)
+
+// Com contexto HTTP (IP, UserAgent)
 await _activityService.RegistrarAtividadeComContexto(userId, TipoAtividade.Login, HttpContext);
 ```
 
-## UI/UX - Tom e Visual
-**Tom**: Acolhedor, empático, SEMPRE usar emojis:
+### Exemplo: Métricas & Dashboard
+```csharp
+// Em Admin Dashboard
+var metricas = await _statisticsService.ObterMetricasDashboard();
+var engajamento = await _statisticsService.ObterMetricasEngajamento();
+// engajamento.TaxaEngajamento = usuários ativos / total
+```
+
+## UI/UX - Tom & Paleta
+
+### Tom
+Sempre **acolhedor, empático, com emojis**:
 ```csharp
 TempData["Mensagem"] = "Sua mensagem foi compartilhada com carinho. Você não está sozinha! 💕";
 TempData["Erro"] = "Ops! Algo deu errado. Tente novamente. 🤗";
 ```
 
-**Paleta** (ver `wwwroot/css/site.css`):
-- Primária (Salmon): `#F28B82` → `btn-salmon`, `text-salmon`, `bg-salmon-light`
-- Secundária (Azul bebê): `#AECBFA`
-- Destaque (Amarelo): `#FCE883`
-- Alto contraste: fundo branco, texto preto
+### Cores (em `wwwroot/css/site.css`)
+- **Primária (Salmon)**: `#F28B82` → classes `btn-salmon`, `text-salmon`, `bg-salmon-light`
+- **Secundária (Azul bebê)**: `#AECBFA`
+- **Destaque (Amarelo)**: `#FCE883`
+- **Contraste**: fundo branco, texto preto
 
-**Ícones**: Bootstrap Icons (`bi bi-*`) - ex: `bi-heart-fill`, `bi-chat-heart`, `bi-people-fill`
-
-## Arquivos de Referência
-| Para entender... | Consulte |
-|------------------|----------|
-| DI, Identity, Startup, migrations auto | `Program.cs` |
-| Schema completo + relacionamentos | `Data/ApplicationDbContext.cs` |
-| Extensão do Identity | `Models/ApplicationUser.cs` |
-| Perfis de usuário | `Models/Enums/TipoPerfil.cs` |
-| Categorias de manejo | `Models/Enums/CategoriaManejo.cs` |
-| Padrão CRUD público | `Controllers/AcolhimentoController.cs` |
-| Padrão Admin com verificação | `Areas/Admin/Controllers/AdminController.cs` |
-| Serviços (IA, Push, Stats) | `Services/AIService.cs`, `Services/PushNotificationService.cs`, `Services/StatisticsService.cs` |
-| CSS e variáveis | `wwwroot/css/site.css` |
-
-## Estrutura de Áreas (MVC Areas)
-```
-Areas/
-├── Admin/Controllers/     # Administração (dashboard, CRUD completo)
-├── Empresa/Controllers/   # Portal de empresas parceiras
-├── Governo/Controllers/   # Portal governo/secretarias
-├── Mae/Controllers/       # Área exclusiva mães (em desenvolvimento)
-└── Profissional/Controllers/  # Portal profissionais saúde/educação
-```
-
-## Dicas Rápidas
-1. **Nova entidade**: Criar Model → Adicionar DbSet → Configurar em `OnModelCreating` → Migration
-2. **Seed de dados**: Adicionar em métodos `SeedXxx()` no `ApplicationDbContext.cs` (existentes: `SeedGlossaryTerms`, `SeedServicesCapsMaceio`, `SeedManejosIniciais`)
-3. **Validação falhou?**: Verificar `ModelState.Remove()` para campos server-side
-4. **Notificações**: Usar `NotificacoesController.CriarNotificacao()` + `IPushNotificationService`
-5. **Atividades**: Registrar ações importantes com `IActivityTrackingService`
-
-## Fluxo de Triagem (Professor → Profissional Saúde)
-```
-ProfissionalEducacao cria ScreeningRequest → Status: Pendente
-   ↓
-ProfissionalSaude avalia → Status: EmAvaliacao → adiciona ParecerProfissional
-   ↓
-Conclusão → Status: Concluida → adiciona Recomendacoes e Encaminhamento
-```
-- `StatusTriagem` enum: `Pendente`, `EmAvaliacao`, `Concluida`, `Cancelada`
-- Ver `Areas/Profissional/Controllers/ProfissionalController.cs`
+### Ícones
+Bootstrap Icons (`bi bi-*`): `bi-heart-fill`, `bi-chat-heart`, `bi-people-fill`, `bi-star-fill`
 
 ## PWA - Progressive Web App
-O sistema é um PWA completo com suporte offline:
-- **Manifest**: `wwwroot/manifest.json` - cores tema `#F28B82`, ícones em `wwwroot/icons/`
-- **Service Worker**: `wwwroot/service-worker.js` - cache `CACHE_VERSION = 'v1.0.0'` (incrementar a cada deploy)
-- **Offline**: `wwwroot/offline.html` - página exibida sem conexão
+
+Sistema é PWA completo com offline support:
+- **Manifest**: `wwwroot/manifest.json` — cores tema, ícones em `wwwroot/icons/`
+- **Service Worker**: `wwwroot/service-worker.js` — cache com `CACHE_VERSION = 'v1.0.0'` (incrementar a cada deploy)
+- **Offline**: `wwwroot/offline.html` — página exibida sem conexão
 - **Push**: Chaves VAPID em `Services/PushNotificationService.cs`
 
-## ViewModels (usar para formulários complexos)
-```csharp
-// ViewModels/ - usar quando formulário difere do Model
-// Exemplos existentes: LoginViewModel, RegisterViewModel, ProfileViewModel
-public class RegisterViewModel {
-    [Required(ErrorMessage = "O nome completo é obrigatório.")]
-    [Display(Name = "Nome Completo")]
-    public string NomeCompleto { get; set; } = string.Empty;
-    // ... campos específicos do formulário
-}
-```
+## Workflow: Adicionar Entidade Nova
+
+1. **Criar Model** em `Models/` com soft delete (`Ativo`, `DataCriacao`, `UserId`)
+2. **Adicionar DbSet** em `Data/ApplicationDbContext.cs`
+3. **Configurar relacionamentos** em `OnModelCreating()` (índices, FKs, DeleteBehavior)
+4. **Criar Migration**: `cd AUTistima && dotnet ef migrations add NomeEntidade`
+5. **Seed (opcional)**: Método `SeedXxx()` em `ApplicationDbContext.cs` (executado automaticamente)
+
+Exemplos existentes: `SeedGlossaryTerms()`, `SeedServicesCapsMaceio()`, `SeedManejosIniciais()`
+
+## Arquivos de Referência Rápida
+
+| Para entender... | Arquivo |
+|------------------|---------|
+| DI, Identity, startup, auto-migrations | `Program.cs` |
+| Schema completo, entidades, relacionamentos | `Data/ApplicationDbContext.cs` |
+| Extensão do Identity | `Models/ApplicationUser.cs` |
+| Enums (TipoPerfil, CategoriaManejo, etc.) | `Models/Enums/*.cs` |
+| CRUD padrão (público) | `Controllers/AcolhimentoController.cs` |
+| CRUD com verificação admin | `Areas/Admin/Controllers/AdminController.cs` |
+| Serviços (IA, Push, Stats, Activity) | `Services/` |
+| Variáveis CSS, cores, responsive | `wwwroot/css/site.css` |
+| Routing de áreas | `Program.cs` linhas 78-88 |
+
+## Checklist para PR (Pull Request)
+
+- [ ] Código em **pt-BR** (variáveis, comentários, labels)
+- [ ] `ModelState.Remove()` usado para campos server-side em formulários
+- [ ] Soft delete: `Ativo = true` em Insert, sem DELETE físico
+- [ ] FK para `ApplicationUser` com `[ForeignKey]` atributo
+- [ ] `TempData["Mensagem"]` com emoji para feedback ao usuário
+- [ ] `OnDelete(DeleteBehavior.Restrict)` para FKs críticas (usuário, perfil)
+- [ ] Verificação `IsAdmin()` ou equivalente em controllers de área
+- [ ] Atividades críticas registradas via `_activityService`
+- [ ] Sem hardcoding de URLs — usar `Url.Action()`, `nameof()`
+- [ ] Migrations criadas e testadas localmente
+
+---
+
+**Versão do documento**: v1.1 (8 dez 2025)  
+**Stack validado**: ASP.NET Core 9.0, EF Core 9.0, .NET 9.0
