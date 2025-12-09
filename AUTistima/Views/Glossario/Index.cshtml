@@ -1,6 +1,10 @@
 @model IEnumerable<AUTistima.Models.GlossaryTerm>
 @{
     ViewData["Title"] = "Mini Dicionário";
+    if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        Layout = "~/Views/Home/_LayoutHome.cshtml";
+    }
 }
 
 <div class="container py-4">

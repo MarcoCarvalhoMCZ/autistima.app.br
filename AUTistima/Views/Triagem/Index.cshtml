@@ -4,6 +4,10 @@
     ViewData["Title"] = "Triagem Educacional";
     var tipoPerfil = ViewBag.TipoPerfil as TipoPerfil?;
     var statusAtual = ViewBag.StatusAtual as StatusTriagem?;
+    if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        Layout = "~/Views/Home/_LayoutHome.cshtml";
+    }
 }
 
 <div class="container py-4">

@@ -1,6 +1,10 @@
 @model AUTistima.Models.GlossaryTerm
 @{
     ViewData["Title"] = Model.TermoTecnico;
+    if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        Layout = "~/Views/Home/_LayoutHome.cshtml";
+    }
 }
 
 <div class="container py-4">

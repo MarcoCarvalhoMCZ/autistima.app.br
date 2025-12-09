@@ -1,6 +1,10 @@
 @model AUTistima.Models.Manejo
 @{
     ViewData["Title"] = Model.Titulo;
+    if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        Layout = "~/Views/Home/_LayoutHome.cshtml";
+    }
 }
 @using AUTistima.Models.Enums
 

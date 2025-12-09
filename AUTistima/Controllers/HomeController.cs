@@ -25,10 +25,23 @@ public class HomeController : Controller
         ViewBag.TotalAcolhimentos = await _context.PostAcolhimentos.CountAsync();
         ViewBag.TotalProfissionais = await _context.Services.CountAsync(s => s.Ativo);
         
-        // Se autenticado, redirecionar para a tela apropriada
+        // Se autenticado, redirecionar para a área apropriada do perfil
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home", new { area = "" });
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
+            if (user != null)
+            {
+                return user.TipoPerfil switch
+                {
+                    Models.Enums.TipoPerfil.Administrador => RedirectToAction("Index", "Admin", new { area = "Admin" }),
+                    Models.Enums.TipoPerfil.Mae => RedirectToAction("Index", "Mae", new { area = "Mae" }),
+                    Models.Enums.TipoPerfil.ProfissionalSaude => RedirectToAction("Index", "Profissional", new { area = "Profissional" }),
+                    Models.Enums.TipoPerfil.ProfissionalEducacao => RedirectToAction("Index", "Profissional", new { area = "Profissional" }),
+                    Models.Enums.TipoPerfil.Empresa => RedirectToAction("Index", "Empresa", new { area = "Empresa" }),
+                    Models.Enums.TipoPerfil.Governo => RedirectToAction("Index", "Governo", new { area = "Governo" }),
+                    _ => View()
+                };
+            }
         }
         
         return View();

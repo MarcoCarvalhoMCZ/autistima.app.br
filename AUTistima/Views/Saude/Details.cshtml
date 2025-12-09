@@ -1,6 +1,10 @@
 @model AUTistima.Models.Service
 @{
     ViewData["Title"] = Model.NomeProfissional;
+    if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        Layout = "~/Views/Home/_LayoutHome.cshtml";
+    }
 }
 @using AUTistima.Models.Enums
 

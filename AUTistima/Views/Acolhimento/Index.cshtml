@@ -1,6 +1,10 @@
 @model IEnumerable<AUTistima.Models.Post>
 @{
     ViewData["Title"] = "Central de Acolhimento";
+    if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        Layout = "~/Views/Home/_LayoutHome.cshtml";
+    }
 }
 
 <div class="container py-4">
