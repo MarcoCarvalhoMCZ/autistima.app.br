@@ -126,6 +126,16 @@
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
                         
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input asp-for="TermoConsentimento" class="form-check-input" />
+                                <label class="form-check-label" for="TermoConsentimento">
+                                    Li e concordo com o <a href="#" data-bs-toggle="modal" data-bs-target="#termoConsentimentoModal">Termo de Consentimento e Uso de Dados</a>
+                                </label>
+                            </div>
+                            <span asp-validation-for="TermoConsentimento" class="text-danger small"></span>
+                        </div>
+
                         <button type="submit" class="btn btn-salmon w-100 mb-3">
                             <i class="bi bi-heart me-2"></i>Criar Minha Conta
                         </button>
@@ -155,6 +165,58 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal Termo de Consentimento -->
+<div class="modal fade" id="termoConsentimentoModal" tabindex="-1" aria-labelledby="termoConsentimentoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-salmon-light">
+        <h5 class="modal-title" id="termoConsentimentoModalLabel">Termo de Consentimento – Uso de Dados</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Ao se cadastrar no AUTistima, você concorda com as informações abaixo:</strong></p>
+        
+        <h6>Para que seus dados serão usados</h6>
+        <p>As informações que você colocar na plataforma serão usadas para:</p>
+        <ul>
+            <li>Criar relatórios e estudos sobre as necessidades das mães e famílias atendidas pelo AUTistima;</li>
+            <li>Melhorar o aplicativo e os serviços oferecidos;</li>
+            <li>Fazer encaminhamentos, quando necessário, para profissionais, empresas ou serviços que possam ajudar você.</li>
+        </ul>
+
+        <h6>Uso do seu telefone e e-mail</h6>
+        <p>Você autoriza o uso do seu telefone e e-mail apenas quando:</p>
+        <ul>
+            <li>Alguma empresa, profissional ou instituição quiser entrar em contato para oferecer ou contratar um serviço que você divulgou nos classificados do AUTistima;</li>
+            <li>O contato for relacionado aos objetivos do aplicativo.</li>
+        </ul>
+        <p><strong>Seus dados não serão vendidos.</strong></p>
+
+        <h6>Segurança das informações</h6>
+        <ul>
+            <li>Seus dados serão cuidados com responsabilidade, seguindo a Lei Geral de Proteção de Dados (LGPD);</li>
+            <li>Sempre que possível, os dados serão usados sem mostrar seu nome, apenas para pesquisa e relatórios.</li>
+        </ul>
+
+        <h6>Declarações importantes</h6>
+        <p>Ao se cadastrar, você confirma que:</p>
+        <ul>
+            <li>Tem 18 anos ou mais;</li>
+            <li>As informações que você colocar são verdadeiras;</li>
+            <li>Entende e concorda com este termo.</li>
+        </ul>
+
+        <h6>Concordância</h6>
+        <p>Ao marcar a opção “Li e concordo”, você autoriza o uso dos seus dados da forma explicada acima.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-salmon" data-bs-dismiss="modal" onclick="document.getElementById('TermoConsentimento').checked = true;">Li e Concordo</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 @section Scripts {

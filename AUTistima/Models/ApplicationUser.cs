@@ -64,6 +64,13 @@ public class ApplicationUser : IdentityUser
     
     [StringLength(2)]
     public string? Estado { get; set; }
+
+    // Termo de Consentimento
+    [Display(Name = "Termo de Consentimento Aceito")]
+    public bool TermoConsentimentoAceito { get; set; }
+
+    [Display(Name = "Data do Aceite do Termo")]
+    public DateTime? DataAceiteTermo { get; set; }
     
     public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
     

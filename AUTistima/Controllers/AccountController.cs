@@ -104,7 +104,9 @@ public class AccountController : Controller
                 Cidade = model.Cidade,
                 Estado = model.Estado,
                 DataCadastro = DateTime.UtcNow,
-                Ativo = true
+                Ativo = true,
+                TermoConsentimentoAceito = model.TermoConsentimento,
+                DataAceiteTermo = model.TermoConsentimento ? DateTime.UtcNow : null
             };
             
             var result = await _userManager.CreateAsync(user, model.Password);

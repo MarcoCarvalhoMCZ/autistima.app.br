@@ -37,4 +37,16 @@ public class RegisterViewModel
     [StringLength(2)]
     [Display(Name = "Estado")]
     public string? Estado { get; set; }
+
+    [Display(Name = "Li e concordo com o termo de consentimento")]
+    [MustBeTrue(ErrorMessage = "Você precisa aceitar o termo de consentimento.")]
+    public bool TermoConsentimento { get; set; }
+}
+
+public class MustBeTrueAttribute : ValidationAttribute
+{
+    public override bool IsValid(object? value)
+    {
+        return value is bool b && b;
+    }
 }
