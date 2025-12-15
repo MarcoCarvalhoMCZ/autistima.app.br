@@ -8,10 +8,12 @@ using System.Reflection;
 using AUTistima.Data;
 using AUTistima.Models.Enums;
 
+using System.Security.Claims;
+
 namespace AUTistima.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Administrador")] // Garante que apenas admins acessem
+[Authorize]
 public class DocsController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -25,8 +27,16 @@ public class DocsController : Controller
         _actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _context.Users.FindAsync(userId);
+
+        if (user?.TipoPerfil != TipoPerfil.Administrador)
+        {
+            return RedirectToAction("AccessDenied", "Account", new { area = "" });
+        }
+
         var model = new DocumentationViewModel
         {
             GeneratedAt = DateTime.Now,
