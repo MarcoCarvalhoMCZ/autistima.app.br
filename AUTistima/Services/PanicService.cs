@@ -172,13 +172,13 @@ public class PanicService : IPanicService
             ? string.Join(", ", filhos.Select(f => f.Nome))
             : "Nenhum filho cadastrado";
         
-        // Montar mensagem com dados da mãe (usar Uri.EscapeDataString para tudo)
+        // Montar mensagem com dados da mãe (SEM emojis para evitar símbolos estranhos)
         var nomeMae = mae.NomeCompleto ?? "Sem nome";
         
-        var mensagemCompleta = "🆘 ALERTA DE PÂNICO - AUTISTIMA%0A%0A" +
-            $"👩 Mãe: {Uri.EscapeDataString(nomeMae)}%0A" +
-            $"👧👦 Filhos: {Uri.EscapeDataString(filhosList)}%0A%0A" +
-            $"📝 Situação: {Uri.EscapeDataString(descricaoDemanda)}%0A%0A" +
+        var mensagemCompleta = "ALERTA DE PÂNICO - AUTISTIMA%0A%0A" +
+            $"Mãe: {Uri.EscapeDataString(nomeMae)}%0A" +
+            $"Filhos: {Uri.EscapeDataString(filhosList)}%0A%0A" +
+            $"Situação: {Uri.EscapeDataString(descricaoDemanda)}%0A%0A" +
             "Preciso de apoio urgente. Pode me ajudar?";
 
         // Limpar número
