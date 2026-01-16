@@ -1,5 +1,7 @@
 @model IEnumerable<AUTistima.Models.Service>
 @using AUTistima.Models.Enums
+@using AUTistima.Models
+@using System.Linq
 @{
     ViewData["Title"] = "Rede de Saúde";
     if (!User.Identity?.IsAuthenticated ?? true)
@@ -74,13 +76,11 @@
             <form asp-action="Index" method="get" class="row g-3">
                 <div class="col-md-3">
                     <label for="especialidade" class="form-label">Especialidade</label>
-                    <select class="form-select" id="especialidade" name="especialidade">
+                    <select class="form-select" id="especialidade" name="especialidadeId">
                         <option value="">Todas</option>
-                        @foreach (Especialidade esp in Enum.GetValues(typeof(Especialidade)))
+                        @foreach (var esp in (IEnumerable<EspecialidadeProfissional>)ViewBag.Especialidades)
                         {
-                            <option value="@esp" selected="@(ViewBag.EspecialidadeAtual?.ToString() == esp.ToString())">
-                                @GetEspecialidadeNome(esp)
-                            </option>
+                            <option value="@esp.Id" selected="@(ViewBag.EspecialidadeAtual == esp.Id)">@esp.Nome</option>
                         }
                     </select>
                 </div>
@@ -116,14 +116,15 @@
     </div>
 
     <!-- Atalhos rápidos -->
+    @{ var destaques = ((IEnumerable<EspecialidadeProfissional>)ViewBag.Especialidades).Take(4); }
     <div class="filter-tabs mb-4">
         <a asp-action="Gratuitos" class="filter-tab">
             💚 Gratuitos
         </a>
-        @foreach (Especialidade esp in new[] { Especialidade.Psicologia, Especialidade.Fonoaudiologia, Especialidade.TerapiaOcupacional, Especialidade.ABA })
+        @foreach (var esp in destaques)
         {
-            <a asp-action="Especialidade" asp-route-especialidade="@esp" class="filter-tab">
-                @GetEspecialidadeNome(esp)
+            <a asp-action="Index" asp-route-especialidadeId="@esp.Id" class="filter-tab">
+                @esp.Nome
             </a>
         }
     </div>
@@ -148,7 +149,7 @@
                         <div class="card-body">
                             <h5 class="card-title">@servico.NomeProfissional</h5>
                             <p class="text-muted mb-2">
-                                <i class="bi bi-mortarboard me-1"></i>@GetEspecialidadeNome(servico.Especialidade)
+                                <i class="bi bi-mortarboard me-1"></i>@(servico.Especialidade?.Nome ?? "Especialidade não informada")
                             </p>
                             
                             @if (!string.IsNullOrEmpty(servico.RegistroProfissional))
@@ -225,24 +226,6 @@
 </div>
 
 @functions {
-    string GetEspecialidadeNome(Especialidade especialidade)
-    {
-        return especialidade switch
-        {
-            Especialidade.Psicologia => "🧠 Psicologia",
-            Especialidade.Fonoaudiologia => "🗣️ Fonoaudiologia",
-            Especialidade.TerapiaOcupacional => "🖐️ Terapia Ocupacional",
-            Especialidade.Psicopedagogia => "📚 Psicopedagogia",
-            Especialidade.Neurologia => "🧬 Neurologia",
-            Especialidade.Psiquiatria => "💊 Psiquiatria",
-            Especialidade.Fisioterapia => "🦶 Fisioterapia",
-            Especialidade.Musicoterapia => "🎵 Musicoterapia",
-            Especialidade.ABA => "📊 ABA",
-            Especialidade.Nutricao => "🥗 Nutrição",
-            _ => especialidade.ToString()
-        };
-    }
-    
     string GetTipoAtendimentoNome(TipoAtendimento tipo)
     {
         return tipo switch

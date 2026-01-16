@@ -1,4 +1,5 @@
 @model AUTistima.Models.Service
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Cadastrar Serviço de Saúde";
 }
@@ -30,11 +31,11 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label asp-for="Especialidade" class="form-label fw-semibold">Especialidade *</label>
-                                <select asp-for="Especialidade" asp-items="Html.GetEnumSelectList<AUTistima.Models.Enums.Especialidade>()" class="form-select">
+                                <label asp-for="EspecialidadeId" class="form-label fw-semibold">Especialidade *</label>
+                                <select asp-for="EspecialidadeId" asp-items="@(new SelectList((IEnumerable<AUTistima.Models.EspecialidadeProfissional>)ViewBag.Especialidades, "Id", "Nome"))" class="form-select">
                                     <option value="">Selecione...</option>
                                 </select>
-                                <span asp-validation-for="Especialidade" class="text-danger small"></span>
+                                <span asp-validation-for="EspecialidadeId" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6">

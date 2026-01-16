@@ -1,5 +1,4 @@
 @model IEnumerable<AUTistima.Models.Service>
-@using AUTistima.Models.Enums
 @{
     ViewData["Title"] = "Meus Serviços";
 }
@@ -34,7 +33,7 @@ else
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">@servico.Especialidade</span>
+                        <span class="badge bg-primary">@servico.Especialidade?.Nome ?? "Especialidade não informada"</span>
                         @if (servico.Verificado)
                         {
                             <span class="badge bg-success"><i class="bi bi-patch-check me-1"></i>Verificado</span>

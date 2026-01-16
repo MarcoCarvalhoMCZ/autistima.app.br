@@ -14,5 +14,6 @@ public enum Especialidade
     Fisioterapia = 7,
     Musicoterapia = 8,
     ABA = 9,
-    Nutricao = 10
+    Nutricao = 10,
+    Psicanalise = 11
 }

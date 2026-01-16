@@ -120,13 +120,16 @@
                             <dd class="col-sm-8">@(Model.EmpresaAmiga ? "Sim ✅" : "Não")</dd>
                         }
                         
-                        @if (Model.TipoPerfil == TipoPerfil.ProfissionalSaude)
+                        @if (Model.TipoPerfil == TipoPerfil.ProfissionalSaude || Model.TipoPerfil == TipoPerfil.ProfissionalEducacao)
                         {
                             <dt class="col-sm-4">Especialidade</dt>
-                            <dd class="col-sm-8">@(Model.Especialidade?.ToString() ?? "-")</dd>
+                            <dd class="col-sm-8">@(Model.Especialidade?.Nome ?? "-")</dd>
                             
                             <dt class="col-sm-4">Registro</dt>
                             <dd class="col-sm-8">@(Model.RegistroProfissional ?? "-")</dd>
+
+                            <dt class="col-sm-4">Matrícula</dt>
+                            <dd class="col-sm-8">@(Model.MatriculaProfissional ?? "-")</dd>
                         }
                         
                         <dt class="col-sm-4">Email Confirmado</dt>

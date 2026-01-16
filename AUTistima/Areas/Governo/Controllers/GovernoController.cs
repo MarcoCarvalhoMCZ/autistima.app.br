@@ -76,8 +76,10 @@ public class GovernoController : Controller
             .ToListAsync();
 
         ViewBag.ServicosPorEspecialidade = await _context.Services
-            .GroupBy(s => s.Especialidade)
-            .Select(g => new { Especialidade = g.Key.ToString(), Total = g.Count() })
+            .Include(s => s.Especialidade)
+            .GroupBy(s => new { s.EspecialidadeId, Nome = s.Especialidade != null ? s.Especialidade.Nome : "Não informado" })
+            .Select(g => new { Especialidade = g.Key.Nome, Total = g.Count() })
+            .OrderByDescending(x => x.Total)
             .ToListAsync();
 
         return View();

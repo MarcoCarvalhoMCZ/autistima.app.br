@@ -1,5 +1,6 @@
 @model AUTistima.ViewModels.ProfileViewModel
 @using AUTistima.Models.Enums
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Meu Perfil";
     var estados = new[] { "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO" };
@@ -223,13 +224,25 @@
                                 <i class="bi bi-person-badge me-2"></i>Dados Profissionais
                             </h6>
                             <div class="row g-3 mb-4">
+                                @if (Model.TipoPerfil == TipoPerfil.ProfissionalSaude)
+                                {
+                                    <div class="col-md-6">
+                                        <label asp-for="RegistroProfissional" class="form-label fw-semibold">Registro Profissional *</label>
+                                        <input asp-for="RegistroProfissional" class="form-control" placeholder="Ex: CRM 12345/AL, CRP 00000/00" />
+                                        <small class="text-muted">Registro do conselho de classe (obrigatório)</small>
+                                    </div>
+                                }
+                                @if (Model.TipoPerfil == TipoPerfil.ProfissionalEducacao)
+                                {
+                                    <div class="col-md-6">
+                                        <label asp-for="MatriculaProfissional" class="form-label fw-semibold">Matrícula Profissional</label>
+                                        <input asp-for="MatriculaProfissional" class="form-control" placeholder="Ex: MAT-2024-001234" />
+                                        <small class="text-muted">Matrícula ou registro na secretaria de educação</small>
+                                    </div>
+                                }
                                 <div class="col-md-6">
-                                    <label asp-for="RegistroProfissional" class="form-label"></label>
-                                    <input asp-for="RegistroProfissional" class="form-control" placeholder="Ex: CRM 12345/AL" />
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="Especialidade" class="form-label"></label>
-                                    <select asp-for="Especialidade" class="form-select" asp-items="Html.GetEnumSelectList<Especialidade>()">
+                                    <label asp-for="EspecialidadeId" class="form-label fw-semibold">Especialidade *</label>
+                                    <select asp-for="EspecialidadeId" class="form-select" asp-items="@(new SelectList((IEnumerable<AUTistima.Models.EspecialidadeProfissional>)ViewBag.Especialidades, "Id", "Nome"))">
                                         <option value="">Selecione...</option>
                                     </select>
                                 </div>

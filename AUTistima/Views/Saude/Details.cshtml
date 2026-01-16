@@ -23,7 +23,7 @@
                     <div class="d-flex justify-content-between align-items-start mb-4">
                         <div>
                             <h2 class="fw-bold mb-2">@Model.NomeProfissional</h2>
-                            <span class="badge bg-primary fs-6">@Model.Especialidade</span>
+                            <span class="badge bg-primary fs-6">@(Model.Especialidade?.Nome ?? "Especialidade não informada")</span>
                             <span class="badge bg-secondary fs-6">@Model.TipoAtendimento</span>
                         </div>
                         @if (Model.Verificado)

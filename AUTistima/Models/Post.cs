@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using AUTistima.Models.Enums;
 
 namespace AUTistima.Models;
 
@@ -24,6 +25,20 @@ public class Post
     
     [Display(Name = "Permitir Comentários")]
     public bool PermitirComentarios { get; set; } = true;
+
+    // Moderação
+    [Display(Name = "Status de Moderação")]
+    public StatusModeracaoPost StatusModeracao { get; set; } = StatusModeracaoPost.Pendente;
+
+    [StringLength(500)]
+    [Display(Name = "Feedback de Moderação")]
+    public string? FeedbackModeracao { get; set; }
+
+    public DateTime? DataModeracao { get; set; }
+
+    public string? ModeradorId { get; set; }
+    [ForeignKey("ModeradorId")]
+    public virtual ApplicationUser? Moderador { get; set; }
     
     // Autor do post
     [Required]

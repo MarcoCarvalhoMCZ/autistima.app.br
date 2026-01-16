@@ -64,6 +64,7 @@ public class ProfissionalController : Controller
 
         var servicos = await _context.Services
             .Where(s => s.UserId == user.Id)
+            .Include(s => s.Especialidade)
             .OrderByDescending(s => s.DataCadastro)
             .ToListAsync();
 

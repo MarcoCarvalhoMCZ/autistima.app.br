@@ -1,4 +1,5 @@
 @model IEnumerable<ApplicationUser>
+@using AUTistima.Models.Enums
 @{
     ViewData["Title"] = "Gerenciar Usuários";
 }
@@ -58,6 +59,7 @@
                                 <th>Nome</th>
                                 <th>Email</th>
                                 <th>Perfil</th>
+                                <th>Aprovação</th>
                                 <th>Cidade/UF</th>
                                 <th>Cadastro</th>
                                 <th>Status</th>
@@ -86,6 +88,26 @@
                                     <td>
                                         <span class="badge bg-secondary">@usuario.TipoPerfil</span>
                                     </td>
+                                    <td>
+                                        @switch (usuario.StatusAprovacao)
+                                        {
+                                            case StatusAprovacao.Pendente:
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Pendente
+                                                </span>
+                                                break;
+                                            case StatusAprovacao.Aprovado:
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Aprovado
+                                                </span>
+                                                break;
+                                            case StatusAprovacao.Rejeitado:
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-x-circle me-1"></i>Rejeitado
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
                                     <td>@(usuario.Cidade ?? "-") @(usuario.Estado != null ? $"/ {usuario.Estado}" : "")</td>
                                     <td>@usuario.DataCadastro.ToString("dd/MM/yyyy")</td>
                                     <td>
@@ -106,6 +128,17 @@
                                             <a asp-action="Edit" asp-route-id="@usuario.Id" class="btn btn-outline-secondary" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            @if (usuario.StatusAprovacao == StatusAprovacao.Pendente && usuario.TipoPerfil != TipoPerfil.Administrador)
+                                            {
+                                                <button type="button" class="btn btn-outline-success" title="Aprovar" 
+                                                        onclick="aprovarUsuario('@usuario.Id', '@usuario.NomeCompleto')">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger" title="Rejeitar" 
+                                                        onclick="rejeitarUsuario('@usuario.Id', '@usuario.NomeCompleto')">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            }
                                             @if (usuario.TipoPerfil != TipoPerfil.Administrador)
                                             {
                                                 <form asp-action="Delete" asp-route-id="@usuario.Id" method="post" class="d-inline" 
@@ -210,3 +243,51 @@
         }
     </div>
 </div>
+<script>
+function aprovarUsuario(usuarioId, nomeUsuario) {
+    if (confirm(`Aprovar o perfil de ${nomeUsuario}?`)) {
+        fetch('@Url.Action("Aprovar")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `id=${usuarioId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao aprovar perfil');
+            }
+        });
+    }
+}
+
+function rejeitarUsuario(usuarioId, nomeUsuario) {
+    const motivo = prompt(`Por qual motivo deseja rejeitar o perfil de ${nomeUsuario}?`);
+    if (motivo) {
+        fetch('@Url.Action("Rejeitar")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `id=${usuarioId}&motivo=${encodeURIComponent(motivo)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao rejeitar perfil');
+            }
+        });
+    }
+}
+
+function confirmarExclusao(form, mensagem) {
+    return confirm(mensagem);
+}
+</script>

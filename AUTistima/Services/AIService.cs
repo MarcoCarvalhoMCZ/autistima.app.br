@@ -13,7 +13,7 @@ public interface IAIService
 {
     Task<List<Manejo>> SugerirManejosPorCategoria(CategoriaManejo categoria, int quantidade = 5);
     Task<List<GlossaryTerm>> SugerirTermosRelacionados(string termo, int quantidade = 5);
-    Task<List<Service>> SugerirProfissionais(string cidade, Especialidade? especialidade = null, int quantidade = 5);
+    Task<List<Service>> SugerirProfissionais(string cidade, int? especialidadeId = null, int quantidade = 5);
     Task<string> GerarResumoAcolhedor(string conteudo);
     Task<List<string>> SugerirTagsParaPost(string titulo, string conteudo);
 }
@@ -77,18 +77,20 @@ public class BasicAIService : IAIService
     /// <summary>
     /// Sugere profissionais baseados em localização e especialidade
     /// </summary>
-    public async Task<List<Service>> SugerirProfissionais(string cidade, Especialidade? especialidade = null, int quantidade = 5)
+    public async Task<List<Service>> SugerirProfissionais(string cidade, int? especialidadeId = null, int quantidade = 5)
     {
-        var query = _context.Services.Where(s => s.Ativo);
+        var query = _context.Services
+            .Include(s => s.Especialidade)
+            .Where(s => s.Ativo);
         
         if (!string.IsNullOrWhiteSpace(cidade))
         {
             query = query.Where(s => s.Cidade != null && s.Cidade.ToLower().Contains(cidade.ToLower()));
         }
         
-        if (especialidade.HasValue)
+        if (especialidadeId.HasValue)
         {
-            query = query.Where(s => s.Especialidade == especialidade.Value);
+            query = query.Where(s => s.EspecialidadeId == especialidadeId.Value);
         }
         
         return await query

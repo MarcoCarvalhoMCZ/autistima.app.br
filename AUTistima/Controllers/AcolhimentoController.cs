@@ -229,4 +229,36 @@ public class AcolhimentoController : Controller
 
         return View(post);
     }
+
+    // POST: Acolhimento/DeleteComentario/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> DeleteComentario(int id, int postId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId);
+        var comentario = await _context.PostComments.FindAsync(id);
+
+        if (comentario == null)
+        {
+            TempData["Erro"] = "Comentário não encontrado.";
+            return RedirectToAction(nameof(Details), new { id = postId });
+        }
+
+        // Apenas autor do comentário ou admin podem deletar
+        var isAdmin = user?.TipoPerfil == Models.Enums.TipoPerfil.Administrador;
+        if (comentario.UserId != userId && !isAdmin)
+        {
+            TempData["Erro"] = "Você não tem permissão para deletar este comentário.";
+            return RedirectToAction(nameof(Details), new { id = postId });
+        }
+
+        // Soft delete
+        comentario.Ativo = false;
+        await _context.SaveChangesAsync();
+
+        TempData["Mensagem"] = "Comentário removido com sucesso.";
+        return RedirectToAction(nameof(Details), new { id = postId });
+    }
 }

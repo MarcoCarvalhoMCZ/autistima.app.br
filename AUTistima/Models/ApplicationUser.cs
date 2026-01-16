@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using AUTistima.Models.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AUTistima.Models;
 
@@ -93,7 +94,32 @@ public class ApplicationUser : IdentityUser
     [Display(Name = "Registro Profissional")]
     public string? RegistroProfissional { get; set; }
     
-    public Especialidade? Especialidade { get; set; }
+    [StringLength(50)]
+    [Display(Name = "Matrícula Profissional (Educação)")]
+    public string? MatriculaProfissional { get; set; }
+
+    [Column("Especialidade")]
+    [Display(Name = "Especialidade")]
+    public int? EspecialidadeId { get; set; }
+
+    [ForeignKey("EspecialidadeId")]
+    public EspecialidadeProfissional? Especialidade { get; set; }
+    
+    // Status de Aprovação do Perfil
+    [Display(Name = "Status de Aprovação")]
+    public StatusAprovacao StatusAprovacao { get; set; } = StatusAprovacao.Pendente;
+    
+    [StringLength(500)]
+    [Display(Name = "Motivo da Rejeição")]
+    public string? MotivoRejeicao { get; set; }
+    
+    [Display(Name = "URL do Certificado/Diploma")]
+    [StringLength(500)]
+    public string? CertificadoUrl { get; set; }
+    
+    public DateTime? DataAprovacao { get; set; }
+    
+    public string? AprovadoPorAdminId { get; set; }
     
     // Navegações
     public virtual ICollection<Child> Filhos { get; set; } = new List<Child>();

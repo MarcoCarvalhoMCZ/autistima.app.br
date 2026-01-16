@@ -18,11 +18,11 @@
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-6">
-                    <select name="especialidade" class="form-select">
+                    <select name="especialidadeId" class="form-select">
                         <option value="">Todas as especialidades</option>
-                        @foreach (Especialidade esp in Enum.GetValues(typeof(Especialidade)))
+                        @foreach (var esp in (IEnumerable<AUTistima.Models.EspecialidadeProfissional>)ViewBag.Especialidades)
                         {
-                            <option value="@esp" selected="@(ViewBag.Especialidade == esp)">@esp</option>
+                            <option value="@esp.Id" selected="@(ViewBag.Especialidade == esp.Id)">@esp.Nome</option>
                         }
                     </select>
                 </div>
@@ -59,7 +59,7 @@
                                         <strong>@servico.NomeProfissional</strong>
                                         <br><small class="text-muted">@servico.Profissional?.Email</small>
                                     </td>
-                                    <td><span class="badge bg-info">@servico.Especialidade</span></td>
+                                    <td><span class="badge bg-info">@(servico.Especialidade?.Nome ?? "-")</span></td>
                                     <td>
                                         @servico.TipoAtendimento
                                         @if (servico.AtendeOnline)
@@ -121,7 +121,7 @@
                         <div class="mobile-card-header">
                             <div>
                                 <h6 class="mobile-card-title">@servico.NomeProfissional</h6>
-                                <span class="badge bg-info">@servico.Especialidade</span>
+                                <span class="badge bg-info">@(servico.Especialidade?.Nome ?? "-")</span>
                                 @if (servico.AtendeOnline)
                                 {
                                     <span class="badge bg-success">Online</span>

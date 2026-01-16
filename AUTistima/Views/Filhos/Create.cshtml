@@ -28,6 +28,7 @@
                     </div>
 
                     <form asp-action="Create" method="post">
+                        <input type="hidden" asp-for="EscolaNome" />
                         <div class="row g-3">
                             <div class="col-12">
                                 <label asp-for="Nome" class="form-label fw-semibold">Nome *</label>
@@ -67,9 +68,18 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label asp-for="EscolaNome" class="form-label fw-semibold">Nome da Escola</label>
-                                <input asp-for="EscolaNome" class="form-control" placeholder="Nome da escola (se frequenta)" />
-                                <span asp-validation-for="EscolaNome" class="text-danger small"></span>
+                                <label asp-for="EscolaNome" class="form-label fw-semibold">Escola</label>
+                                <select asp-for="EscolaId" class="form-select" onchange="updateEscolaNome()">
+                                    <option value="">Selecione a escola (opcional)</option>
+                                    @{
+                                        var escolas = ViewBag.Escolas as List<AUTistima.Models.School> ?? new List<AUTistima.Models.School>();
+                                        foreach (var escola in escolas)
+                                        {
+                                            <option value="@escola.Id">@escola.Nome - @escola.Cidade</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="EscolaId" class="text-danger small"></span>
                             </div>
 
                             <div class="col-12">
@@ -123,4 +133,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function updateEscolaNome() {
+            const select = document.querySelector('select[asp-for="EscolaId"]');
+            const selectedOption = select.options[select.selectedIndex];
+            const escolaNome = selectedOption.text;
+            document.querySelector('input[asp-for="EscolaNome"]').value = escolaNome === 'Selecione a escola (opcional)' ? '' : escolaNome;
+        }
+    </script>
 }

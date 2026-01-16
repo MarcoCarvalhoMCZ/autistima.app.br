@@ -188,14 +188,16 @@ public class ApiController : ControllerBase
     /// </summary>
     [HttpGet("servicos")]
     public async Task<ActionResult<IEnumerable<ServicoDto>>> GetServicos(
-        Especialidade? especialidade = null,
+        int? especialidadeId = null,
         TipoAtendimento? tipo = null,
         string? cidade = null)
     {
-        var query = _context.Services.Where(s => s.Ativo);
+        var query = _context.Services
+            .Include(s => s.Especialidade)
+            .Where(s => s.Ativo);
         
-        if (especialidade.HasValue)
-            query = query.Where(s => s.Especialidade == especialidade.Value);
+        if (especialidadeId.HasValue)
+            query = query.Where(s => s.EspecialidadeId == especialidadeId.Value);
         
         if (tipo.HasValue)
             query = query.Where(s => s.TipoAtendimento == tipo.Value);
@@ -209,7 +211,7 @@ public class ApiController : ControllerBase
             {
                 Id = s.Id,
                 Nome = s.NomeProfissional,
-                Especialidade = s.Especialidade.ToString(),
+                Especialidade = s.Especialidade != null ? s.Especialidade.Nome : string.Empty,
                 TipoAtendimento = s.TipoAtendimento.ToString(),
                 Descricao = s.Descricao,
                 Endereco = s.Endereco,
@@ -341,9 +343,10 @@ public class ApiController : ControllerBase
                 .ToListAsync(),
             
             Servicos = await _context.Services
+                .Include(s => s.Especialidade)
                 .Where(s => s.Ativo && s.NomeProfissional.ToLower().Contains(termo))
                 .Take(10)
-                .Select(s => new ServicoDto { Id = s.Id, Nome = s.NomeProfissional, Especialidade = s.Especialidade.ToString() })
+                .Select(s => new ServicoDto { Id = s.Id, Nome = s.NomeProfissional, Especialidade = s.Especialidade != null ? s.Especialidade.Nome : string.Empty })
                 .ToListAsync()
         };
         

@@ -23,15 +23,16 @@ public class SaudeController : Controller
     }
 
     // GET: Saude
-    public async Task<IActionResult> Index(Especialidade? especialidade = null, TipoAtendimento? tipoAtendimento = null, string? cidade = null, string? bairro = null)
+    public async Task<IActionResult> Index(int? especialidadeId = null, TipoAtendimento? tipoAtendimento = null, string? cidade = null, string? bairro = null)
     {
         var query = _context.Services
             .Include(s => s.Profissional)
+            .Include(s => s.Especialidade)
             .Where(s => s.Ativo);
 
-        if (especialidade.HasValue)
+        if (especialidadeId.HasValue)
         {
-            query = query.Where(s => s.Especialidade == especialidade.Value);
+            query = query.Where(s => s.EspecialidadeId == especialidadeId.Value);
         }
 
         if (tipoAtendimento.HasValue)
@@ -55,10 +56,16 @@ public class SaudeController : Controller
             .ThenBy(s => s.NomeProfissional)
             .ToListAsync();
 
-        ViewBag.EspecialidadeAtual = especialidade;
+        ViewBag.EspecialidadeAtual = especialidadeId;
         ViewBag.TipoAtendimentoAtual = tipoAtendimento;
         ViewBag.CidadeAtual = cidade;
         ViewBag.BairroAtual = bairro;
+
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
 
         // Estatísticas
         ViewBag.TotalGratuitos = await _context.Services.CountAsync(s => s.Ativo && s.TipoAtendimento == TipoAtendimento.Gratuito);
@@ -74,11 +81,12 @@ public class SaudeController : Controller
     {
         var servicos = await _context.Services
             .Include(s => s.Profissional)
+            .Include(s => s.Especialidade)
             .Where(s => s.Ativo && 
                   (s.TipoAtendimento == TipoAtendimento.Gratuito || 
                    s.TipoAtendimento == TipoAtendimento.ConvenioUniversitario))
             .OrderByDescending(s => s.Verificado)
-            .ThenBy(s => s.Especialidade)
+            .ThenBy(s => s.EspecialidadeId)
             .ToListAsync();
 
         // Estatísticas
@@ -100,6 +108,7 @@ public class SaudeController : Controller
 
         var servico = await _context.Services
             .Include(s => s.Profissional)
+            .Include(s => s.Especialidade)
             .FirstOrDefaultAsync(s => s.Id == id && s.Ativo);
 
         if (servico == null)
@@ -124,6 +133,12 @@ public class SaudeController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
+
         return View();
     }
 
@@ -131,7 +146,7 @@ public class SaudeController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Create([Bind("NomeProfissional,Especialidade,TipoAtendimento,Descricao,RegistroProfissional,Endereco,Bairro,Cidade,Estado,CEP,Telefone,Email,Website,AtendeOnline,ValorConsulta,Observacoes")] Service servico)
+    public async Task<IActionResult> Create([Bind("NomeProfissional,EspecialidadeId,TipoAtendimento,Descricao,RegistroProfissional,Endereco,Bairro,Cidade,Estado,CEP,Telefone,Email,Website,AtendeOnline,ValorConsulta,Observacoes")] Service servico)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _context.Users.FindAsync(userId);
@@ -155,6 +170,12 @@ public class SaudeController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
+
         return View(servico);
     }
 
@@ -167,7 +188,9 @@ public class SaudeController : Controller
             return NotFound();
         }
 
-        var servico = await _context.Services.FindAsync(id);
+        var servico = await _context.Services
+            .Include(s => s.Especialidade)
+            .FirstOrDefaultAsync(s => s.Id == id);
         if (servico == null)
         {
             return NotFound();
@@ -179,6 +202,12 @@ public class SaudeController : Controller
             return Forbid();
         }
 
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
+
         return View(servico);
     }
 
@@ -186,7 +215,7 @@ public class SaudeController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,NomeProfissional,Especialidade,TipoAtendimento,Descricao,RegistroProfissional,Endereco,Bairro,Cidade,Estado,CEP,Telefone,Email,Website,AtendeOnline,ValorConsulta,Observacoes")] Service servico)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,NomeProfissional,EspecialidadeId,TipoAtendimento,Descricao,RegistroProfissional,Endereco,Bairro,Cidade,Estado,CEP,Telefone,Email,Website,AtendeOnline,ValorConsulta,Observacoes")] Service servico)
     {
         if (id != servico.Id)
         {
@@ -232,13 +261,19 @@ public class SaudeController : Controller
             }
             return RedirectToAction(nameof(Index));
         }
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
+
         return View(servico);
     }
 
-    // GET: Saude/Especialidade/Psicologia
-    public async Task<IActionResult> Especialidade(Especialidade especialidade)
+    // GET: Saude/Especialidade/5
+    public async Task<IActionResult> Especialidade(int? especialidadeId)
     {
-        return await Index(especialidade: especialidade);
+        return await Index(especialidadeId: especialidadeId);
     }
 
     private async Task<bool> ServicoExists(int id)

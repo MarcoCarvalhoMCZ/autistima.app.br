@@ -18,8 +18,12 @@ public class Service
     public string NomeProfissional { get; set; } = string.Empty;
     
     [Required]
+    [Column("Especialidade")]
     [Display(Name = "Especialidade")]
-    public Especialidade Especialidade { get; set; }
+    public int EspecialidadeId { get; set; }
+
+    [ForeignKey("EspecialidadeId")]
+    public EspecialidadeProfissional? Especialidade { get; set; }
     
     [Required]
     [Display(Name = "Tipo de Atendimento")]

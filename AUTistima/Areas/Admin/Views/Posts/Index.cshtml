@@ -1,0 +1,406 @@
+@model IEnumerable<AUTistima.Models.Post>
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Manutenção de Postagens";
+}
+
+<div class="container-fluid py-4">
+    @Html.AntiForgeryToken()
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-chat-heart me-2"></i>Manutenção de Postagens</h1>
+            <p class="text-muted mb-0">Total encontrado: <strong>@ViewBag.TotalItens</strong></p>
+        </div>
+    </div>
+
+    <!-- Card de Filtros -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light border-bottom">
+            <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filtros de Busca</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Busca por texto -->
+                <div class="col-md-4">
+                    <label class="form-label">Buscar (conteúdo ou autora)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="busca" value="@ViewBag.Busca" class="form-control" 
+                               placeholder="Digite para filtrar...">
+                    </div>
+                </div>
+
+                <!-- Status Ativo/Inativo -->
+                <div class="col-md-3">
+                    <label class="form-label">Status de Exibição</label>
+                    <select name="ativo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="true" selected="@(ViewBag.Ativo == true ? "selected" : null)">Ativos</option>
+                        <option value="false" selected="@(ViewBag.Ativo == false ? "selected" : null)">Inativos</option>
+                    </select>
+                </div>
+
+                <!-- Status de Moderação -->
+                <div class="col-md-3">
+                    <label class="form-label">Status de Moderação</label>
+                    <select name="statusModeracao" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach (StatusModeracaoPost status in ViewBag.StatusModeracaoEnum)
+                        {
+                            var isSelected = ViewBag.StatusModeracao?.ToString() == status.ToString() ? "selected" : null;
+                            <option value="@status" selected="@isSelected">
+                                @status.ToString()
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Data de Início -->
+                <div class="col-md-2">
+                    <label class="form-label">Data Início</label>
+                    <input type="date" name="dataInicio" value="@ViewBag.DataInicio" class="form-control">
+                </div>
+
+                <!-- Data de Fim -->
+                <div class="col-md-2">
+                    <label class="form-label">Data Fim</label>
+                    <input type="date" name="dataFim" value="@ViewBag.DataFim" class="form-control">
+                </div>
+
+                <!-- Botões de ação -->
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Limpar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Posts -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="35%">Conteúdo</th>
+                        <th width="15%">Autora</th>
+                        <th width="12%">Data</th>
+                        <th width="8%">Comentários</th>
+                        <th width="15%">Moderação</th>
+                        <th width="10%">Status</th>
+                        <th width="5%">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                Nenhum post encontrado com os filtros selecionados.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var post in Model)
+                        {
+                            <tr class="@(!post.Ativo ? "opacity-50" : "")">
+                                <td>
+                                    <div class="text-truncate" title="@post.Conteudo">
+                                        @(post.Conteudo.Length > 60 ? post.Conteudo[..60] + "..." : post.Conteudo)
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@(post.Autor?.NomeCompleto ?? "—")</small>
+                                </td>
+                                <td>
+                                    <small>@post.DataCriacao.ToString("dd/MM/yyyy")</small><br>
+                                    <small class="text-muted">@post.DataCriacao.ToString("HH:mm")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@(post.Comentarios?.Count(c => c.Ativo) ?? 0)</span>
+                                </td>
+                                <td>
+                                    @switch (post.StatusModeracao)
+                                    {
+                                        case StatusModeracaoPost.Pendente:
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendente</span>
+                                            break;
+                                        case StatusModeracaoPost.Aprovado:
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Aprovado</span>
+                                            break;
+                                        case StatusModeracaoPost.Reprovado:
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Reprovado</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @if (post.Ativo)
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-eye me-1"></i>Visível</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="bi bi-eye-slash me-1"></i>Oculto</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Details" asp-route-id="@post.Id" 
+                                           class="btn btn-outline-primary" title="Detalhes" data-bs-toggle="tooltip">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@post.Id" 
+                                           class="btn btn-outline-secondary" title="Editar" data-bs-toggle="tooltip">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-warning" title="Ativar/Inativar" 
+                                                onclick="toggleAtivo(@post.Id)" data-bs-toggle="tooltip">
+                                            <i class="bi bi-power"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info" title="Aprovar" 
+                                                onclick="aprovar(@post.Id)" data-bs-toggle="tooltip">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-dark" title="Reprovar" 
+                                                onclick="reprovar(@post.Id)" data-bs-toggle="tooltip">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                        <form asp-action="Delete" asp-route-id="@post.Id" method="post" 
+                                              class="d-inline" onsubmit="return confirm('⚠️ Excluir definitivamente este post e todos seus comentários?\n\nEsta ação não pode ser desfeita.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger" 
+                                                    title="Apagar permanentemente" data-bs-toggle="tooltip">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        @if (ViewBag.TotalPaginas > 1)
+        {
+            <div class="card-footer bg-transparent">
+                <nav aria-label="Paginação">
+                    <ul class="pagination pagination-sm mb-0 justify-content-center">
+                        @{
+                            // Botão anterior
+                            if (ViewBag.PaginaAtual > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-pagina="@(ViewBag.PaginaAtual - 1)" 
+                                       asp-route-busca="@ViewBag.Busca" asp-route-ativo="@ViewBag.Ativo"
+                                       asp-route-statusModeracao="@ViewBag.StatusModeracao"
+                                       asp-route-dataInicio="@ViewBag.DataInicio"
+                                       asp-route-dataFim="@ViewBag.DataFim">
+                                        <i class="bi bi-chevron-left"></i> Anterior
+                                    </a>
+                                </li>
+                            }
+
+                            // Páginas
+                            for (int i = Math.Max(1, ViewBag.PaginaAtual - 2); i <= Math.Min(ViewBag.TotalPaginas, ViewBag.PaginaAtual + 2); i++)
+                            {
+                                <li class="page-item @(i == ViewBag.PaginaAtual ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-pagina="@i" 
+                                       asp-route-busca="@ViewBag.Busca" asp-route-ativo="@ViewBag.Ativo"
+                                       asp-route-statusModeracao="@ViewBag.StatusModeracao"
+                                       asp-route-dataInicio="@ViewBag.DataInicio"
+                                       asp-route-dataFim="@ViewBag.DataFim">@i</a>
+                                </li>
+                            }
+
+                            // Botão próximo
+                            if (ViewBag.PaginaAtual < ViewBag.TotalPaginas)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" asp-action="Index" asp-route-pagina="@(ViewBag.PaginaAtual + 1)" 
+                                       asp-route-busca="@ViewBag.Busca" asp-route-ativo="@ViewBag.Ativo"
+                                       asp-route-statusModeracao="@ViewBag.StatusModeracao"
+                                       asp-route-dataInicio="@ViewBag.DataInicio"
+                                       asp-route-dataFim="@ViewBag.DataFim">
+                                        Próximo <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                    <p class="text-center text-muted small mt-2">
+                        Página @ViewBag.PaginaAtual de @ViewBag.TotalPaginas
+                    </p>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Variável global para armazenar ID durante o modal
+    let postIdEmReprovacao = null;
+
+    // Inicializar tooltips do Bootstrap
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Limpar campo ao fechar modal
+        const modalReprovacao = document.getElementById('modalReprovacao');
+        if (modalReprovacao) {
+            modalReprovacao.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('feedbackInput').value = '';
+                postIdEmReprovacao = null;
+            });
+        }
+    });
+
+    function toggleAtivo(id) {
+        if (!confirm('Deseja alterar o status de exibição deste post?')) return;
+        fetch('@Url.Action("ToggleAtivo")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `id=${id}`
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('❌ Erro ao alterar status.');
+            }
+        }).catch(err => {
+            alert('❌ Erro na requisição: ' + err.message);
+        });
+    }
+
+    function aprovar(id) {
+        if (!confirm('✅ Aprovar este post?')) return;
+        fetch('@Url.Action("Aprovar")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `id=${id}`
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('❌ Erro ao aprovar.');
+            }
+        }).catch(err => {
+            alert('❌ Erro na requisição: ' + err.message);
+        });
+    }
+
+    function reprovar(id) {
+        postIdEmReprovacao = id;
+        const modal = new bootstrap.Modal(document.getElementById('modalReprovacao'), {
+            backdrop: 'static',
+            keyboard: false
+        });
+        modal.show();
+        document.getElementById('feedbackInput').focus();
+    }
+
+    function enviarReprovacao() {
+        const feedback = document.getElementById('feedbackInput').value.trim();
+        const id = postIdEmReprovacao;
+
+        if (!id) {
+            alert('❌ ID do post não encontrado.');
+            return;
+        }
+
+        // Fechar modal
+        bootstrap.Modal.getInstance(document.getElementById('modalReprovacao')).hide();
+
+        // Enviar requisição
+        fetch('@Url.Action("Reprovar")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: `id=${id}&feedback=${encodeURIComponent(feedback || '')}`
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('❌ Erro ao reprovar.');
+            }
+        }).catch(err => {
+            alert('❌ Erro na requisição: ' + err.message);
+        });
+    }
+
+    // Suportar Enter para enviar
+    document.addEventListener('DOMContentLoaded', function() {
+        const feedbackInput = document.getElementById('feedbackInput');
+        if (feedbackInput) {
+            feedbackInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    enviarReprovacao();
+                }
+            });
+        }
+    });
+</script>
+}
+
+<!-- Modal de Reprovação -->
+<div class="modal fade" id="modalReprovacao" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger bg-opacity-10 border-0">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-circle-fill text-danger" style="font-size: 1.5rem;"></i>
+                    <h5 class="modal-title fw-semibold">Reprovar Postagem</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3 text-muted">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Informe um motivo para a reprovação. Este feedback será enviado para a autora da postagem.
+                </p>
+                <div class="mb-3">
+                    <label for="feedbackInput" class="form-label fw-semibold">Motivo da Reprovação</label>
+                    <textarea id="feedbackInput" class="form-control" placeholder="Ex: Conteúdo inadequado, linguagem ofensiva, etc..." 
+                              rows="4" style="resize: vertical; max-height: 200px;"></textarea>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Dica: Use Ctrl + Enter para enviar rapidamente
+                    </small>
+                </div>
+                <div class="alert alert-info alert-sm" role="alert">
+                    <i class="bi bi-lightbulb me-2"></i>
+                    <strong>Bom feedback:</strong> Seja específico e construtivo para ajudar a autora a melhorar.
+                </div>
+            </div>
+            <div class="modal-footer border-top bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" onclick="enviarReprovacao()">
+                    <i class="bi bi-check-circle me-1"></i>Reprovar e Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

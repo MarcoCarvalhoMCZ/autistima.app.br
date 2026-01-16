@@ -87,8 +87,12 @@ public class ProfileViewModel
     [Display(Name = "Registro Profissional (CRM, CRP, CRN, etc.)")]
     public string? RegistroProfissional { get; set; }
     
+    [StringLength(50)]
+    [Display(Name = "Matrícula Profissional (Educação)")]
+    public string? MatriculaProfissional { get; set; }
+    
     [Display(Name = "Especialidade")]
-    public Especialidade? Especialidade { get; set; }
+    public int? EspecialidadeId { get; set; }
     
     [Display(Name = "Foto de Perfil (URL)")]
     public string? FotoPerfilUrl { get; set; }

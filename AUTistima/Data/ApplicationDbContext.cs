@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ScreeningRequest> ScreeningRequests { get; set; } = null!;
     public DbSet<Service> Services { get; set; } = null!;
     public DbSet<SystemConfiguration> SystemConfigurations { get; set; } = null!;
+    public DbSet<EspecialidadeProfissional> EspecialidadesProfissionais { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
     public DbSet<Conversation> Conversations { get; set; } = null!;
@@ -50,6 +51,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.CNPJ).HasMaxLength(18);
             entity.Property(e => e.NomeEmpresa).HasMaxLength(200);
             entity.Property(e => e.RegistroProfissional).HasMaxLength(50);
+
+            entity.HasOne(e => e.Especialidade)
+                .WithMany()
+                .HasForeignKey(e => e.EspecialidadeId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Especialidades gerenciadas pelo administrador
+        builder.Entity<EspecialidadeProfissional>(entity =>
+        {
+            entity.ToTable("ProfessionalSpecialties");
+            entity.Property(e => e.Nome).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Descricao).HasMaxLength(300);
+            entity.Property(e => e.Ordem).HasDefaultValue(0);
+            entity.Property(e => e.Ativo).HasDefaultValue(true);
+            entity.HasIndex(e => e.Nome).IsUnique();
+            entity.HasIndex(e => e.Ordem);
+
+            entity.HasData(
+                new EspecialidadeProfissional { Id = 1, Nome = "Psicologia", Ordem = 1, Ativo = true },
+                new EspecialidadeProfissional { Id = 2, Nome = "Fonoaudiologia", Ordem = 2, Ativo = true },
+                new EspecialidadeProfissional { Id = 3, Nome = "Terapia Ocupacional", Ordem = 3, Ativo = true },
+                new EspecialidadeProfissional { Id = 4, Nome = "Psicopedagogia", Ordem = 4, Ativo = true },
+                new EspecialidadeProfissional { Id = 5, Nome = "Neurologia", Ordem = 5, Ativo = true },
+                new EspecialidadeProfissional { Id = 6, Nome = "Psiquiatria", Ordem = 6, Ativo = true },
+                new EspecialidadeProfissional { Id = 7, Nome = "Fisioterapia", Ordem = 7, Ativo = true },
+                new EspecialidadeProfissional { Id = 8, Nome = "Musicoterapia", Ordem = 8, Ativo = true },
+                new EspecialidadeProfissional { Id = 9, Nome = "ABA", Ordem = 9, Ativo = true },
+                new EspecialidadeProfissional { Id = 10, Nome = "Nutrição", Ordem = 10, Ativo = true },
+                new EspecialidadeProfissional { Id = 11, Nome = "Psicanálise", Ordem = 11, Ativo = true }
+            );
         });
         
         // Child - Filho
@@ -191,7 +223,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Service>(entity =>
         {
             entity.ToTable("Services");
-            entity.HasIndex(e => e.Especialidade);
+            entity.HasIndex(e => e.EspecialidadeId);
             entity.HasIndex(e => e.TipoAtendimento);
             entity.HasIndex(e => e.Cidade);
             entity.HasIndex(e => e.Bairro);
@@ -200,6 +232,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(u => u.Servicos)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Especialidade)
+                .WithMany()
+                .HasForeignKey(e => e.EspecialidadeId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
         
         // Notification
@@ -1043,7 +1080,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 1,
                 NomeProfissional = "CAPS II - Centro (Dr. Everaldo Moreira)",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "Centro de Atenção Psicossocial para atendimento de adultos com transtornos mentais graves e persistentes. Oferece acolhimento, atendimento individual e em grupo, oficinas terapêuticas e acompanhamento familiar.",
                 Endereco = "Rua Comendador Palmeira, 270",
@@ -1064,7 +1101,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 2,
                 NomeProfissional = "CAPS II - Jacintinho",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "Centro de Atenção Psicossocial para atendimento de adultos com transtornos mentais graves. Equipe multidisciplinar com psicólogos, psiquiatras, assistentes sociais e terapeutas ocupacionais.",
                 Endereco = "Rua Conselheiro Lourenço de Albuquerque, s/n",
@@ -1085,7 +1122,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 3,
                 NomeProfissional = "CAPS II - Benedito Bentes",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "Centro de Atenção Psicossocial para atendimento de adultos com transtornos mentais. Oferece atendimento individual, em grupo, oficinas terapêuticas e visitas domiciliares.",
                 Endereco = "Conjunto Denisson Menezes, s/n",
@@ -1106,7 +1143,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 4,
                 NomeProfissional = "CAPSi - Centro de Atenção Psicossocial Infanto-Juvenil",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "CAPS especializado no atendimento de crianças e adolescentes com transtornos mentais graves, incluindo autismo (TEA). Equipe especializada em saúde mental infantojuvenil com psicólogos, fonoaudiólogos, terapeutas ocupacionais e psiquiatras.",
                 Endereco = "Av. Fernandes Lima, 1681",
@@ -1127,7 +1164,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 5,
                 NomeProfissional = "CAPS AD III - Centro de Atenção Psicossocial Álcool e Drogas",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "CAPS especializado em tratamento de pessoas com transtornos relacionados ao uso de álcool e outras drogas. Funciona 24 horas com leitos de acolhimento noturno.",
                 Endereco = "Av. Siqueira Campos, 1655",
@@ -1148,7 +1185,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 6,
                 NomeProfissional = "CAPS III - Tabuleiro do Martins",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "Centro de Atenção Psicossocial com funcionamento 24 horas para adultos com transtornos mentais graves. Possui leitos de acolhimento noturno e atendimento de urgência psiquiátrica.",
                 Endereco = "Rua México, s/n",
@@ -1169,7 +1206,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 7,
                 NomeProfissional = "Ambulatório de Saúde Mental - PAM Salgadinho",
-                Especialidade = Especialidade.Neurologia,
+                EspecialidadeId = 5,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "Ambulatório de especialidades com atendimento em neurologia, psiquiatria e psicologia. Realiza avaliação diagnóstica para TEA e acompanhamento de pessoas autistas.",
                 Endereco = "Av. Major Cícero de Góes Monteiro, 1655",
@@ -1190,7 +1227,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 8,
                 NomeProfissional = "APAE Maceió - Associação de Pais e Amigos dos Excepcionais",
-                Especialidade = Especialidade.TerapiaOcupacional,
+                EspecialidadeId = 3,
                 TipoAtendimento = TipoAtendimento.Gratuito,
                 Descricao = "Instituição filantrópica que oferece atendimento multidisciplinar gratuito para pessoas com deficiência intelectual e autismo. Serviços incluem: psicologia, fonoaudiologia, terapia ocupacional, fisioterapia, pedagogia e serviço social.",
                 Endereco = "Rua José de Alencar, 340",
@@ -1212,7 +1249,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 9,
                 NomeProfissional = "AMA Alagoas - Associação dos Amigos do Autista",
-                Especialidade = Especialidade.ABA,
+                EspecialidadeId = 9,
                 TipoAtendimento = TipoAtendimento.ValorSocial,
                 Descricao = "Associação especializada no atendimento de pessoas autistas e suas famílias. Oferece terapia ABA, fonoaudiologia, terapia ocupacional, psicopedagogia e grupos de apoio para famílias.",
                 Endereco = "Rua Melo Moraes, 99",
@@ -1234,7 +1271,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 10,
                 NomeProfissional = "Clínica Escola UNCISAL - Fonoaudiologia",
-                Especialidade = Especialidade.Fonoaudiologia,
+                EspecialidadeId = 2,
                 TipoAtendimento = TipoAtendimento.ConvenioUniversitario,
                 Descricao = "Clínica escola da Universidade Estadual de Ciências da Saúde de Alagoas. Oferece atendimento fonoaudiológico gratuito para avaliação e terapia de linguagem, fala e comunicação alternativa.",
                 Endereco = "Rua Dr. Jorge de Lima, 113",
@@ -1256,7 +1293,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 11,
                 NomeProfissional = "Clínica Escola CESMAC - Psicologia",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.ConvenioUniversitario,
                 Descricao = "Clínica escola do CESMAC com atendimento psicológico por estudantes supervisionados. Oferece avaliação psicológica, psicoterapia individual e familiar, e grupos terapêuticos.",
                 Endereco = "Rua Cônego Machado, 918",
@@ -1278,7 +1315,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             {
                 Id = 12,
                 NomeProfissional = "Clínica de Psicologia UFAL",
-                Especialidade = Especialidade.Psicologia,
+                EspecialidadeId = 1,
                 TipoAtendimento = TipoAtendimento.ConvenioUniversitario,
                 Descricao = "Serviço de Psicologia Aplicada da Universidade Federal de Alagoas. Oferece atendimento psicológico gratuito à comunidade, incluindo avaliação e acompanhamento de crianças autistas.",
                 Endereco = "Campus A.C. Simões, Av. Lourival Melo Mota, s/n",

@@ -51,8 +51,10 @@ public class FilhosController : Controller
     }
 
     // GET: Filhos/Create
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
+        var escolas = await _context.Schools.Where(e => e.Ativo).OrderBy(e => e.Nome).ToListAsync();
+        ViewBag.Escolas = escolas;
         return View();
     }
 
@@ -91,6 +93,10 @@ public class FilhosController : Controller
         {
             return NotFound();
         }
+        
+        var escolas = await _context.Schools.Where(e => e.Ativo).OrderBy(e => e.Nome).ToListAsync();
+        ViewBag.Escolas = escolas;
+        
         return View(filho);
     }
 

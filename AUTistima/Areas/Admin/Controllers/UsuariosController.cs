@@ -98,13 +98,19 @@ public class UsuariosController : Controller
         if (usuario == null)
             return NotFound();
 
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
+
         return View(usuario);
     }
 
     // POST: Admin/Usuarios/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string id, [Bind("Id,NomeCompleto,Email,TipoPerfil,Ativo,Cidade,Estado,Bairro,CNPJ,NomeEmpresa,RegistroProfissional,Especialidade,EmpresaAmiga")] ApplicationUser model)
+    public async Task<IActionResult> Edit(string id, [Bind("Id,NomeCompleto,Email,TipoPerfil,Ativo,Cidade,Estado,Bairro,CNPJ,NomeEmpresa,RegistroProfissional,MatriculaProfissional,EspecialidadeId,EmpresaAmiga")] ApplicationUser model)
     {
         if (!await IsAdmin())
             return RedirectToAction("Index", "Home", new { area = "" });
@@ -126,7 +132,8 @@ public class UsuariosController : Controller
         usuario.CNPJ = model.CNPJ;
         usuario.NomeEmpresa = model.NomeEmpresa;
         usuario.RegistroProfissional = model.RegistroProfissional;
-        usuario.Especialidade = model.Especialidade;
+        usuario.MatriculaProfissional = model.MatriculaProfissional;
+        usuario.EspecialidadeId = model.EspecialidadeId;
         usuario.EmpresaAmiga = model.EmpresaAmiga;
 
         try
@@ -140,6 +147,12 @@ public class UsuariosController : Controller
             _logger.LogError(ex, "Erro ao atualizar usuário {UserId}", id);
             ModelState.AddModelError("", "Erro ao salvar alterações.");
         }
+
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
 
         return View(usuario);
     }
@@ -271,10 +284,78 @@ public class UsuariosController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        _context.Users.Remove(usuario);
+        // Soft Delete: apenas marcar como inativo
+        usuario.Ativo = false;
         await _context.SaveChangesAsync();
 
-        TempData["Mensagem"] = "Usuário excluído com sucesso!";
+        TempData["Mensagem"] = $"✅ Perfil de {usuario.NomeCompleto} foi desativado com sucesso. Os dados continuam registrados no sistema para fins de segurança.";
         return RedirectToAction(nameof(Index));
+    }
+
+    // POST: Admin/Usuarios/Aprovar/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Aprovar(string id)
+    {
+        if (!await IsAdmin())
+            return Json(new { success = false });
+
+        var usuario = await _context.Users.FindAsync(id);
+        if (usuario == null)
+            return Json(new { success = false });
+
+        usuario.StatusAprovacao = Models.Enums.StatusAprovacao.Aprovado;
+        usuario.DataAprovacao = DateTime.UtcNow;
+        usuario.AprovadoPorAdminId = _userManager.GetUserId(User);
+        
+        await _context.SaveChangesAsync();
+        
+        // Criar notificação diretamente
+        var notificacao = new Models.Notification
+        {
+            UserId = usuario.Id,
+            Titulo = "✅ Perfil Aprovado",
+            Mensagem = "Parabéns! Seu perfil foi aprovado pela equipe AUTistima.",
+            Tipo = Models.TipoNotificacao.Sistema,
+            Link = "/Account/Profile",
+            DataCriacao = DateTime.UtcNow
+        };
+        _context.Notifications.Add(notificacao);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true });
+    }
+
+    // POST: Admin/Usuarios/Rejeitar/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Rejeitar(string id, string motivo)
+    {
+        if (!await IsAdmin())
+            return Json(new { success = false });
+
+        var usuario = await _context.Users.FindAsync(id);
+        if (usuario == null)
+            return Json(new { success = false });
+
+        usuario.StatusAprovacao = Models.Enums.StatusAprovacao.Rejeitado;
+        usuario.MotivoRejeicao = motivo;
+        
+        await _context.SaveChangesAsync();
+        
+        // Criar notificação diretamente
+        var notificacao = new Models.Notification
+        {
+            UserId = usuario.Id,
+            Titulo = "❌ Perfil Rejeitado",
+            Mensagem = $"Seu perfil não atendeu aos critérios de aprovação. Motivo: {motivo}",
+            Tipo = Models.TipoNotificacao.Sistema,
+            Link = "/Account/Profile",
+            DataCriacao = DateTime.UtcNow
+        };
+        _context.Notifications.Add(notificacao);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true });
     }
 }

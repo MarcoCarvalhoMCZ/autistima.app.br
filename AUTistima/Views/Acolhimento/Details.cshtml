@@ -90,10 +90,10 @@
                     }
 
                     <!-- Lista de comentários -->
-                    @if (Model.Comentarios?.Any() == true)
+                    @if (Model.Comentarios?.Where(c => c.Ativo).Any() == true)
                     {
                         <div class="comments-list">
-                            @foreach (var comentario in Model.Comentarios.OrderByDescending(c => c.DataCriacao))
+                            @foreach (var comentario in Model.Comentarios.Where(c => c.Ativo).OrderByDescending(c => c.DataCriacao))
                             {
                                 <div class="comment-item p-3 mb-3 bg-light rounded">
                                     <div class="d-flex align-items-start">
@@ -108,6 +108,25 @@
                                                 </small>
                                             </div>
                                             <p class="mb-0">@comentario.Conteudo</p>
+                                            
+                                            @{
+                                                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                                var isCommentAuthor = comentario.UserId == userId;
+                                                var isAdmin = User.IsInRole("Admin");
+                                            }
+                                            
+                                            @if (isCommentAuthor || isAdmin)
+                                            {
+                                                <form asp-action="DeleteComentario" method="post" style="display: inline;" 
+                                                      onsubmit="return confirm('Tem certeza que deseja remover este comentário?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@comentario.Id" />
+                                                    <input type="hidden" name="postId" value="@Model.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0 mt-2">
+                                                        <i class="bi bi-trash"></i> Remover
+                                                    </button>
+                                                </form>
+                                            }
                                         </div>
                                     </div>
                                 </div>

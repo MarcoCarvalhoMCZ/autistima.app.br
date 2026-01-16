@@ -28,15 +28,18 @@ public class ServicosController : Controller
     }
 
     // GET: Admin/Servicos
-    public async Task<IActionResult> Index(Especialidade? especialidade, int pagina = 1)
+    public async Task<IActionResult> Index(int? especialidadeId, int pagina = 1)
     {
         if (!await IsAdmin())
             return RedirectToAction("Index", "Home", new { area = "" });
 
-        var query = _context.Services.Include(s => s.Profissional).AsQueryable();
+        var query = _context.Services
+            .Include(s => s.Profissional)
+            .Include(s => s.Especialidade)
+            .AsQueryable();
 
-        if (especialidade.HasValue)
-            query = query.Where(s => s.Especialidade == especialidade.Value);
+        if (especialidadeId.HasValue)
+            query = query.Where(s => s.EspecialidadeId == especialidadeId.Value);
 
         var totalItens = await query.CountAsync();
         var itensPorPagina = 20;
@@ -48,9 +51,15 @@ public class ServicosController : Controller
             .Take(itensPorPagina)
             .ToListAsync();
 
-        ViewBag.Especialidade = especialidade;
+        ViewBag.Especialidade = especialidadeId;
         ViewBag.PaginaAtual = pagina;
         ViewBag.TotalPaginas = totalPaginas;
+
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .Where(e => e.Ativo)
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
 
         return View(servicos);
     }
@@ -60,6 +69,11 @@ public class ServicosController : Controller
     {
         if (!await IsAdmin())
             return RedirectToAction("Index", "Home", new { area = "" });
+
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
 
         return View(new Service());
     }
@@ -85,6 +99,10 @@ public class ServicosController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
         return View(servico);
     }
 
@@ -94,9 +112,16 @@ public class ServicosController : Controller
         if (!await IsAdmin())
             return RedirectToAction("Index", "Home", new { area = "" });
 
-        var servico = await _context.Services.FindAsync(id);
+        var servico = await _context.Services
+            .Include(s => s.Especialidade)
+            .FirstOrDefaultAsync(s => s.Id == id);
         if (servico == null)
             return NotFound();
+
+        ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+            .OrderBy(e => e.Ordem)
+            .ThenBy(e => e.Nome)
+            .ToListAsync();
 
         return View(servico);
     }
@@ -119,8 +144,17 @@ public class ServicosController : Controller
         if (existing == null)
             return NotFound();
 
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+                .OrderBy(e => e.Ordem)
+                .ThenBy(e => e.Nome)
+                .ToListAsync();
+            return View(servico);
+        }
+
         existing.NomeProfissional = servico.NomeProfissional;
-        existing.Especialidade = servico.Especialidade;
+        existing.EspecialidadeId = servico.EspecialidadeId;
         existing.TipoAtendimento = servico.TipoAtendimento;
         existing.ValorConsulta = servico.ValorConsulta;
         existing.AtendeOnline = servico.AtendeOnline;

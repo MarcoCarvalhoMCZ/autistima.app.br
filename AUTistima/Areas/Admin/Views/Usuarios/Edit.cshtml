@@ -1,4 +1,5 @@
 @model ApplicationUser
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Editar Usuário";
 }
@@ -118,14 +119,18 @@
                             <h6 class="text-muted mb-3">Dados Profissionais</h6>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label asp-for="Especialidade" class="form-label"></label>
-                                    <select asp-for="Especialidade" asp-items="Html.GetEnumSelectList<Especialidade>()" class="form-select">
+                                    <label asp-for="EspecialidadeId" class="form-label">Especialidade</label>
+                                    <select asp-for="EspecialidadeId" asp-items="@(new SelectList((IEnumerable<AUTistima.Models.EspecialidadeProfissional>)ViewBag.Especialidades, "Id", "Nome"))" class="form-select">
                                         <option value="">Selecione...</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label asp-for="RegistroProfissional" class="form-label"></label>
-                                    <input asp-for="RegistroProfissional" class="form-control" placeholder="Ex: CRP, CRFa, etc." />
+                                    <label asp-for="RegistroProfissional" class="form-label">Registro Profissional (Saúde)</label>
+                                    <input asp-for="RegistroProfissional" class="form-control" placeholder="Ex: CRP, CRFa, CRM" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="MatriculaProfissional" class="form-label">Matrícula Profissional (Educação)</label>
+                                    <input asp-for="MatriculaProfissional" class="form-control" placeholder="Ex: MAT-2024-001234" />
                                 </div>
                             </div>
                         </div>
@@ -155,8 +160,10 @@
     <script>
         function toggleCampos() {
             var tipo = document.getElementById('TipoPerfil').value;
-            document.getElementById('camposEmpresa').style.display = (tipo === 'Empresa' || tipo === '4') ? 'block' : 'none';
-            document.getElementById('camposProfissional').style.display = (tipo === 'ProfissionalSaude' || tipo === '2') ? 'block' : 'none';
+            const camposEmpresa = (tipo === 'Empresa' || tipo === '4');
+            const camposProf = (tipo === 'ProfissionalSaude' || tipo === 'ProfissionalEducacao' || tipo === '2' || tipo === '3');
+            document.getElementById('camposEmpresa').style.display = camposEmpresa ? 'block' : 'none';
+            document.getElementById('camposProfissional').style.display = camposProf ? 'block' : 'none';
         }
         
         document.getElementById('TipoPerfil').addEventListener('change', toggleCampos);

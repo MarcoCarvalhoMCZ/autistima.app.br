@@ -1,4 +1,5 @@
 @model Service
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Editar Serviço";
 }
@@ -26,8 +27,8 @@
                             </div>
                             
                             <div class="col-md-6">
-                                <label asp-for="Especialidade" class="form-label"></label>
-                                <select asp-for="Especialidade" asp-items="Html.GetEnumSelectList<Especialidade>()" class="form-select"></select>
+                                <label asp-for="EspecialidadeId" class="form-label"></label>
+                                <select asp-for="EspecialidadeId" asp-items="@(new SelectList((IEnumerable<AUTistima.Models.EspecialidadeProfissional>)ViewBag.Especialidades, "Id", "Nome"))" class="form-select"></select>
                             </div>
 
                             <div class="col-md-6">

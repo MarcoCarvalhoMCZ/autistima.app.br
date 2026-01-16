@@ -56,6 +56,12 @@ public class TriagemController : Controller
             // Professores veem apenas suas solicitações
             query = query.Where(s => s.ProfessorSolicitanteId == userId);
         }
+        else if (user.TipoPerfil == TipoPerfil.ProfissionalSaude)
+        {
+            // Profissionais de saúde veem triagens atribuídas ou pendentes
+            query = query.Where(s => s.Status == StatusTriagem.Pendente || s.ProfissionalResponsavelId == userId);
+        }
+        // Admin e Governo veem TODAS
 
         if (status.HasValue)
         {

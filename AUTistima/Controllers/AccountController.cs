@@ -6,6 +6,8 @@ using AUTistima.ViewModels;
 using AUTistima.Models.Enums;
 using AUTistima.Data;
 using AUTistima.Services;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace AUTistima.Controllers;
 
@@ -41,6 +43,21 @@ public class AccountController : Controller
         ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
+    
+            private async Task CarregarEspecialidadesAsync(TipoPerfil tipoPerfil)
+            {
+                if (tipoPerfil != TipoPerfil.ProfissionalSaude && tipoPerfil != TipoPerfil.ProfissionalEducacao)
+                {
+                    ViewBag.Especialidades = new List<EspecialidadeProfissional>();
+                    return;
+                }
+        
+                ViewBag.Especialidades = await _context.EspecialidadesProfissionais
+                    .Where(e => e.Ativo)
+                    .OrderBy(e => e.Ordem)
+                    .ThenBy(e => e.Nome)
+                    .ToListAsync();
+            }
 
     // POST: Account/Login
     [HttpPost]
@@ -198,9 +215,12 @@ public class AccountController : Controller
             CNPJ = user.CNPJ,
             NomeEmpresa = user.NomeEmpresa,
             RegistroProfissional = user.RegistroProfissional,
-            Especialidade = user.Especialidade,
+            MatriculaProfissional = user.MatriculaProfissional,
+            EspecialidadeId = user.EspecialidadeId,
             FotoPerfilUrl = user.FotoPerfilUrl
         };
+
+        await CarregarEspecialidadesAsync(viewModel.TipoPerfil);
         
         return View(viewModel);
     }
@@ -213,6 +233,7 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid)
         {
+            await CarregarEspecialidadesAsync(model.TipoPerfil);
             return View(model);
         }
         
@@ -252,7 +273,8 @@ public class AccountController : Controller
         if (user.TipoPerfil == TipoPerfil.ProfissionalSaude || user.TipoPerfil == TipoPerfil.ProfissionalEducacao)
         {
             user.RegistroProfissional = model.RegistroProfissional;
-            user.Especialidade = model.Especialidade;
+            user.MatriculaProfissional = model.MatriculaProfissional;
+            user.EspecialidadeId = model.EspecialidadeId;
         }
         
         // user.FotoPerfilUrl = model.FotoPerfilUrl; // Removido para evitar sobrescrever com null se não estiver no form
