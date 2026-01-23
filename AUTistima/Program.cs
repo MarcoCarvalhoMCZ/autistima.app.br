@@ -5,6 +5,7 @@ using AUTistima.Data;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
 using AUTistima.Services;
+using AUTistima.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,13 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => 
+{
+    options.Filters.Add<SecurityInspectionFilter>();
+});
+
+// Filtro de Segurança
+builder.Services.AddScoped<SecurityInspectionFilter>();
 
 // Registrar serviços personalizados
 builder.Services.AddSignalR();
@@ -127,11 +134,24 @@ using (var scope = app.Services.CreateScope())
                 DataCadastro = DateTime.UtcNow
             };
             
-            var result = await userManager.CreateAsync(adminUser, "Lorena@2025");
+            var result = await userManager.CreateAsync(adminUser, "@lbogm159AUT");
             if (result.Succeeded)
             {
                 var logger = services.GetRequiredService<ILogger<Program>>();
                 logger.LogInformation("Usuário administrador criado: {Email}", adminEmail);
+            }
+        }
+        else
+        {
+            // Garantir que a senha seja a esperada (Reset forçado para desenvolvimento)
+            var token = await userManager.GeneratePasswordResetTokenAsync(adminUser);
+            await userManager.ResetPasswordAsync(adminUser, token, "@lbogm159AUT");
+            
+            // Garantir que é admin
+            if (adminUser.TipoPerfil != TipoPerfil.Administrador)
+            {
+                adminUser.TipoPerfil = TipoPerfil.Administrador;
+                await userManager.UpdateAsync(adminUser);
             }
         }
 

@@ -50,7 +50,7 @@ public class BuscaController : Controller
             resultados.Glossario = await _context.GlossaryTerms
                 .Where(g => g.TermoTecnico.ToLower().Contains(termoBusca) ||
                            g.ExplicacaoSimples.ToLower().Contains(termoBusca) ||
-                           g.Categoria.ToLower().Contains(termoBusca))
+                           (g.Categoria != null && g.Categoria.ToLower().Contains(termoBusca)))
                 .OrderBy(g => g.TermoTecnico)
                 .Take(20)
                 .ToListAsync();

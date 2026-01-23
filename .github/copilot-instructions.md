@@ -1,67 +1,78 @@
 # AUTistima - Instruções para Agentes de IA
 
-## Visão Geral
-**Stack:** ASP.NET Core 9 MVC + EF Core 9 + SQL Server  
-**Idioma:** Português (pt-BR) obrigatório em código, comentários, UI e commits.
+## Visão Geral e Identidade
+Você está atuando no projeto **AUTistima**, uma plataforma web monolítica focada em acessibilidade e suporte à comunidade autista.
+- **Idioma:** Todo o código, comentários, commits e UI devem estar em **Português (pt-BR)**.
+- **Design:** Mobile-first, acessível (WCAG), PWA. Funciona sem JS quando possível.
 
-Plataforma monolítica MVC com **Areas por perfil** (`Admin`, `Empresa`, `Governo`, `Mae`, `Profissional`). Foco acessibilidade (PWA, mobile-first, sem JS obrigatório). 
+## Stack Tecnológica
+- **Backend:** ASP.NET Core 9 (MVC)
+- **Dados:** Entity Framework Core 9 + SQL Server (`autistima_sa_sql` schema)
+- **Frontend:** Bootstrap 5, Razor Views, SignalR (chat)
+- **Infra:** Docker ready (mas executado localmente via script)
 
-## Arquitetura Crítica
+## Arquitetura e Organização
+O projeto segue o padrão MVC com separação por **Areas** para diferentes perfis de usuário:
+- **Diretórios Chave:**
+  - `AUTistima/Areas/{Perfil}/`: Controllers/Views específicos (`Admin`, `Empresa`, `Governo`, `Mae`, `Profissional`).
+  - `AUTistima/Models/`: Entidades de domínio ricas (não anêmicas).
+  - `AUTistima/Services/`: Lógica de negócios pesada (`AIService`, `PanicService`).
+  - `AUTistima/wwwroot/`: Static assets (JS/CSS isolados).
 
-### Modelos Centrais
-- **`ApplicationUser`** ([ApplicationUser.cs](AUTistima/Models/ApplicationUser.cs)): Base do Identity com `TipoPerfil` (não roles), campos de pessoa (CPF), empresa (CNPJ, RegistroProfissional), endereço, e consentimentos. Campo `Ativo` sempre para soft-delete.
-- **Enums principais** ([Enums/](AUTistima/Models/Enums)): `TipoPerfil`, `CategoriaManejo`, `StatusAprovacao`, `TipoAtividade`, `Especialidade`, `StatusTriagem`.
-- **Entidades-chave**: `Child`, `Post`, `Manejo`, `ChatMessage`, `PanicAlert`, `Service`, `School`.
+### Modelos Críticos
+- **`ApplicationUser`**: Estende `IdentityUser`. Centraliza dados de todos os perfis (`TipoPerfil`, `CPF`, `CNPJ`).
+- **Relacionamentos**:
+  - `Child` -> `ApplicationUser` (Pai/Mãe)
+  - `School` -> `Child` (Muitos-para-Muitos ou Um-para-Muitos dependendo do contexto, verificar `Child.EscolaId`)
 
-### Banco de Dados (EF Core)
-- **Schema único:** `autistima_sa_sql` ([ApplicationDbContext.cs](AUTistima/Data/ApplicationDbContext.cs), linha 40).
-- **Soft-delete:** Sempre adicione propriedade `Ativo` (bool, default true) — nunca `DELETE` físico.
-- **Relacionamentos:** Use `DeleteBehavior.Restrict` para usuários/histórico, `SetNull` para referências opcionais. **Nunca `Cascade`**.
-- **Queries:** Sempre use `.Include()` para evitar N+1; exemplo em [AcolhimentoController.cs](AUTistima/Controllers/AcolhimentoController.cs) linhas 41-44.
+## Regras de Banco de Dados (EF Core)
+1. **Schema**: Todas as tabelas residem no schema `autistima_sa_sql`.
+2. **Soft Delete**: NUNCA execute `DELETE` físico. Use a propriedade `Ativo = false` e filtre queries.
+   - *Exceção*: Dados transientes ou logs se especificamente solicitado.
+3. **Performance**: Utilize `.Include()` e `.ThenInclude()` para carregar relacionamentos (Eager Loading) e evitar N+1 em Views.
+4. **Migrations**:
+   - Crie: `dotnet ef migrations add NomeDaMudanca` (na pasta `AUTistima/`)
+   - Não aplique manualmente (`database update`). O `Program.cs` aplica no startup.
 
-### Serviços de Negócio
-- **`AIService`** ([AIService.cs](AUTistima/Services/AIService.cs)): Interface `IAIService` com métodos `SugerirManejosPorCategoria()`, `SugerirTermosRelacionados()`. Registrado via `AddAIServices()` extension ([linha 52](AUTistima/Program.cs#L52)).
-- **`SentimentService`**: Singleton para análise de texto.
-- **`PanicService`** ([PanicService.cs](AUTistima/Services/PanicService.cs)): Alertas de pânico com `.Include(p => p.Usuario)` para dados completos.
-- **`ActivityTrackingService`**: Registra ações críticas via `RegistrarAtividadeComContexto(userId, tipo, httpContext, detalhes)` — exemplo em [AccountController.cs](AUTistima/Controllers/AccountController.cs) linha 65.
-- **`PushNotificationService`**: WebPush com VAPID para notificações.
+## Workflow de Desenvolvimento
+- **Execução**: SEMPRE use `./testar.sh [porta]` na raiz.
+  - Este script gerencia processos zumbis e portas bloqueadas (padrão 5000).
+  - Não use `dotnet run` diretamente se possível.
+- **Autenticação**:
+  - Usuário Seed: `lorena@autistima.app.br` (Senha definida no seed/config).
+  - Verifique `User.Identity.IsAuthenticated` e claims de `TipoPerfil`.
 
-### Autenticação & Autorização
-- **Validação:** Sempre verificar `TipoPerfil` no backend (não confiar em UI). Métodos auxiliares em Controllers: `IsMae()`, `IsProfissional()`.
-- **Sessão:** Identity + cookies (expires 30 dias, sliding expiration).
-- **Redirects:** Redirecionar a `/Account/Login` se não autenticado.
+## Padrões de Código
+- **Controllers**: Mantenha finos. Delegue lógica complexa para `Services`.
+- **Async/Await**: Obrigatório em todas as operações de I/O (BD, API ext).
+- **Injeção de Dependência**: Registre novos serviços em `Program.cs`. Use Scoped por padrão.
+- **Tratamento de Erros**: Não engula exceções. Use `TempData["Mensagem"]` para feedback visual simples ao usuário.
+- **Views**: Use Tag Helpers (`asp-controller`, `asp-action`). Evite lógica C# complexa no Razor.
 
-## Workflow Prático
+## Padrões de Interface e Validação (ViewModels)
+- **Localização**: `AUTistima/ViewModels/`
+- **Nomenclatura**: Sufixo `ViewModel` (ex: `RegisterViewModel`).
+- **Validação**:
+  - Use DataAnnotations (`[Required]`, `[StringLength]`, etc.).
+  - **Mensagens de Erro**: SEMPRE em pt-BR explícito (ex: `ErrorMessage = "O nome é obrigatório."`).
+  - Crie atributos customizados se necessário (ex: `[MustBeTrue]`) no mesmo arquivo ou em `Extensions/`.
+- **Uso**: Controllers devem receber ViewModels, validar `ModelState.IsValid` e retornar a View com o ViewModel em caso de erro.
 
-**Executar:** `./testar.sh [porta]` (padrão 5000). Script mata processos zumbis, não use `dotnet run` diretamente.
+## Estratégia de Testes e QA
+O projeto prioriza testes manuais guiados e acessibilidade visual.
+- **Documentação de Testes**: Crie/Atualize arquivos `TESTES_{FEATURE}.md` na raiz.
+  - Siga o formato checklist (`- [ ] Cenario`).
+  - Cubra: Autenticação (Quem vê o quê?), Responsividade (Mobile vs Desktop) e Fluxos de Erro.
+- **Testes Manuais**:
+  - Sempre verifique a interface em larguras móveis (DevTools).
+  - Teste fluxos com javascript desabilitado quando aplicável (Progressive Enhancement).
 
-**Migrations:** Na pasta `AUTistima/`:
-```bash
-dotnet ef migrations add NomeMigration
-# Não aplicar manualmente — Program.cs autoaplica no startup
-```
+## Integrações
+- **IA/ML**: `AIService` para sugestões (Manejos, Termos).
+- **Real-time**: `ChatHub` (SignalR) para mensagens instantâneas.
+- **Notificações**: `PushNotificationService` (Web Push) e `NotificationService` (Interno).
 
-**Areas:** Cada area (`/Areas/{Area}/Controllers/`) é isolada. Use `Area.{Area}` em redirects.
-
-## Padrões Específicos
-
-### Frontend (Bootstrap 5)
-- Cores: Primária `#F28B82` (salmão), Secundária `#AECBFA` (azul).
-- Feedback: `TempData["Mensagem"]` com emojis ("✅ Salvo", "❌ Erro").
-- Acessibilidade: Sem JS obrigatório; PWA com Service Worker.
-
-### Queries & Performance
-- **Eager loading obrigatório:** `.Include(x => x.Relacao).ThenInclude(...)` para evitar lazy-load em views.
-- **No N+1:** Revisar queries complexas; manejos carregam autores em [BuscaController.cs](AUTistima/Controllers/BuscaController.cs) linha 62.
-- **SaveChanges:** Await sempre; ex: `await _context.SaveChangesAsync()` ([AcolhimentoController.cs](AUTistima/Controllers/AcolhimentoController.cs) linha 76).
-
-### Testes Críticos
-Teste manualmente: Login, Cadastro com validação de CPF/CNPJ, Chat real-time (SignalR), Alertas de Pânico.
-
-## Integração SignalR
-Hub em [ChatHub.cs](AUTistima/Hubs/ChatHub.cs); métodos async para mensagens real-time. Configure em `Program.cs` com `builder.Services.AddSignalR()`.
-
-## Admin & Seeding
-- **Usuário padrão:** `lorena@autistima.app.br` (seed em migrations).
-- **Glossário:** Mini-dicionário seeded em [20251205220847_SeedMiniDicionarioTermos.cs](AUTistima/Migrations/20251205220847_SeedMiniDicionarioTermos.cs).
-- **Escolas:** Seed de Maceió em [20251205205316_SeedCapsMaceio.cs](AUTistima/Migrations/20251205205316_SeedCapsMaceio.cs).
+## O que NÃO fazer
+- Não criar repositórios genéricos (Use `ApplicationDbContext` direto ou Services específicos).
+- Não usar `ViewBag` excessivamente (Prefira ViewModels tipados).
+- Não misturar inglês e português (Mantenha consistência em pt-BR).

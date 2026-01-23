@@ -89,6 +89,39 @@
                 </div>
             </div>
 
+            <!-- Filhos Registrados -->
+            @if (Model.Filhos != null && Model.Filhos.Any())
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Filhos Registrados (@Model.Filhos.Count)</h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Data de Nascimento</th>
+                                    <th>Diagnóstico</th>
+                                    <th>Escola</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var filho in Model.Filhos)
+                                {
+                                    <tr>
+                                        <td>@filho.Nome</td>
+                                        <td>@(filho.DataNascimento?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                        <td>@(filho.NivelSuporte.HasValue ? filho.NivelSuporte.Value.ToString() : (filho.PossuiDiagnostico ? "Sim" : "Em análise"))</td>
+                                        <td>@(filho.Escola?.Nome ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
             <!-- Informações adicionais -->
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent">

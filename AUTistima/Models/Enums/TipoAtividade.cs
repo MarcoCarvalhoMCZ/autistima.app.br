@@ -105,7 +105,11 @@ public enum TipoAtividade
     ConfirmacaoPanico = 101,
     
     [Display(Name = "Redirecionamento WhatsApp")]
-    RedirecionamentoWhatsApp = 102
+    RedirecionamentoWhatsApp = 102,
+
+    // Segurança
+    [Display(Name = "Tentativa de Ataque Bloqueada")]
+    TentativaAtaque = 999
 }
 
 /// <summary>

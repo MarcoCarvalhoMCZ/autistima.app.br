@@ -1,0 +1,185 @@
+@model AUTistima.Models.UserActivity
+@using AUTistima.Extensions
+@using AUTistima.Models.Enums
+
+@{
+    ViewData["Title"] = "Detalhes da Atividade";
+    bool isAttack = Model.TipoAtividade == TipoAtividade.TentativaAtaque;
+}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar para Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Detalhes do Log -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header @(isAttack ? "bg-danger text-white" : "bg-light")">
+                    <h5 class="card-title mb-0">
+                        <i class="bi @(isAttack ? "bi-shield-exclamation" : "bi-info-circle")"></i> 
+                        Informações do Registro
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">ID do Log</dt>
+                        <dd class="col-sm-8">#@Model.Id</dd>
+
+                        <dt class="col-sm-4">Data/Hora</dt>
+                        <dd class="col-sm-8">@Model.DataHora.ToString("dd/MM/yyyy HH:mm:ss")</dd>
+
+                        <dt class="col-sm-4">Tipo</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(isAttack ? "bg-danger" : "bg-info")">
+                                @Model.TipoAtividade.GetDisplayName()
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Entidade</dt>
+                        <dd class="col-sm-8">@(Model.EntidadeRelacionada ?? "-")</dd>
+
+                        <dt class="col-sm-4">IP de Origem</dt>
+                        <dd class="col-sm-8 fw-bold font-monospace">@Model.EnderecoIP</dd>
+                    </dl>
+
+                    <div class="alert alert-secondary mt-3">
+                        <h6 class="alert-heading text-dark"><i class="bi bi-terminal"></i> Detalhes Técnicos:</h6>
+                        <hr class="my-2">
+                        <p class="mb-0 font-monospace small text-break">
+                            @(Model.Detalhes ?? "Sem detalhes registrados.")
+                        </p>
+                    </div>
+
+                    @if (Model.Usuario != null)
+                    {
+                        <div class="card mt-4 border-warning">
+                            <div class="card-header bg-warning bg-opacity-10">
+                                <strong>Usuário Relacionado</strong>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">@Model.Usuario.UserName</h5>
+                                <p class="card-text mb-1"><strong>Email:</strong> @Model.Usuario.Email</p>
+                                <p class="card-text mb-1"><strong>ID:</strong> <small class="text-muted">@Model.Usuario.Id</small></p>
+                                <p class="card-text">
+                                    <strong>Status:</strong> 
+                                    @if (Model.Usuario.Ativo)
+                                    {
+                                        <span class="badge bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inativo / Bloqueado</span>
+                                    }
+                                </p>
+                                @if (isAttack && Model.Usuario.Ativo)
+                                {
+                                    <button class="btn btn-danger btn-sm w-100 mt-2" onclick="alert('Funcionalidade de bloqueio manual não implementada nesta view, implementada automaticamente no filtro.')">
+                                        Bloquear Usuário Manualmente
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapa -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-geo-alt-fill text-primary"></i> Localização da Origem</h5>
+                </div>
+                <div class="card-body p-0 position-relative">
+                    <div id="map" style="height: 500px; width: 100%; border-bottom-left-radius: var(--bs-card-inner-border-radius); border-bottom-right-radius: var(--bs-card-inner-border-radius);"></div>
+                    <div id="map-loading" class="position-absolute top-50 start-50 translate-middle bg-white p-3 rounded shadow text-center" style="z-index: 1000;">
+                        <div class="spinner-border text-primary mb-2" role="status"></div>
+                        <div>Localizando IP...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ip = '@Model.EnderecoIP';
+        var mapContainer = document.getElementById('map');
+        var loading = document.getElementById('map-loading');
+        
+        // Inicializa mapa (default view)
+        var map = L.map('map').setView([0, 0], 2);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        if (!ip || ip === '::1' || ip === '127.0.0.1' || ip === 'localhost') {
+             loading.innerHTML = '<i class="bi bi-exclamation-circle text-warning fs-4"></i><br>IP Local ou inválido para geolocalização.';
+             return;
+        }
+
+        // Busca GeoIP
+        fetch(`https://ipapi.co/${ip}/json/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Falha na API de GeoIP');
+                return response.json();
+            })
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.error) {
+                    alert('Não foi possível localizar este IP: ' + data.reason);
+                    return;
+                }
+
+                var lat = data.latitude;
+                var lon = data.longitude;
+                var city = data.city;
+                var region = data.region;
+                var country = data.country_name;
+                var org = data.org;
+
+                // Atualiza mapa
+                map.setView([lat, lon], 13);
+                
+                var popupContent = `
+                    <div class="text-start">
+                        <strong>IP:</strong> ${ip}<br>
+                        <strong>Local:</strong> ${city}, ${region} - ${country}<br>
+                        <strong>Provedor:</strong> ${org}<br>
+                        <small class="text-muted">Lat: ${lat}, Lon: ${lon}</small>
+                    </div>
+                `;
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup(popupContent)
+                    .openPopup();
+                
+                // Círculo de precisão aproximada
+                L.circle([lat, lon], {
+                    color: 'red',
+                    fillColor: '#f03',
+                    fillOpacity: 0.1,
+                    radius: 500
+                }).addTo(map);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                loading.innerHTML = '<div class="text-danger"><i class="bi bi-x-circle"></i><br>Erro ao carregar mapa.<br>Verifique conexão ou bloqueadores.</div>';
+            });
+    });
+</script>

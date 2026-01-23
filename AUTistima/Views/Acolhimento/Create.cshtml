@@ -33,10 +33,20 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                         
                         <div class="mb-4">
-                            <label asp-for="Conteudo" class="form-label fw-semibold">
-                                <i class="bi bi-chat-heart me-1"></i>
-                                O que você gostaria de compartilhar?
-                            </label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label asp-for="Conteudo" class="form-label fw-semibold mb-0">
+                                    <i class="bi bi-chat-heart me-1"></i>
+                                    O que você gostaria de compartilhar?
+                                </label>
+                                <button type="button" id="btnGravarAudio" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="toggleGravacao()">
+                                    <i class="bi bi-mic-fill me-1"></i>
+                                    <span id="txtBtnGravacao">Gravar Voz</span>
+                                </button>
+                                <button type="button" id="btnLerTexto" class="btn btn-sm btn-outline-secondary rounded-pill px-3 ms-2" onclick="toggleLeitura()">
+                                    <i class="bi bi-volume-up-fill me-1"></i>
+                                    <span id="txtBtnLeitura">Ouvir Texto</span>
+                                </button>
+                            </div>
                             <textarea asp-for="Conteudo" 
                                       class="form-control form-control-lg" 
                                       rows="6" 
@@ -108,4 +118,194 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        let recognition = null;
+        let isRecording = false;
+        let synth = window.speechSynthesis;
+        let isReading = false;
+
+        function toggleLeitura() {
+            if (!('speechSynthesis' in window)) {
+                alert('Seu navegador não suporta leitura de texto.');
+                return;
+            }
+
+            const btn = document.getElementById('btnLerTexto');
+            const txtBtn = document.getElementById('txtBtnLeitura');
+            const icon = btn.querySelector('i');
+            const textarea = document.getElementById('Conteudo');
+
+            if (isReading) {
+                // Parar leitura
+                synth.cancel();
+                isReading = false;
+                
+                // Restaurar botão
+                btn.classList.remove('btn-danger', 'text-white');
+                btn.classList.add('btn-outline-secondary');
+                icon.classList.remove('bi-stop-fill');
+                icon.classList.add('bi-volume-up-fill');
+                txtBtn.textContent = 'Ouvir Texto';
+            } else {
+                // Iniciar leitura
+                const texto = textarea.value;
+                if (!texto) {
+                    alert('Escreva algo para ouvir.');
+                    return;
+                }
+
+                // Configurar fala
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'pt-BR';
+                
+                // Tenta encontrar a melhor voz possível (menos robótica)
+                // Prioriza vozes "Google" (Chrome) ou "Microsoft" (Edge) que costumam ser neurais/naturais
+                const voices = synth.getVoices();
+                
+                // Filtra apenas vozes em português do Brasil
+                const ptVoices = voices.filter(v => v.lang.replace('_', '-') === 'pt-BR');
+                
+                let bestVoice = null;
+
+                if (ptVoices.length > 0) {
+                    // 1. Tenta voz do Google (Geralmente a mais natural no Chrome/Android)
+                    bestVoice = ptVoices.find(v => v.name.includes('Google'));
+                    
+                    // 2. Se não, tenta vozes da Microsoft (Edge) ou Apple (Safari)
+                    if (!bestVoice) {
+                        bestVoice = ptVoices.find(v => v.name.includes('Microsoft') || v.name.includes('Luciana') || v.name.includes('Joana'));
+                    }
+                    
+                    // 3. Fallback para qualquer voz pt-BR encontrada
+                    if (!bestVoice) {
+                        bestVoice = ptVoices[0];
+                    }
+                }
+
+                if (bestVoice) {
+                    utterance.voice = bestVoice;
+                     // Ajustes finos para naturalidade
+                    utterance.rate = 0.95; // Levemente mais lento ajuda na clareza
+                    utterance.pitch = 1.0;
+                }
+
+                utterance.onend = () => {
+                    // Quando terminar naturalmenente
+                    isReading = true; // garante estado para chamar o toggle e resetar
+                    toggleLeitura(); 
+                };
+
+                utterance.onerror = (e) => {
+                    console.error('Erro na fala:', e);
+                    isReading = true;
+                    toggleLeitura();
+                };
+
+                synth.speak(utterance);
+                isReading = true;
+
+                // Atualizar botão
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-danger', 'text-white');
+                icon.classList.remove('bi-volume-up-fill');
+                icon.classList.add('bi-stop-fill');
+                txtBtn.textContent = 'Parar';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.continuous = true;
+                recognition.interimResults = false;
+
+                recognition.onresult = (event) => {
+                    const textarea = document.getElementById('Conteudo');
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            const text = event.results[i][0].transcript.trim();
+                            // Adiciona espaço se já houver texto
+                            if (textarea.value.length > 0 && !textarea.value.endsWith(' ')) {
+                                textarea.value += ' ';
+                            }
+                            // Capitaliza a primeira letra do novo trecho
+                            const formattedText = text.charAt(0).toUpperCase() + text.slice(1);
+                            textarea.value += formattedText;
+                        }
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Erro no reconhecimento:', event.error);
+                    stopRecording();
+                    if (event.error === 'not-allowed') {
+                        alert('Precisamos de permissão para usar o microfone.');
+                    }
+                };
+                
+                recognition.onend = () => {
+                    if (isRecording) {
+                        stopRecording();
+                    }
+                };
+
+            } else {
+                const btn = document.getElementById('btnGravarAudio');
+                if(btn) btn.style.display = 'none';
+            }
+        });
+
+        function toggleGravacao() {
+            if (!recognition) return;
+
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            try {
+                recognition.start();
+                isRecording = true;
+                const btn = document.getElementById('btnGravarAudio');
+                const txt = document.getElementById('txtBtnGravacao');
+                
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-danger', 'pulse-animation');
+                btn.innerHTML = '<i class="bi bi-stop-circle-fill me-1"></i> Parar';
+                
+                // Feedback visual
+                document.getElementById('Conteudo').placeholder = "Ouvindo... Pode falar...";
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function stopRecording() {
+            if(recognition) recognition.stop();
+            isRecording = false;
+            const btn = document.getElementById('btnGravarAudio');
+            
+            btn.classList.remove('btn-danger', 'pulse-animation');
+            btn.classList.add('btn-outline-primary');
+            btn.innerHTML = '<i class="bi bi-mic-fill me-1"></i> Gravar Voz';
+            
+            document.getElementById('Conteudo').placeholder = "Escreva aqui... Este é um espaço acolhedor onde outras mães vão te entender e apoiar.";
+        }
+    </script>
+    <style>
+        .pulse-animation {
+            animation: pulse-red 1.5s infinite;
+        }
+        @@keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+    </style>
 }

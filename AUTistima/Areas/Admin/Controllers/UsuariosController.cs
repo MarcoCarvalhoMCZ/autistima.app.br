@@ -14,15 +14,18 @@ public class UsuariosController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ILogger<UsuariosController> _logger;
 
     public UsuariosController(
         ApplicationDbContext context, 
         UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
         ILogger<UsuariosController> logger)
     {
         _context = context;
         _userManager = userManager;
+        _signInManager = signInManager;
         _logger = logger;
     }
 
@@ -55,6 +58,7 @@ public class UsuariosController : Controller
         var totalPaginas = (int)Math.Ceiling(totalItens / (double)itensPorPagina);
 
         var usuarios = await query
+            .Include(u => u.Filhos)
             .OrderByDescending(u => u.DataCadastro)
             .Skip((pagina - 1) * itensPorPagina)
             .Take(itensPorPagina)
@@ -67,6 +71,32 @@ public class UsuariosController : Controller
         ViewBag.TotalItens = totalItens;
 
         return View(usuarios);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LoginComo(string id)
+    {
+        if (!await IsAdmin())
+            return RedirectToAction("Index", "Home", new { area = "" });
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            TempData["MensagemErro"] = "Usuário não encontrado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        _logger.LogWarning($"ADMIN INTERVENÇÃO: Administrador {User.Identity?.Name} realizou login forçado como {user.Email} (ID: {user.Id}) para fins de suporte/teste.");
+
+        // Logout do admin atual
+        await _signInManager.SignOutAsync();
+        
+        // Login como o usuário alvo (sem senha)
+        await _signInManager.SignInAsync(user, isPersistent: false);
+
+        TempData["Mensagem"] = $"Você agora está logado como {user.NomeCompleto}.";
+        return RedirectToAction("Index", "Home", new { area = "" });
     }
 
     // GET: Admin/Usuarios/Details/5
