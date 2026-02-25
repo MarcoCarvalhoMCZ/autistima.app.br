@@ -61,6 +61,7 @@
             --sidebar-width: 296px;
             --sidebar-collapsed-width: 0px;
             --topbar-height: 60px;
+            --bottom-nav-height: 70px;
             --color-salmon: #F28B82;
             --color-azul: #AECBFA;
             --color-ink: #1A1F2B;
@@ -421,6 +422,34 @@
             position: relative;
         }
 
+        .topbar-actions {
+            position: absolute;
+            right: 10px;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .topbar-icon-btn {
+            color: #334155;
+            transition: color 0.2s ease, background-color 0.2s ease;
+            font-size: 1.3rem;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .topbar-icon-btn:hover,
+        .topbar-icon-btn:focus-visible {
+            color: #1e293b;
+            background-color: rgba(242, 139, 130, 0.2);
+        }
+
         .navbar-autistima .navbar-brand {
             position: absolute;
             left: 50%;
@@ -457,6 +486,72 @@
 
         .btn-danger:not(.btn-outline-danger) {
             box-shadow: 0 0 0 0 rgba(242, 139, 130, 0.7);
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+        }
+
+        @@media (max-width: 991.98px) {
+            .main-wrapper {
+                padding-bottom: calc(var(--bottom-nav-height) + 0.75rem);
+            }
+
+            .mobile-bottom-nav {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: var(--bottom-nav-height);
+                background: #fff;
+                border-top: 1px solid rgba(15, 23, 42, 0.12);
+                box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                z-index: 1045;
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+
+            .mobile-bottom-nav-link {
+                color: #334155;
+                text-decoration: none;
+                min-height: 56px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 0.2rem;
+                position: relative;
+                font-size: 0.66rem;
+                font-weight: 600;
+            }
+
+            .mobile-bottom-nav-link i {
+                font-size: 1.1rem;
+                line-height: 1;
+            }
+
+            .mobile-bottom-nav-link.active {
+                color: #b42318;
+            }
+
+            .mobile-bottom-nav-link.active::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 20%;
+                right: 20%;
+                height: 3px;
+                border-radius: 999px;
+                background: var(--color-salmon);
+            }
+
+            .mobile-bottom-nav .badge {
+                position: absolute;
+                top: 8px;
+                right: calc(50% - 16px);
+                font-size: 0.58rem;
+            }
         }
 
         /* Media query para desktop */
@@ -666,6 +761,66 @@
         };
 
         string DestinatariosTexto(TipoPerfil[] perfis) => string.Join(" · ", perfis.Select(PerfilLabel));
+
+        List<SidebarItem> acoesRapidasMobile = tipoPerfil switch
+        {
+            TipoPerfil.Administrador => new List<SidebarItem>
+            {
+                new("Painel", "bi-speedometer2", "Admin", "Admin", "Index", "admin", Array.Empty<TipoPerfil>()),
+                new("Usuários", "bi-people", "Admin", "Usuarios", "Index", "admin", Array.Empty<TipoPerfil>()),
+                new("Posts", "bi-chat-heart", "Admin", "Posts", "Index", "admin", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            },
+            TipoPerfil.Mae => new List<SidebarItem>
+            {
+                new("Início", "bi-house-heart", null, "Home", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Filhos", "bi-people-fill", null, "Filhos", "Index", "mae", Array.Empty<TipoPerfil>()),
+                new("Chat", "bi-chat-dots", null, "Chat", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Pânico", "bi-exclamation-triangle", null, "Panico", "Index", "mae", Array.Empty<TipoPerfil>())
+            },
+            TipoPerfil.ProfissionalSaude => new List<SidebarItem>
+            {
+                new("Painel", "bi-person-badge", "Profissional", "Profissional", "Index", "profissional", Array.Empty<TipoPerfil>()),
+                new("Triagens", "bi-clipboard-pulse", "Profissional", "Profissional", "Triagens", "profissional", Array.Empty<TipoPerfil>()),
+                new("Chat", "bi-chat-dots", null, "Chat", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            },
+            TipoPerfil.ProfissionalEducacao => new List<SidebarItem>
+            {
+                new("Painel", "bi-mortarboard", "Profissional", "Profissional", "Index", "profissional", Array.Empty<TipoPerfil>()),
+                new("Triagens", "bi-journal-check", "Profissional", "Profissional", "Triagens", "profissional", Array.Empty<TipoPerfil>()),
+                new("Busca", "bi-search", null, "Busca", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            },
+            TipoPerfil.Empresa => new List<SidebarItem>
+            {
+                new("Painel", "bi-building", "Empresa", "Empresa", "Index", "empresa", Array.Empty<TipoPerfil>()),
+                new("Vagas", "bi-briefcase", "Empresa", "Empresa", "MinhasOportunidades", "empresa", Array.Empty<TipoPerfil>()),
+                new("Nova", "bi-plus-circle", "Empresa", "Empresa", "NovaOportunidade", "empresa", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            },
+            TipoPerfil.Governo => new List<SidebarItem>
+            {
+                new("Painel", "bi-bank", "Governo", "Governo", "Index", "governo", Array.Empty<TipoPerfil>()),
+                new("Triagens", "bi-clipboard-data", "Governo", "Governo", "Triagens", "governo", Array.Empty<TipoPerfil>()),
+                new("Escolas", "bi-building-check", "Governo", "Governo", "Escolas", "governo", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            },
+            _ => new List<SidebarItem>
+            {
+                new("Início", "bi-house-heart", null, "Home", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Busca", "bi-search", null, "Busca", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Chat", "bi-chat-dots", null, "Chat", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            }
+        };
     }
     
     <!-- Sidebar Toggle Button - Desktop Modern Style -->
@@ -785,7 +940,7 @@
                     <div class="sidebar-section-title">📬 Comunicação</div>
                     <ul class="sidebar-nav">
                         <li class="sidebar-nav-item">
-                            <a class="sidebar-nav-link" asp-controller="Notificacoes" asp-action="Index">
+                            <a class="sidebar-nav-link" asp-area="" asp-controller="Notificacoes" asp-action="Index">
                                 <div class="icon-label">
                                     <i class="bi bi-bell"></i>
                                     <span>Notificações</span>
@@ -795,7 +950,7 @@
                             </a>
                         </li>
                         <li class="sidebar-nav-item">
-                            <a class="sidebar-nav-link" asp-controller="Chat" asp-action="Index">
+                            <a class="sidebar-nav-link" asp-area="" asp-controller="Chat" asp-action="Index">
                                 <div class="icon-label">
                                     <i class="bi bi-chat-dots"></i>
                                     <span>Mensagens</span>
@@ -895,7 +1050,7 @@
                     </a>
                     
                     <!-- Notificações à direita -->
-                    <div style="position: absolute; right: 10px; display: flex; gap: 0.5rem; align-items: center;">
+                    <div class="topbar-actions">
                         @if (currentUser?.TipoPerfil == AUTistima.Models.Enums.TipoPerfil.Mae)
                         {
                             <a class="btn btn-danger rounded-pill d-flex align-items-center gap-2 px-3" 
@@ -908,7 +1063,7 @@
                                 <span class="d-none d-sm-inline">Pânico</span>
                             </a>
                         }
-                        <a class="btn btn-link position-relative" asp-controller="Notificacoes" asp-action="Index" title="Notificações" style="color: #555; transition: color 0.2s; font-size: 1.3rem; padding: 0.5rem;">
+                        <a class="topbar-icon-btn position-relative" asp-area="" asp-controller="Notificacoes" asp-action="Index" title="Notificações" aria-label="Abrir notificações">
                             <i class="bi bi-bell"></i>
                             <span id="notificacao-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem;">0</span>
                         </a>
@@ -916,6 +1071,37 @@
                 </div>
             </nav>
         </header>
+    }
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <nav class="mobile-bottom-nav" aria-label="Navegação rápida">
+            @foreach (var item in acoesRapidasMobile.Take(5))
+            {
+                var isChat = string.Equals(item.Controller, "Chat", StringComparison.OrdinalIgnoreCase) &&
+                             string.Equals(item.Action, "Index", StringComparison.OrdinalIgnoreCase) &&
+                             string.IsNullOrEmpty(item.Area);
+                var isNotif = string.Equals(item.Controller, "Notificacoes", StringComparison.OrdinalIgnoreCase) &&
+                              string.Equals(item.Action, "Index", StringComparison.OrdinalIgnoreCase) &&
+                              string.IsNullOrEmpty(item.Area);
+                <a class="mobile-bottom-nav-link @(LinkAtivo(item) ? "active" : "")"
+                   asp-area="@(item.Area ?? string.Empty)"
+                   asp-controller="@item.Controller"
+                   asp-action="@item.Action"
+                   aria-label="Ir para @item.Titulo.ToLowerInvariant()">
+                    <i class="bi @item.Icone"></i>
+                    <span>@item.Titulo</span>
+                    @if (isChat)
+                    {
+                        <span id="bottom-chat-badge" class="badge rounded-pill bg-primary" style="display: none;">0</span>
+                    }
+                    @if (isNotif)
+                    {
+                        <span id="bottom-notif-badge" class="badge rounded-pill bg-danger" style="display: none;">0</span>
+                    }
+                </a>
+            }
+        </nav>
     }
     
     <div class="main-wrapper">
@@ -1184,7 +1370,8 @@
                     .then(data => {
                         const badges = [
                             document.getElementById('notificacao-badge'),
-                            document.getElementById('sidebar-notif-badge')
+                            document.getElementById('sidebar-notif-badge'),
+                            document.getElementById('bottom-notif-badge')
                         ];
                         badges.forEach(badge => {
                             if (badge && data.count !== undefined) {
@@ -1201,7 +1388,8 @@
                     .then(data => {
                         const badges = [
                             document.getElementById('chat-badge'),
-                            document.getElementById('sidebar-chat-badge')
+                            document.getElementById('sidebar-chat-badge'),
+                            document.getElementById('bottom-chat-badge')
                         ];
                         badges.forEach(badge => {
                             if (badge && data.count !== undefined) {

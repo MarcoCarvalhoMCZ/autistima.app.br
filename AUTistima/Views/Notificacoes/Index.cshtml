@@ -1,4 +1,5 @@
-@model IEnumerable<AUTistima.Models.Notification>
+@model AUTistima.ViewModels.NotificacoesIndexViewModel
+@using AUTistima.Models
 @{
     ViewData["Title"] = "Minhas Notificações";
 }
@@ -10,7 +11,7 @@
                 <h2 class="mb-0">
                     <i class="bi bi-bell-fill text-primary"></i> Minhas Notificações
                 </h2>
-                @if (Model.Any(n => !n.Lida))
+                @if (Model.Notificacoes.Any(n => !n.Lida))
                 {
                     <form asp-action="MarcarTodasLidas" method="post" class="d-inline">
                         <button type="submit" class="btn btn-outline-primary btn-sm">
@@ -57,7 +58,71 @@
                 </div>
             }
 
-            @if (!Model.Any())
+            @if (TempData["Erro"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Erro"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            }
+
+            @if (Model.PodeEnviarEntrePerfis)
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-send text-primary me-2"></i>
+                            Enviar notificação
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            Você pode enviar notificações apenas para @Model.PerfilDestinatarioLabel.
+                        </p>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-warning small mb-3"></div>
+                        }
+
+                        <form asp-action="EnviarEntreMaeESaude" method="post" class="row g-2 g-md-3">
+                            <div class="col-12">
+                                <label asp-for="Envio.DestinatarioId" class="form-label"></label>
+                                <select asp-for="Envio.DestinatarioId"
+                                        asp-items="Model.DestinatariosDisponiveis"
+                                        class="form-select form-select-sm">
+                                    <option value="">Selecione...</option>
+                                </select>
+                                <span asp-validation-for="Envio.DestinatarioId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Envio.Titulo" class="form-label"></label>
+                                <input asp-for="Envio.Titulo" class="form-control form-control-sm" maxlength="100" />
+                                <span asp-validation-for="Envio.Titulo" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Envio.Mensagem" class="form-label"></label>
+                                <textarea asp-for="Envio.Mensagem" rows="3" class="form-control form-control-sm" maxlength="500"></textarea>
+                                <span asp-validation-for="Envio.Mensagem" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Envio.Link" class="form-label"></label>
+                                <input asp-for="Envio.Link" class="form-control form-control-sm" maxlength="255" placeholder="Ex.: /Chat/Conversa/123" />
+                                <span asp-validation-for="Envio.Link" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12 d-grid d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary btn-sm px-4">
+                                    <i class="bi bi-send"></i> Enviar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            @if (!Model.Notificacoes.Any())
             {
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center py-5">
@@ -73,7 +138,7 @@
             else
             {
                 <div class="list-group shadow-sm">
-                    @foreach (var notificacao in Model)
+                    @foreach (var notificacao in Model.Notificacoes)
                     {
                         var bgClass = notificacao.Lida ? "" : "bg-light";
                         var iconClass = notificacao.Tipo switch
@@ -109,7 +174,7 @@
                                         </small>
                                     </div>
                                 </div>
-                                <div class="btn-group">
+                                <div class="btn-group flex-shrink-0">
                                     @if (!notificacao.Lida)
                                     {
                                         <form asp-action="MarcarLida" asp-route-id="@notificacao.Id" method="post" class="d-inline">
@@ -129,7 +194,7 @@
                     }
                 </div>
                 
-                @if (Model.Count() >= 10)
+                @if (Model.Notificacoes.Count >= 10)
                 {
                     <div class="text-center mt-4">
                         <form asp-action="LimparTodas" method="post" class="d-inline">
