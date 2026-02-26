@@ -1562,74 +1562,114 @@
     <partial name="_HelpModal" />
 
     <!-- Banner de instalação iOS PWA -->
-    <div id="ios-install-banner" role="dialog" aria-label="Instalar aplicativo" aria-modal="true"
-         style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999;
-                background:#fff; border-top:3px solid #7c4dbe; box-shadow:0 -4px 24px rgba(0,0,0,.18);
-                padding:1rem 1.25rem 1.25rem; font-family:inherit;">
+    <div id="ios-install-banner" hidden role="dialog" aria-label="Instalar aplicativo" aria-modal="true"
+         style="position:fixed; bottom:0; left:0; right:0; z-index:10000;
+                background:#fff; border-top:3px solid #7c4dbe; box-shadow:0 -4px 24px rgba(0,0,0,.22);
+                padding:1rem 1.25rem 1.4rem; font-family:inherit;">
         <button id="ios-install-banner-close"
                 aria-label="Fechar"
                 style="position:absolute; top:.6rem; right:.75rem; background:none; border:none;
-                       font-size:1.4rem; line-height:1; color:#666; cursor:pointer;">&times;</button>
+                       font-size:1.5rem; line-height:1; color:#666; cursor:pointer; padding:4px 8px;">&times;</button>
         <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.85rem;">
             <img src="/icons/icon-192x192.png" alt="AUTistima" width="44" height="44"
                  style="border-radius:10px; flex-shrink:0;">
             <div>
-                <strong style="display:block; color:#7c4dbe; font-size:1rem;">Instale o AUTistima</strong>
+                <strong style="display:block; color:#7c4dbe; font-size:1rem;">Instale o AUTistima no iPhone</strong>
                 <span style="font-size:.85rem; color:#555;">Acesse mais rápido e receba notificações</span>
             </div>
         </div>
-        <ol style="margin:0 0 .9rem 1.1rem; padding:0; font-size:.9rem; color:#333; line-height:1.8;">
-            <li>Toque em
-                <span style="display:inline-flex; align-items:center; gap:3px; background:#f0f0f0;
-                             border-radius:5px; padding:1px 7px; font-size:.85rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#007aff" viewBox="0 0 16 16">
-                        <path d="M8 .5a.5.5 0 0 1 .5.5v9.293l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V1a.5.5 0 0 1 .5-.5z"/>
+        <ol style="margin:0 0 .9rem 1.1rem; padding:0; font-size:.9rem; color:#333; line-height:2;">
+            <li>No Safari, toque em
+                <span style="display:inline-flex; align-items:center; gap:3px; background:#e8e8e8;
+                             border-radius:5px; padding:2px 8px; font-size:.85rem; vertical-align:middle;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="#007aff" viewBox="0 0 16 16">
+                        <path d="M8 .5a.5.5 0 0 1 .5.5v9.293l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V1A.5.5 0 0 1 8 .5z"/>
                         <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
                     </svg>
                     Compartilhar
                 </span>
-                na barra do Safari
             </li>
-            <li>Selecione <strong>"Adicionar à Tela de Início"</strong></li>
+            <li>Selecione <strong>"Adicionar à Tela de Início"</strong>
+                <span style="font-size:.8rem; color:#888;"> (role para baixo se não ver)</span>
+            </li>
             <li>Toque em <strong>"Adicionar"</strong> no canto superior direito</li>
         </ol>
-        <div style="display:flex; justify-content:flex-end;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:.78rem; color:#aaa;">⚠️ Funciona apenas no Safari</span>
             <button id="ios-install-banner-never"
-                    style="background:none; border:none; font-size:.8rem; color:#999; cursor:pointer; text-decoration:underline;">
+                    style="background:none; border:none; font-size:.8rem; color:#999; cursor:pointer; text-decoration:underline; padding:0;">
                 Não mostrar novamente
             </button>
         </div>
     </div>
 
+    <!-- Botão flutuante "Instalar App" — sempre visível no iOS não-instalado -->
+    <button id="ios-install-fab" hidden
+            aria-label="Instalar AUTistima como aplicativo"
+            style="position:fixed; bottom:84px; right:14px; z-index:9998;
+                   background:#7c4dbe; color:#fff; border:none; border-radius:20px;
+                   padding:8px 16px; font-size:.82rem; font-weight:600;
+                   box-shadow:0 3px 14px rgba(124,77,190,.55); cursor:pointer;">
+        &#8681; Instalar App
+    </button>
+
     <script>
     (function () {
+        var ua = navigator.userAgent || '';
+
+        // Detecta iOS/iPadOS
+        var isIos = /iphone|ipad|ipod/i.test(ua) ||
+                    (/Macintosh/i.test(ua) && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 1);
+
+        // Detecta se já está instalado como PWA
+        var isStandalone = (navigator.standalone === true) ||
+                           (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+
+        // Limpa chaves legadas incompatíveis
+        try {
+            var v = localStorage.getItem('autistima-ios-banner');
+            if (v === 'later') {
+                localStorage.removeItem('autistima-ios-banner');
+                localStorage.removeItem('autistima-ios-banner-later');
+            }
+        } catch(e) {}
+
+        if (!isIos || isStandalone) return;
+
         var banner = document.getElementById('ios-install-banner');
-        if (!banner) return;
+        var fab    = document.getElementById('ios-install-fab');
 
-        // Detecta iOS (iPhone, iPad, iPod)
-        var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        // Detecta se já está rodando como PWA instalada
-        var isStandalone = ('standalone' in navigator && navigator.standalone === true) ||
-                           window.matchMedia('(display-mode: standalone)').matches;
-        // Verifica se o usuário dispensou o banner
-        var dismissed = localStorage.getItem('autistima-ios-banner');
+        // FAB sempre visível no iOS não-instalado
+        if (fab) fab.removeAttribute('hidden');
 
-        if (isIos && !isStandalone && dismissed !== 'never' && dismissed !== 'later') {
-            // Mostra após 3 segundos
-            setTimeout(function () {
-                banner.style.display = 'block';
-            }, 3000);
+        // Banner aparece automaticamente salvo fechado na sessão ou marcado "nunca"
+        try {
+            var closed = sessionStorage.getItem('autistima-ios-banner-closed');
+            var never  = localStorage.getItem('autistima-ios-banner') === 'never';
+            if (banner && !closed && !never) banner.removeAttribute('hidden');
+        } catch(e) {
+            if (banner) banner.removeAttribute('hidden'); // fallback: sempre mostra
         }
 
-        document.getElementById('ios-install-banner-close').addEventListener('click', function () {
-            banner.style.display = 'none';
-            localStorage.setItem('autistima-ios-banner', 'later');
-        });
+        if (banner) {
+            document.getElementById('ios-install-banner-close').addEventListener('click', function () {
+                banner.setAttribute('hidden', '');
+                try { sessionStorage.setItem('autistima-ios-banner-closed', '1'); } catch(e) {}
+            });
+            document.getElementById('ios-install-banner-never').addEventListener('click', function () {
+                banner.setAttribute('hidden', '');
+                try { localStorage.setItem('autistima-ios-banner', 'never'); } catch(e) {}
+            });
+        }
 
-        document.getElementById('ios-install-banner-never').addEventListener('click', function () {
-            banner.style.display = 'none';
-            localStorage.setItem('autistima-ios-banner', 'never');
-        });
+        if (fab) {
+            fab.addEventListener('click', function () {
+                if (banner) {
+                    banner.removeAttribute('hidden');
+                    try { sessionStorage.removeItem('autistima-ios-banner-closed'); } catch(e) {}
+                }
+            });
+        }
     })();
     </script>
 
