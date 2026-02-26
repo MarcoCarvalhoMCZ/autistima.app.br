@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AUTistima.Data;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
+using AUTistima.Services;
 using System.Security.Claims;
 
 namespace AUTistima.Controllers;
@@ -16,11 +17,13 @@ public class ManejosController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<ManejosController> _logger;
+    private readonly IPushNotificationService _pushService;
 
-    public ManejosController(ApplicationDbContext context, ILogger<ManejosController> logger)
+    public ManejosController(ApplicationDbContext context, ILogger<ManejosController> logger, IPushNotificationService pushService)
     {
         _context = context;
         _logger = logger;
+        _pushService = pushService;
     }
 
     // GET: Manejos
@@ -198,6 +201,18 @@ public class ManejosController : Controller
         manejo.DataAtualizacao = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+
+        // Notificar a mãe autora do manejo
+        if (!string.IsNullOrEmpty(manejo.UserId) && manejo.UserId != userId)
+        {
+            await _pushService.EnviarComPushAsync(
+                _context,
+                manejo.UserId,
+                "Manejo validado por especialista ✓",
+                $"Seu manejo \"{manejo.Titulo}\" foi validado por um profissional de saúde!",
+                TipoNotificacao.ManejoValidado,
+                Url.Action("Details", "Manejos", new { id }, Request.Scheme));
+        }
 
         TempData["Mensagem"] = "Manejo validado com sucesso! ✓";
         return RedirectToAction(nameof(Details), new { id });

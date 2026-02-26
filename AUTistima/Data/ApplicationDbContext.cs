@@ -35,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<UserActivity> UserActivities { get; set; } = null!;
     public DbSet<StatisticSnapshot> StatisticSnapshots { get; set; } = null!;
     public DbSet<PanicAlert> PanicAlerts { get; set; } = null!;
+    public DbSet<BroadcastMessage> BroadcastMessages { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -346,6 +347,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.NotaAtendimento).HasMaxLength(1000);
         });
         
+        // BroadcastMessage - Avisos em massa do administrador
+        builder.Entity<BroadcastMessage>(entity =>
+        {
+            entity.ToTable("BroadcastMessages");
+            entity.HasIndex(e => e.DataEnvio);
+            entity.HasIndex(e => e.RemetenteId);
+
+            entity.HasOne(e => e.Remetente)
+                .WithMany()
+                .HasForeignKey(e => e.RemetenteId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // Seed de dados iniciais para o Glossário
         SeedGlossaryTerms(builder);
         

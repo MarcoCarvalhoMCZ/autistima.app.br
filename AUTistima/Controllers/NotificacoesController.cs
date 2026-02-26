@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using AUTistima.Data;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
@@ -11,24 +12,24 @@ using System.Security.Claims;
 
 namespace AUTistima.Controllers;
 
-/// <summary>
-/// Controller de notificações do sistema
-/// </summary>
 [Authorize]
 public class NotificacoesController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<NotificacoesController> _logger;
     private readonly IPushNotificationService _pushService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public NotificacoesController(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         ILogger<NotificacoesController> logger,
-        IPushNotificationService pushService)
+        IPushNotificationService pushService,
+        UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _logger = logger;
         _pushService = pushService;
+        _userManager = userManager;
     }
 
     // GET: Notificacoes
@@ -41,6 +42,91 @@ public class NotificacoesController : Controller
 
         var viewModel = await MontarIndexViewModelAsync(userId);
         return View(viewModel);
+    }
+
+    // POST: Notificacoes/EnviarAvisoAdmin  (exclusivo para Administrador)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EnviarAvisoAdmin(EnviarAvisoAdminViewModel envioAdmin)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var admin = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        if (admin?.TipoPerfil != TipoPerfil.Administrador)
+        {
+            TempData["Erro"] = "Acesso negado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var vmErro = await MontarIndexViewModelAsync(userId!, null, envioAdmin);
+            return View("Index", vmErro);
+        }
+
+        if (envioAdmin.TipoDestino == "Perfil" && envioAdmin.PerfilDestino == null)
+        {
+            ModelState.AddModelError("envioAdmin.PerfilDestino", "Selecione o perfil.");
+            var vmErro = await MontarIndexViewModelAsync(userId!, null, envioAdmin);
+            return View("Index", vmErro);
+        }
+
+        if (envioAdmin.TipoDestino == "Selecionados" && envioAdmin.UsuariosSelecionados.Count == 0)
+        {
+            ModelState.AddModelError("envioAdmin.UsuariosSelecionados", "Selecione ao menos um usuário.");
+            var vmErro = await MontarIndexViewModelAsync(userId!, null, envioAdmin);
+            return View("Index", vmErro);
+        }
+
+        // Obter destinatários
+        var queryUsers = _context.Users.Where(u => u.Ativo);
+        List<ApplicationUser> destinatarios = envioAdmin.TipoDestino switch
+        {
+            "Perfil" when envioAdmin.PerfilDestino.HasValue =>
+                await queryUsers.Where(u => u.TipoPerfil == envioAdmin.PerfilDestino.Value).ToListAsync(),
+            "Selecionados" when envioAdmin.UsuariosSelecionados.Count > 0 =>
+                await queryUsers.Where(u => envioAdmin.UsuariosSelecionados.Contains(u.Id)).ToListAsync(),
+            _ => await queryUsers.ToListAsync()
+        };
+
+        if (destinatarios.Count == 0)
+        {
+            TempData["Erro"] = "Nenhum usuário encontrado para os critérios selecionados.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var link = string.IsNullOrWhiteSpace(envioAdmin.Link) ? null : envioAdmin.Link.Trim();
+        int enviados = 0;
+
+        foreach (var u in destinatarios)
+        {
+            try
+            {
+                await _pushService.EnviarComPushAsync(_context, u.Id,
+                    envioAdmin.Titulo, envioAdmin.Mensagem, TipoNotificacao.Sistema, link);
+                enviados++;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Falha ao enviar aviso para {UserId}", u.Id);
+            }
+        }
+
+        // Registrar broadcast
+        _context.BroadcastMessages.Add(new BroadcastMessage
+        {
+            Titulo = envioAdmin.Titulo,
+            Mensagem = envioAdmin.Mensagem,
+            Link = link,
+            TipoDestino = envioAdmin.TipoDestino,
+            PerfilDestino = envioAdmin.PerfilDestino.HasValue ? (int)envioAdmin.PerfilDestino.Value : null,
+            TotalDestinatarios = enviados,
+            RemetenteId = userId!,
+            DataEnvio = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
+
+        TempData["Mensagem"] = $"✅ Aviso enviado para {enviados} usuário(s) com sucesso!";
+        return RedirectToAction(nameof(Index));
     }
 
     // POST: Notificacoes/EnviarEntreMaeESaude
@@ -276,7 +362,8 @@ public class NotificacoesController : Controller
 
     private async Task<NotificacoesIndexViewModel> MontarIndexViewModelAsync(
         string userId,
-        EnviarNotificacaoViewModel? envio = null)
+        EnviarNotificacaoViewModel? envio = null,
+        EnviarAvisoAdminViewModel? envioAdmin = null)
     {
         var notificacoes = await _context.Notifications
             .Where(n => n.UserId == userId)
@@ -287,7 +374,8 @@ public class NotificacoesController : Controller
         var viewModel = new NotificacoesIndexViewModel
         {
             Notificacoes = notificacoes,
-            Envio = envio ?? new EnviarNotificacaoViewModel()
+            Envio = envio ?? new EnviarNotificacaoViewModel(),
+            EnvioAdmin = envioAdmin ?? new EnviarAvisoAdminViewModel()
         };
 
         var usuarioAtual = await _context.Users
@@ -297,6 +385,33 @@ public class NotificacoesController : Controller
         if (usuarioAtual == null)
             return viewModel;
 
+        // --- Painel admin ---
+        if (usuarioAtual.TipoPerfil == TipoPerfil.Administrador)
+        {
+            viewModel.IsAdmin = true;
+
+            var todosAtivos = await _context.Users
+                .Where(u => u.Ativo)
+                .OrderBy(u => u.NomeCompleto)
+                .ToListAsync();
+
+            viewModel.TotalUsuariosAtivos = todosAtivos.Count;
+            viewModel.ContagemPorPerfil = todosAtivos
+                .GroupBy(u => u.TipoPerfil)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            viewModel.UsuariosPorPerfil = todosAtivos
+                .GroupBy(u => u.TipoPerfil)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(u => new SelectListItem(
+                        $"{u.NomeCompleto}",
+                        u.Id)).ToList());
+
+            return viewModel;
+        }
+
+        // --- Painel mãe / profissional ---
         var perfilDestino = ObterPerfilDestinoPermitido(usuarioAtual.TipoPerfil);
         if (perfilDestino == null)
             return viewModel;

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AUTistima.Data;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
+using AUTistima.Services;
 using System.Security.Claims;
 
 namespace AUTistima.Controllers;
@@ -17,11 +18,13 @@ public class TriagemController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<TriagemController> _logger;
+    private readonly IPushNotificationService _pushService;
 
-    public TriagemController(ApplicationDbContext context, ILogger<TriagemController> logger)
+    public TriagemController(ApplicationDbContext context, ILogger<TriagemController> logger, IPushNotificationService pushService)
     {
         _context = context;
         _logger = logger;
+        _pushService = pushService;
     }
 
     // GET: Triagem (Fila de Triagens)
@@ -228,6 +231,8 @@ public class TriagemController : Controller
             return Forbid();
         }
 
+        var professorId = triagem.ProfessorSolicitanteId; // salva antes de atualizar
+
         triagem.ParecerProfissional = parecerProfissional;
         triagem.Recomendacoes = recomendacoes;
         triagem.Encaminhamento = encaminhamento;
@@ -239,6 +244,20 @@ public class TriagemController : Controller
         }
 
         await _context.SaveChangesAsync();
+
+        // Lembrete ao educador que solicitou a triagem
+        if (!string.IsNullOrEmpty(professorId) && professorId != userId)
+        {
+            var statusLabel = novoStatus == StatusTriagem.Concluido ? "concluída" :
+                              novoStatus == StatusTriagem.Encaminhado ? "encaminhada" : "atualizada";
+            await _pushService.EnviarComPushAsync(
+                _context,
+                professorId,
+                $"Triagem {statusLabel}",
+                $"A triagem do aluno {triagem.NomeAluno} foi {statusLabel}. Verifique o parecer e os encaminhamentos.",
+                TipoNotificacao.Lembrete,
+                Url.Action("Details", "Triagem", new { id }, Request.Scheme));
+        }
 
         TempData["Mensagem"] = "Avaliação registrada com sucesso!";
         return RedirectToAction(nameof(Details), new { id });

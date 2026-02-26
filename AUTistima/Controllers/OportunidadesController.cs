@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AUTistima.Data;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
+using AUTistima.Services;
 using System.Security.Claims;
 
 namespace AUTistima.Controllers;
@@ -15,11 +16,13 @@ public class OportunidadesController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<OportunidadesController> _logger;
+    private readonly IPushNotificationService _pushService;
 
-    public OportunidadesController(ApplicationDbContext context, ILogger<OportunidadesController> logger)
+    public OportunidadesController(ApplicationDbContext context, ILogger<OportunidadesController> logger, IPushNotificationService pushService)
     {
         _context = context;
         _logger = logger;
+        _pushService = pushService;
     }
 
     // GET: Oportunidades
@@ -162,6 +165,27 @@ public class OportunidadesController : Controller
 
             _context.Opportunities.Add(oportunidade);
             await _context.SaveChangesAsync();
+
+            // Notificar todas as Mães sobre a nova oportunidade
+            var maes = await _context.Users
+                .Where(u => u.Ativo && u.TipoPerfil == TipoPerfil.Mae)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            var linkOportunidade = Url.Action("Details", "Oportunidades", new { id = oportunidade.Id }, Request.Scheme);
+            var tipoLabel = oportunidade.Tipo == TipoOportunidade.ServicoMae ? "serviço" : "vaga";
+
+            foreach (var maeId in maes)
+            {
+                if (maeId == userId) continue; // não notifica a própria criadora
+                await _pushService.EnviarComPushAsync(
+                    _context,
+                    maeId,
+                    $"Nova {tipoLabel} disponível!",
+                    $"{oportunidade.Titulo} — confira agora!",
+                    TipoNotificacao.NovaOportunidade,
+                    linkOportunidade);
+            }
 
             TempData["Mensagem"] = "Oportunidade publicada com sucesso!";
             return RedirectToAction(nameof(Index));

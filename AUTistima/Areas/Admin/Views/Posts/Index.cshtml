@@ -1,5 +1,6 @@
 @model IEnumerable<AUTistima.Models.Post>
 @using AUTistima.Models.Enums
+@using AUTistima.Models.Enums
 @{
     ViewData["Title"] = "Manutenção de Postagens";
 }
@@ -11,6 +12,9 @@
             <h1 class="h3 mb-0"><i class="bi bi-chat-heart me-2"></i>Manutenção de Postagens</h1>
             <p class="text-muted mb-0">Total encontrado: <strong>@ViewBag.TotalItens</strong></p>
         </div>
+        <a asp-action="Create" class="btn btn-danger">
+            <i class="bi bi-pencil-square me-2"></i>Nova Postagem
+        </a>
     </div>
 
     <!-- Card de Filtros -->
@@ -86,9 +90,10 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th width="35%">Conteúdo</th>
-                        <th width="15%">Autora</th>
-                        <th width="12%">Data</th>
+                        <th width="30%">Conteúdo</th>
+                        <th width="13%">Autora</th>
+                        <th width="10%">Destino</th>
+                        <th width="10%">Data</th>
                         <th width="8%">Comentários</th>
                         <th width="15%">Moderação</th>
                         <th width="10%">Status</th>
@@ -99,7 +104,7 @@
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
+                            <td colspan="8" class="text-center text-muted py-5">
                                 <i class="bi bi-inbox display-4 d-block mb-2"></i>
                                 Nenhum post encontrado com os filtros selecionados.
                             </td>
@@ -117,6 +122,33 @@
                                 </td>
                                 <td>
                                     <small class="text-muted">@(post.Autor?.NomeCompleto ?? "—")</small>
+                                </td>
+                                <td>
+                                    @if (post.PerfilDestino == null)
+                                    {
+                                        <span class="badge bg-secondary rounded-pill" title="Visível para todos">
+                                            <i class="bi bi-people-fill me-1"></i>Todos
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        foreach (var p in post.PerfilDestino.Split(','))
+                                        {
+                                            if (int.TryParse(p, out var pInt))
+                                            {
+                                                var label = (TipoPerfil)pInt switch {
+                                                    TipoPerfil.Mae => "Mãe",
+                                                    TipoPerfil.ProfissionalSaude => "Prof. Saúde",
+                                                    TipoPerfil.ProfissionalEducacao => "Prof. Educ.",
+                                                    TipoPerfil.Empresa => "Empresa",
+                                                    TipoPerfil.Governo => "Governo",
+                                                    TipoPerfil.Administrador => "Admin",
+                                                    _ => p
+                                                };
+                                                <span class="badge bg-primary rounded-pill me-1 mb-1">@label</span>
+                                            }
+                                        }
+                                    }
                                 </td>
                                 <td>
                                     <small>@post.DataCriacao.ToString("dd/MM/yyyy")</small><br>

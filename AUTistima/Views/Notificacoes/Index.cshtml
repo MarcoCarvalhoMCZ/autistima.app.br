@@ -1,7 +1,18 @@
 @model AUTistima.ViewModels.NotificacoesIndexViewModel
 @using AUTistima.Models
+@using AUTistima.Models.Enums
 @{
     ViewData["Title"] = "Minhas Notificações";
+
+    var perfisInfo = new (TipoPerfil Perfil, string Icon, string Cor, string Label)[]
+    {
+        (TipoPerfil.Mae,                  "bi-heart-fill",       "#F28B82", "Mães Atípicas"),
+        (TipoPerfil.ProfissionalSaude,    "bi-activity",         "#0d6efd", "Prof. de Saúde"),
+        (TipoPerfil.ProfissionalEducacao, "bi-mortarboard-fill", "#0dcaf0", "Prof. de Educação"),
+        (TipoPerfil.Empresa,              "bi-briefcase-fill",   "#198754", "Empresas Parceiras"),
+        (TipoPerfil.Governo,              "bi-building-fill",    "#6f42c1", "Gestores Públicos"),
+        (TipoPerfil.Administrador,        "bi-shield-fill-check","#dc3545", "Administradores"),
+    };
 }
 
 <div class="container py-4">
@@ -63,6 +74,143 @@
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     @TempData["Erro"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                </div>
+            }
+
+            @* ===== PAINEL EXCLUSIVO DO ADMINISTRADOR ===== *@
+            @if (Model.IsAdmin)
+            {
+                <div class="card shadow-sm border-0 mb-4 border-start border-4 border-danger">
+                    <div class="card-header bg-white py-3 d-flex align-items-center gap-2 border-bottom">
+                        <i class="bi bi-megaphone-fill text-danger fs-5"></i>
+                        <strong>Enviar Aviso</strong>
+                        <span class="badge bg-danger ms-auto">Admin</span>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="EnviarAvisoAdmin" method="post" id="formAvisoAdmin" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <div class="row g-3">
+                                <!-- Título -->
+                                <div class="col-12">
+                                    <label asp-for="EnvioAdmin.Titulo" class="form-label fw-semibold small"></label>
+                                    <input asp-for="EnvioAdmin.Titulo" class="form-control form-control-sm"
+                                           maxlength="100" placeholder="Ex.: Atualização importante" />
+                                    <span asp-validation-for="EnvioAdmin.Titulo" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Mensagem -->
+                                <div class="col-12">
+                                    <label asp-for="EnvioAdmin.Mensagem" class="form-label fw-semibold small"></label>
+                                    <textarea asp-for="EnvioAdmin.Mensagem" class="form-control form-control-sm"
+                                              rows="3" maxlength="1000" id="adminMsgTxt"
+                                              placeholder="Escreva a mensagem…"></textarea>
+                                    <div class="d-flex justify-content-end mt-1">
+                                        <small class="text-muted"><span id="adminMsgCont">0</span>/1000</small>
+                                    </div>
+                                    <span asp-validation-for="EnvioAdmin.Mensagem" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Link opcional -->
+                                <div class="col-12">
+                                    <label asp-for="EnvioAdmin.Link" class="form-label fw-semibold small"></label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                        <input asp-for="EnvioAdmin.Link" class="form-control"
+                                               placeholder="https://… (opcional)" />
+                                    </div>
+                                </div>
+
+                                <!-- Tipo de destino -->
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold small">Destinatários</label>
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+
+                                        <input type="radio" class="btn-check" name="EnvioAdmin.TipoDestino"
+                                               id="adTodos" value="Todos" checked />
+                                        <label class="btn btn-outline-secondary btn-sm" for="adTodos">
+                                            <i class="bi bi-people me-1"></i>Todos
+                                            <span class="badge bg-secondary ms-1">@Model.TotalUsuariosAtivos</span>
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="EnvioAdmin.TipoDestino"
+                                               id="adPerfil" value="Perfil" />
+                                        <label class="btn btn-outline-primary btn-sm" for="adPerfil">
+                                            <i class="bi bi-person-badge me-1"></i>Por grupo
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="EnvioAdmin.TipoDestino"
+                                               id="adSelecionados" value="Selecionados" />
+                                        <label class="btn btn-outline-warning btn-sm" for="adSelecionados">
+                                            <i class="bi bi-person-check me-1"></i>Específicos
+                                        </label>
+                                    </div>
+
+                                    <!-- Seleção de grupo -->
+                                    <div id="adPainelPerfil" style="display:none" class="mb-2">
+                                        <label asp-for="EnvioAdmin.PerfilDestino" class="form-label small"></label>
+                                        <select asp-for="EnvioAdmin.PerfilDestino" class="form-select form-select-sm">
+                                            <option value="">— selecione o grupo —</option>
+                                            @foreach (var (perfil, _, _, label) in perfisInfo)
+                                            {
+                                                var cnt = Model.ContagemPorPerfil.TryGetValue(perfil, out var c) ? c : 0;
+                                                <option value="@perfil">@label (@cnt)</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="EnvioAdmin.PerfilDestino" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Seleção de usuários por grupo -->
+                                    <div id="adPainelSelecionados" style="display:none" class="mb-2">
+                                        <!-- Selecionar grupo primeiro -->
+                                        <label class="form-label small fw-semibold">Selecione o grupo</label>
+                                        <select id="adGrupoFiltro" class="form-select form-select-sm mb-2">
+                                            <option value="">— todos os usuários —</option>
+                                            @foreach (var (perfil, _, _, label) in perfisInfo)
+                                            {
+                                                var cnt = Model.ContagemPorPerfil.TryGetValue(perfil, out var c) ? c : 0;
+                                                <option value="@((int)perfil)">@label (@cnt)</option>
+                                            }
+                                        </select>
+
+                                        <label class="form-label small fw-semibold">Usuários</label>
+                                        <select name="EnvioAdmin.UsuariosSelecionados"
+                                                class="form-select form-select-sm"
+                                                multiple size="6"
+                                                id="adSelectUsuarios">
+                                            @foreach (var (perfil, _, _, _) in perfisInfo)
+                                            {
+                                                if (Model.UsuariosPorPerfil.TryGetValue(perfil, out var lista))
+                                                {
+                                                    <optgroup label="@(perfisInfo.First(p => p.Perfil == perfil).Label)" data-grupo="@((int)perfil)">
+                                                        @foreach (var item in lista)
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>
+                                                        }
+                                                    </optgroup>
+                                                }
+                                            }
+                                        </select>
+                                        <div class="form-text">Segure <kbd>Ctrl</kbd>/<kbd>⌘</kbd> para selecionar vários.</div>
+                                        <span asp-validation-for="EnvioAdmin.UsuariosSelecionados" class="text-danger small"></span>
+                                    </div>
+
+                                    <span asp-validation-for="EnvioAdmin.TipoDestino" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Botão -->
+                                <div class="col-12 d-flex gap-2">
+                                    <button type="submit" class="btn btn-danger btn-sm px-4"
+                                            onclick="return confirmarEnvioAdmin()">
+                                        <i class="bi bi-send me-1"></i>Enviar aviso
+                                    </button>
+                                    <button type="reset" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-x me-1"></i>Limpar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             }
 
@@ -322,5 +470,64 @@
                 btnTestar.innerHTML = '<i class="bi bi-send"></i> Testar';
             });
         });
+
+        // ===== JS do painel admin =====
+        function confirmarEnvioAdmin() {
+            const radPerfil = document.getElementById('adPerfil');
+            const radSelic = document.getElementById('adSelecionados');
+            const radTodos = document.getElementById('adTodos');
+            if (!radTodos) return true;
+            if (radPerfil?.checked) {
+                const sel = document.querySelector('[name="EnvioAdmin.PerfilDestino"]');
+                if (!sel?.value) { alert('Selecione o grupo de destino.'); return false; }
+            }
+            if (radSelic?.checked) {
+                const algum = document.querySelector('#adSelectUsuarios option:checked');
+                if (!algum) { alert('Selecione ao menos um usuário.'); return false; }
+            }
+            return confirm('Confirma o envio do aviso?');
+        }
+
+        (function () {
+            const radTodos = document.getElementById('adTodos');
+            const radPerfil = document.getElementById('adPerfil');
+            const radSelic = document.getElementById('adSelecionados');
+            const painelPerfil = document.getElementById('adPainelPerfil');
+            const painelSelic = document.getElementById('adPainelSelecionados');
+            const grupoFiltro = document.getElementById('adGrupoFiltro');
+            const selectUsuarios = document.getElementById('adSelectUsuarios');
+            const msgTxt = document.getElementById('adminMsgTxt');
+            const msgCont = document.getElementById('adminMsgCont');
+
+            if (!radTodos) return; // não é admin
+
+            // Contador de caracteres
+            if (msgTxt && msgCont) {
+                msgTxt.addEventListener('input', () => { msgCont.textContent = msgTxt.value.length; });
+            }
+
+            function atualizarPaineis() {
+                if (painelPerfil) painelPerfil.style.display = radPerfil?.checked ? '' : 'none';
+                if (painelSelic) painelSelic.style.display = radSelic?.checked ? '' : 'none';
+            }
+
+            [radTodos, radPerfil, radSelic].forEach(r => r?.addEventListener('change', atualizarPaineis));
+
+            // Filtrar lista de usuários pelo grupo selecionado
+            if (grupoFiltro && selectUsuarios) {
+                grupoFiltro.addEventListener('change', () => {
+                    const grupoVal = grupoFiltro.value;
+                    selectUsuarios.querySelectorAll('optgroup').forEach(og => {
+                        const visivel = !grupoVal || og.dataset.grupo === grupoVal;
+                        og.style.display = visivel ? '' : 'none';
+                        og.querySelectorAll('option').forEach(opt => {
+                            if (!visivel) opt.selected = false;
+                        });
+                    });
+                });
+            }
+
+            atualizarPaineis();
+        })();
     </script>
 }

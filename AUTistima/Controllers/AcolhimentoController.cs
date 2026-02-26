@@ -37,6 +37,9 @@ public class AcolhimentoController : Controller
     // GET: Acolhimento
     public async Task<IActionResult> Index()
     {
+        var currentUser = await _userManager.GetUserAsync(User);
+        var perfilAtual = currentUser?.TipoPerfil;
+
         var posts = await _context.Posts
             .Include(p => p.Autor)
             .Include(p => p.Acolhimentos)
@@ -46,6 +49,16 @@ public class AcolhimentoController : Controller
             .OrderByDescending(p => p.DataCriacao)
             .Take(50)
             .ToListAsync();
+
+        // Filtrar por perfil de destino (null = visível para todos)
+        if (perfilAtual.HasValue)
+        {
+            var perfilInt = (int)perfilAtual.Value;
+            posts = posts.Where(p =>
+                p.PerfilDestino == null ||
+                p.PerfilDestino.Split(',').Contains(perfilInt.ToString())
+            ).ToList();
+        }
 
         return View(posts);
     }

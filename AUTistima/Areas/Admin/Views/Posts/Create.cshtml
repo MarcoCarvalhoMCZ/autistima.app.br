@@ -1,0 +1,213 @@
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Nova Postagem";
+
+    var perfisInfo = new (TipoPerfil Perfil, string Icon, string Cor, string Label)[]
+    {
+        (TipoPerfil.Mae,                   "bi-heart-fill",      "#F28B82", "Mães Atípicas"),
+        (TipoPerfil.ProfissionalSaude,     "bi-activity",        "#0d6efd", "Profissionais de Saúde"),
+        (TipoPerfil.ProfissionalEducacao,  "bi-mortarboard-fill","#0dcaf0", "Profissionais de Educação"),
+        (TipoPerfil.Empresa,               "bi-briefcase-fill",  "#198754", "Empresas Parceiras"),
+        (TipoPerfil.Governo,               "bi-building-fill",   "#6f42c1", "Gestores Públicos"),
+        (TipoPerfil.Administrador,         "bi-shield-fill-check","#dc3545","Administradores"),
+    };
+}
+
+<div class="container py-4" style="max-width:720px">
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold"><i class="bi bi-pencil-square me-2 text-danger"></i>Nova Postagem</h1>
+            <p class="text-muted mb-0 small">Publicada imediatamente como aprovada na Central de Acolhimento.</p>
+        </div>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post" id="formCreate">
+                @Html.AntiForgeryToken()
+
+                <!-- Conteúdo -->
+                <div class="mb-4">
+                    <label for="conteudo" class="form-label fw-semibold">
+                        Conteúdo da postagem <span class="text-danger">*</span>
+                    </label>
+                    <textarea name="conteudo"
+                              id="conteudo"
+                              class="form-control"
+                              rows="8"
+                              maxlength="2000"
+                              placeholder="Escreva aqui o conteúdo da postagem…"
+                              required>@ViewData["conteudo"]</textarea>
+                    <div class="d-flex justify-content-between mt-1">
+                        <div class="form-text">Máximo 2000 caracteres.</div>
+                        <small class="text-muted"><span id="contador">0</span>/2000</small>
+                    </div>
+                </div>
+
+                <!-- Destino da postagem -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Visível para</label>
+
+                    <!-- Rádio: Todos / Grupos específicos -->
+                    <div class="d-flex gap-3 mb-3" role="group">
+                        <input type="radio" class="btn-check" name="tipoDestino"
+                               id="destTodos" value="todos" checked />
+                        <label class="btn btn-outline-secondary btn-sm" for="destTodos">
+                            <i class="bi bi-people me-1"></i>Todos os usuários
+                        </label>
+
+                        <input type="radio" class="btn-check" name="tipoDestino"
+                               id="destGrupos" value="grupos" />
+                        <label class="btn btn-outline-primary btn-sm" for="destGrupos">
+                            <i class="bi bi-person-badge me-1"></i>Grupos específicos
+                        </label>
+                    </div>
+
+                    <!-- Checkboxes de perfis (ocultos por padrão) -->
+                    <div id="painelGrupos" style="display:none">
+                        <p class="text-muted small mb-2">
+                            Selecione um ou mais grupos que poderão ver esta postagem:
+                        </p>
+                        <div class="row g-2">
+                            @foreach (var (perfil, icon, cor, label) in perfisInfo)
+                            {
+                                <div class="col-sm-6">
+                                    <div class="form-check border rounded-3 p-3 h-100 perfil-check">
+                                        <input class="form-check-input check-perfil"
+                                               type="checkbox"
+                                               name="perfisSelecionados"
+                                               value="@((int)perfil)"
+                                               id="perfil_@((int)perfil)" />
+                                        <label class="form-check-label d-flex align-items-center gap-2"
+                                               for="perfil_@((int)perfil)">
+                                            <i class="bi @icon" style="color:@cor;font-size:1.1rem"></i>
+                                            <span class="fw-semibold small">@label</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="invalid-feedback d-none" id="erroGrupos">
+                            Selecione ao menos um grupo.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permitir comentários -->
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               name="permitirComentarios" id="permitirComentarios"
+                               value="true" checked />
+                        <label class="form-check-label fw-semibold" for="permitirComentarios">
+                            Permitir comentários das usuárias
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Preview do status -->
+                <div class="alert alert-success border-0 py-2 mb-4 small" id="previewDestino">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Publicada <strong>imediatamente</strong> como
+                    <span class="badge bg-success">Aprovado</span> —
+                    visível para <strong id="lblDestino">todos os usuários</strong>.
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger px-4" id="btnPublicar">
+                        <i class="bi bi-send me-2"></i>Publicar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Contador de caracteres
+        const textarea = document.getElementById('conteudo');
+        const contador = document.getElementById('contador');
+        textarea.addEventListener('input', () => { contador.textContent = textarea.value.length; });
+        contador.textContent = textarea.value.length;
+
+        // Painel de grupos
+        const radTodos = document.getElementById('destTodos');
+        const radGrupos = document.getElementById('destGrupos');
+        const painelGrupos = document.getElementById('painelGrupos');
+        const lblDestino = document.getElementById('lblDestino');
+        const erroGrupos = document.getElementById('erroGrupos');
+
+        const nomesPerfil = {
+            @foreach (var (perfil, _, _, label) in perfisInfo)
+            {
+                <text>@((int)perfil): '@label',</text>
+            }
+        };
+
+        function atualizarPainel() {
+            const grupos = radGrupos.checked;
+            painelGrupos.style.display = grupos ? '' : 'none';
+            atualizarPreview();
+        }
+
+        function atualizarPreview() {
+            if (radTodos.checked) {
+                lblDestino.textContent = 'todos os usuários';
+                return;
+            }
+            const marcados = [...document.querySelectorAll('.check-perfil:checked')]
+                .map(c => nomesPerfil[c.value] || c.value);
+            lblDestino.textContent = marcados.length > 0
+                ? marcados.join(', ')
+                : '— nenhum grupo selecionado —';
+        }
+
+        radTodos.addEventListener('change', atualizarPainel);
+        radGrupos.addEventListener('change', atualizarPainel);
+        document.querySelectorAll('.check-perfil').forEach(c =>
+            c.addEventListener('change', () => {
+                atualizarPreview();
+                erroGrupos.classList.add('d-none');
+            }));
+
+        // Estilo visual ao marcar checkbox
+        document.querySelectorAll('.perfil-check').forEach(div => {
+            div.addEventListener('click', () => {
+                const cb = div.querySelector('input[type=checkbox]');
+                div.classList.toggle('border-primary', cb.checked);
+                div.classList.toggle('bg-primary', cb.checked);
+                div.classList.toggle('bg-opacity-10', cb.checked);
+            });
+        });
+
+        // Validação antes de enviar
+        document.getElementById('formCreate').addEventListener('submit', function (e) {
+            if (radGrupos.checked) {
+                const algum = document.querySelector('.check-perfil:checked');
+                if (!algum) {
+                    e.preventDefault();
+                    erroGrupos.classList.remove('d-none');
+                    painelGrupos.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    </script>
+}

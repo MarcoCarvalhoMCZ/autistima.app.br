@@ -1,0 +1,326 @@
+@model AUTistima.ViewModels.AvisosIndexViewModel
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Enviar Avisos";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Cabeçalho -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="rounded-3 p-3 d-flex align-items-center justify-content-center"
+             style="background:linear-gradient(135deg,#F28B82,#f06292);width:52px;height:52px;">
+            <i class="bi bi-megaphone-fill text-white fs-5"></i>
+        </div>
+        <div>
+            <h1 class="h4 mb-0 fw-bold">Avisos</h1>
+            <p class="text-muted mb-0 small">Envie notificações para todos os usuários, por perfil ou individualmente.</p>
+        </div>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Sucesso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Erro"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+
+        <!-- Formulário de envio -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h2 class="h6 mb-0 fw-bold"><i class="bi bi-send-fill me-2 text-danger"></i>Novo Aviso</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Enviar" method="post" id="formAviso">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Título -->
+                        <div class="mb-3">
+                            <label asp-for="Formulario.Titulo" class="form-label fw-semibold"></label>
+                            <input asp-for="Formulario.Titulo"
+                                   class="form-control"
+                                   placeholder="Ex.: Manutenção programada" />
+                            <span asp-validation-for="Formulario.Titulo" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Mensagem -->
+                        <div class="mb-3">
+                            <label asp-for="Formulario.Mensagem" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Formulario.Mensagem"
+                                      class="form-control"
+                                      rows="4"
+                                      maxlength="1000"
+                                      placeholder="Escreva aqui o conteúdo do aviso…"
+                                      id="txtMensagem"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span asp-validation-for="Formulario.Mensagem" class="text-danger small"></span>
+                                <small class="text-muted"><span id="contadorMensagem">0</span>/1000</small>
+                            </div>
+                        </div>
+
+                        <!-- Link opcional -->
+                        <div class="mb-3">
+                            <label asp-for="Formulario.Link" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                <input asp-for="Formulario.Link"
+                                       class="form-control"
+                                       placeholder="https://… (opcional)" />
+                            </div>
+                            <span asp-validation-for="Formulario.Link" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Tipo de destinatário -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Destinatários</label>
+                            <div class="d-flex flex-wrap gap-2" role="group" aria-label="Tipo de destinatário">
+
+                                <input type="radio" class="btn-check" name="Formulario.TipoDestino"
+                                       id="destTodos" value="Todos"
+                                       @(Model.Formulario.TipoDestino == "Todos" || Model.Formulario.TipoDestino == "" ? "checked" : "") />
+                                <label class="btn btn-outline-secondary btn-sm" for="destTodos">
+                                    <i class="bi bi-people me-1"></i>
+                                    Todos
+                                    <span class="badge bg-secondary ms-1">@Model.TotalUsuariosAtivos</span>
+                                </label>
+
+                                <input type="radio" class="btn-check" name="Formulario.TipoDestino"
+                                       id="destPerfil" value="Perfil"
+                                       @(Model.Formulario.TipoDestino == "Perfil" ? "checked" : "") />
+                                <label class="btn btn-outline-primary btn-sm" for="destPerfil">
+                                    <i class="bi bi-person-badge me-1"></i>Por perfil
+                                </label>
+
+                                <input type="radio" class="btn-check" name="Formulario.TipoDestino"
+                                       id="destSelecionados" value="Selecionados"
+                                       @(Model.Formulario.TipoDestino == "Selecionados" ? "checked" : "") />
+                                <label class="btn btn-outline-warning btn-sm" for="destSelecionados">
+                                    <i class="bi bi-person-check me-1"></i>Selecionados
+                                </label>
+
+                            </div>
+                            <span asp-validation-for="Formulario.TipoDestino" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <!-- Seleção de perfil (visível somente quando "Perfil" está marcado) -->
+                        <div id="painelPerfil" class="mb-3" style="display:none">
+                            <label asp-for="Formulario.PerfilDestino" class="form-label fw-semibold"></label>
+                            <select asp-for="Formulario.PerfilDestino" class="form-select">
+                                <option value="">— selecione o perfil —</option>
+                                @foreach (TipoPerfil p in Enum.GetValues(typeof(TipoPerfil)))
+                                {
+                                    var count = Model.ContagemPorPerfil.TryGetValue(p, out var c) ? c : 0;
+                                    <option value="@p">@p — @count usuário(s)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Formulario.PerfilDestino" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Seleção de usuários individuais (visível somente quando "Selecionados" está marcado) -->
+                        <div id="painelSelecionados" class="mb-3" style="display:none">
+                            <label class="form-label fw-semibold">Usuários</label>
+                            <select name="Formulario.UsuariosSelecionados"
+                                    class="form-select"
+                                    multiple
+                                    size="8"
+                                    id="selectUsuarios">
+                                @foreach (var item in Model.UsuariosDisponiveis)
+                                {
+                                    if (Model.Formulario.UsuariosSelecionados.Contains(item.Value))
+                                    {
+                                        <option value="@item.Value" selected>@item.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                }
+                            </select>
+                            <div class="form-text">Segure <kbd>Ctrl</kbd> (ou <kbd>⌘</kbd> no Mac) para selecionar vários.</div>
+                            <span asp-validation-for="Formulario.UsuariosSelecionados" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Botão de envio -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-danger px-4"
+                                    onclick="return confirm('Confirma o envio do aviso?')">
+                                <i class="bi bi-send me-2"></i>Enviar Aviso
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="bi bi-x me-1"></i>Limpar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumo por perfil -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h2 class="h6 mb-0 fw-bold"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Usuários ativos por perfil</h2>
+                </div>
+                <div class="card-body py-2">
+                    <ul class="list-group list-group-flush">
+                        @{
+                            var iconesPerfil = new Dictionary<TipoPerfil, (string icon, string css)>
+                            {
+                                [TipoPerfil.Administrador] = ("bi-shield-fill-check", "text-danger"),
+                                [TipoPerfil.Mae] = ("bi-heart-fill", "text-salmon"),
+                                [TipoPerfil.ProfissionalSaude] = ("bi-activity", "text-primary"),
+                                [TipoPerfil.ProfissionalEducacao] = ("bi-mortarboard-fill", "text-info"),
+                                [TipoPerfil.Empresa] = ("bi-briefcase-fill", "text-success"),
+                                [TipoPerfil.Governo] = ("bi-building-fill", "text-purple"),
+                            };
+                        }
+                        @foreach (TipoPerfil p in Enum.GetValues(typeof(TipoPerfil)))
+                        {
+                            var count = Model.ContagemPorPerfil.TryGetValue(p, out var c) ? c : 0;
+                            var (icon, css) = iconesPerfil.TryGetValue(p, out var v) ? v : ("bi-person", "text-secondary");
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-0 py-2">
+                                <span><i class="bi @icon @css me-2"></i>@p</span>
+                                <span class="badge bg-light text-dark fw-bold">@count</span>
+                            </li>
+                        }
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-top fw-bold py-2">
+                            <span><i class="bi bi-people-fill me-2"></i>Total</span>
+                            <span class="badge bg-secondary fw-bold">@Model.TotalUsuariosAtivos</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Histórico de avisos enviados -->
+    <div class="card border-0 shadow-sm mt-2">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h2 class="h6 mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-secondary"></i>Histórico de envios</h2>
+            <span class="badge bg-secondary rounded-pill">@Model.Historico.Count</span>
+        </div>
+
+        @if (Model.Historico.Count == 0)
+        {
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                Nenhum aviso enviado ainda.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Título</th>
+                            <th>Mensagem</th>
+                            <th>Destino</th>
+                            <th class="text-center">Enviados</th>
+                            <th>Data</th>
+                            <th>Remetente</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var b in Model.Historico)
+                        {
+                            string destinoLabel = b.TipoDestino switch
+                            {
+                                "Perfil" when b.PerfilDestino.HasValue =>
+                                    $"Perfil: {(TipoPerfil)b.PerfilDestino.Value}",
+                                "Selecionados" => "Selecionados",
+                                _ => "Todos"
+                            };
+
+                            <tr>
+                                <td class="fw-semibold">
+                                    @b.Titulo
+                                    @if (!string.IsNullOrEmpty(b.Link))
+                                    {
+                                        <a href="@b.Link" target="_blank" class="ms-1 text-muted small">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    }
+                                </td>
+                                <td class="text-muted small" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                    title="@b.Mensagem">
+                                    @b.Mensagem
+                                </td>
+                                <td>
+                                    <span class="badge @(b.TipoDestino == "Todos" ? "bg-secondary" : b.TipoDestino == "Perfil" ? "bg-primary" : "bg-warning text-dark") rounded-pill">
+                                        @destinoLabel
+                                    </span>
+                                </td>
+                                <td class="text-center fw-bold">@b.TotalDestinatarios</td>
+                                <td class="text-nowrap text-muted small">
+                                    @b.DataEnvio.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-muted small">@(b.Remetente?.NomeCompleto ?? "—")</td>
+                                <td>
+                                    <form asp-action="Excluir" asp-route-id="@b.Id" method="post"
+                                          onsubmit="return confirm('Remover do histórico?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-link btn-sm text-danger p-0"
+                                                title="Remover do histórico">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Contador de caracteres na mensagem
+        const txtMensagem = document.getElementById('txtMensagem');
+        const contador = document.getElementById('contadorMensagem');
+        if (txtMensagem && contador) {
+            function atualizarContador() {
+                contador.textContent = txtMensagem.value.length;
+            }
+            txtMensagem.addEventListener('input', atualizarContador);
+            atualizarContador();
+        }
+
+        // Mostrar/ocultar painéis conforme o tipo de destino
+        const radioTodos = document.getElementById('destTodos');
+        const radioPerfil = document.getElementById('destPerfil');
+        const radioSelecionados = document.getElementById('destSelecionados');
+        const painelPerfil = document.getElementById('painelPerfil');
+        const painelSelecionados = document.getElementById('painelSelecionados');
+
+        function atualizarPaineis() {
+            painelPerfil.style.display = radioPerfil?.checked ? '' : 'none';
+            painelSelecionados.style.display = radioSelecionados?.checked ? '' : 'none';
+        }
+
+        [radioTodos, radioPerfil, radioSelecionados].forEach(r => {
+            r?.addEventListener('change', atualizarPaineis);
+        });
+
+        // Estado inicial (re-hidratação após POST com erro)
+        atualizarPaineis();
+    </script>
+}

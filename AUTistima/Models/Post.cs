@@ -46,6 +46,14 @@ public class Post
     
     [ForeignKey("UserId")]
     public virtual ApplicationUser? Autor { get; set; }
+
+    /// <summary>
+    /// Perfis que podem ver este post.
+    /// Null = visível para todos. 
+    /// Caso contrário: valores inteiros de TipoPerfil separados por vírgula, ex: "1,2"
+    /// </summary>
+    [StringLength(100)]
+    public string? PerfilDestino { get; set; }
     
     // Navegações
     public virtual ICollection<PostAcolhimento> Acolhimentos { get; set; } = new List<PostAcolhimento>();

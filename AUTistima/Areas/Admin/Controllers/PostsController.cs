@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using AUTistima.Data;
 using AUTistima.Models;
@@ -13,10 +14,12 @@ namespace AUTistima.Areas.Admin.Controllers;
 public class PostsController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public PostsController(ApplicationDbContext context)
+    public PostsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     private async Task<bool> IsAdmin()
@@ -89,6 +92,65 @@ public class PostsController : Controller
         ViewBag.StatusModeracaoEnum = Enum.GetValues(typeof(StatusModeracaoPost));
 
         return View(posts);
+    }
+
+    // GET: Admin/Posts/Create
+    public async Task<IActionResult> Create()
+    {
+        if (!await IsAdmin())
+            return RedirectToAction("Index", "Home", new { area = "" });
+
+        return View();
+    }
+
+    // POST: Admin/Posts/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(string conteudo, bool permitirComentarios = true,
+        List<int>? perfisSelecionados = null)
+    {
+        if (!await IsAdmin())
+            return RedirectToAction("Index", "Home", new { area = "" });
+
+        if (string.IsNullOrWhiteSpace(conteudo))
+        {
+            ModelState.AddModelError("conteudo", "O conteúdo não pode ser vazio.");
+            return View();
+        }
+
+        if (conteudo.Length > 2000)
+        {
+            ModelState.AddModelError("conteudo", "Máximo de 2000 caracteres.");
+            return View();
+        }
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        // null = todos; caso contrário: "1,2" etc.
+        string? perfilDestino = null;
+        if (perfisSelecionados != null && perfisSelecionados.Count > 0)
+            perfilDestino = string.Join(",", perfisSelecionados);
+
+        var post = new Post
+        {
+            Conteudo = conteudo.Trim(),
+            UserId = userId!,
+            ModeradorId = userId,
+            PermitirComentarios = permitirComentarios,
+            Ativo = true,
+            StatusModeracao = StatusModeracaoPost.Aprovado,
+            PerfilDestino = perfilDestino,
+            DataCriacao = DateTime.UtcNow,
+            DataModeracao = DateTime.UtcNow
+        };
+
+        _context.Posts.Add(post);
+        await _context.SaveChangesAsync();
+
+        var alvo = perfilDestino == null ? "todos os usuários" :
+            string.Join(", ", perfisSelecionados!.Select(p => ((AUTistima.Models.Enums.TipoPerfil)p).ToString()));
+        TempData["Mensagem"] = $"✅ Postagem publicada para {alvo} com sucesso!";
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: Admin/Posts/Details/5

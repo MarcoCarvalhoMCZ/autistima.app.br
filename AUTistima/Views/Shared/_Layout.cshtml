@@ -660,6 +660,7 @@
                 new("Oportunidades", "bi-briefcase-fill", "Admin", "Oportunidades", "Index", "admin", Array.Empty<TipoPerfil>(), "Curadoria de vagas"),
                 new("Estatísticas", "bi-graph-up", "Admin", "Estatisticas", "Index", "admin", Array.Empty<TipoPerfil>(), "Indicadores diários"),
                 new("Configurações", "bi-gear", "Admin", "Configuracoes", "Index", "admin", Array.Empty<TipoPerfil>(), "Parâmetros gerais"),
+                new("Avisos", "bi-megaphone", "Admin", "Avisos", "Index", "admin", Array.Empty<TipoPerfil>(), "Enviar avisos em massa"),
             },
             [TipoPerfil.Mae] = new()
             {
@@ -769,7 +770,7 @@
                 new("Painel", "bi-speedometer2", "Admin", "Admin", "Index", "admin", Array.Empty<TipoPerfil>()),
                 new("Usuários", "bi-people", "Admin", "Usuarios", "Index", "admin", Array.Empty<TipoPerfil>()),
                 new("Posts", "bi-chat-heart", "Admin", "Posts", "Index", "admin", Array.Empty<TipoPerfil>()),
-                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-megaphone", "Admin", "Avisos", "Index", "admin", Array.Empty<TipoPerfil>()),
                 new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
             },
             TipoPerfil.Mae => new List<SidebarItem>
@@ -1559,6 +1560,78 @@
     
     <!-- Modal de Ajuda -->
     <partial name="_HelpModal" />
+
+    <!-- Banner de instalação iOS PWA -->
+    <div id="ios-install-banner" role="dialog" aria-label="Instalar aplicativo" aria-modal="true"
+         style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999;
+                background:#fff; border-top:3px solid #7c4dbe; box-shadow:0 -4px 24px rgba(0,0,0,.18);
+                padding:1rem 1.25rem 1.25rem; font-family:inherit;">
+        <button id="ios-install-banner-close"
+                aria-label="Fechar"
+                style="position:absolute; top:.6rem; right:.75rem; background:none; border:none;
+                       font-size:1.4rem; line-height:1; color:#666; cursor:pointer;">&times;</button>
+        <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.85rem;">
+            <img src="/icons/icon-192x192.png" alt="AUTistima" width="44" height="44"
+                 style="border-radius:10px; flex-shrink:0;">
+            <div>
+                <strong style="display:block; color:#7c4dbe; font-size:1rem;">Instale o AUTistima</strong>
+                <span style="font-size:.85rem; color:#555;">Acesse mais rápido e receba notificações</span>
+            </div>
+        </div>
+        <ol style="margin:0 0 .9rem 1.1rem; padding:0; font-size:.9rem; color:#333; line-height:1.8;">
+            <li>Toque em
+                <span style="display:inline-flex; align-items:center; gap:3px; background:#f0f0f0;
+                             border-radius:5px; padding:1px 7px; font-size:.85rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#007aff" viewBox="0 0 16 16">
+                        <path d="M8 .5a.5.5 0 0 1 .5.5v9.293l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V1a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                    Compartilhar
+                </span>
+                na barra do Safari
+            </li>
+            <li>Selecione <strong>"Adicionar à Tela de Início"</strong></li>
+            <li>Toque em <strong>"Adicionar"</strong> no canto superior direito</li>
+        </ol>
+        <div style="display:flex; justify-content:flex-end;">
+            <button id="ios-install-banner-never"
+                    style="background:none; border:none; font-size:.8rem; color:#999; cursor:pointer; text-decoration:underline;">
+                Não mostrar novamente
+            </button>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var banner = document.getElementById('ios-install-banner');
+        if (!banner) return;
+
+        // Detecta iOS (iPhone, iPad, iPod)
+        var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        // Detecta se já está rodando como PWA instalada
+        var isStandalone = ('standalone' in navigator && navigator.standalone === true) ||
+                           window.matchMedia('(display-mode: standalone)').matches;
+        // Verifica se o usuário dispensou o banner
+        var dismissed = localStorage.getItem('autistima-ios-banner');
+
+        if (isIos && !isStandalone && dismissed !== 'never' && dismissed !== 'later') {
+            // Mostra após 3 segundos
+            setTimeout(function () {
+                banner.style.display = 'block';
+            }, 3000);
+        }
+
+        document.getElementById('ios-install-banner-close').addEventListener('click', function () {
+            banner.style.display = 'none';
+            localStorage.setItem('autistima-ios-banner', 'later');
+        });
+
+        document.getElementById('ios-install-banner-never').addEventListener('click', function () {
+            banner.style.display = 'none';
+            localStorage.setItem('autistima-ios-banner', 'never');
+        });
+    })();
+    </script>
 
     <!-- jQuery e Máscaras -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
