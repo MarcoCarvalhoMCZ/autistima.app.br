@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using AUTistima.Data;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
+using AUTistima.Services;
 
 namespace AUTistima.Areas.Admin.Controllers;
 
@@ -27,6 +28,16 @@ public class UsuariosController : Controller
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
+    }
+
+    // Carrega escolas para o ViewBag (usado no formulário de edição)
+    private async Task CarregarEscolasViewBag()
+    {
+        ViewBag.Escolas = await _context.Schools
+            .Where(s => s.Ativo)
+            .OrderBy(s => s.Nome)
+            .Select(s => new { s.Id, s.Nome })
+            .ToListAsync();
     }
 
     private async Task<bool> IsAdmin()
@@ -133,6 +144,7 @@ public class UsuariosController : Controller
             .OrderBy(e => e.Ordem)
             .ThenBy(e => e.Nome)
             .ToListAsync();
+        await CarregarEscolasViewBag();
 
         return View(usuario);
     }
@@ -140,7 +152,7 @@ public class UsuariosController : Controller
     // POST: Admin/Usuarios/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string id, [Bind("Id,NomeCompleto,Email,TipoPerfil,Ativo,Cidade,Estado,Bairro,CNPJ,NomeEmpresa,RegistroProfissional,MatriculaProfissional,EspecialidadeId,EmpresaAmiga")] ApplicationUser model)
+    public async Task<IActionResult> Edit(string id, [Bind("Id,NomeCompleto,Email,TipoPerfil,Ativo,Cidade,Estado,Bairro,CNPJ,NomeEmpresa,RegistroProfissional,MatriculaProfissional,EspecialidadeId,EmpresaAmiga,EscolaVinculadaId")] ApplicationUser model)
     {
         if (!await IsAdmin())
             return RedirectToAction("Index", "Home", new { area = "" });
@@ -165,6 +177,9 @@ public class UsuariosController : Controller
         usuario.MatriculaProfissional = model.MatriculaProfissional;
         usuario.EspecialidadeId = model.EspecialidadeId;
         usuario.EmpresaAmiga = model.EmpresaAmiga;
+        usuario.EscolaVinculadaId = model.TipoPerfil == TipoPerfil.Escola
+            ? model.EscolaVinculadaId
+            : null;
 
         try
         {
@@ -183,6 +198,7 @@ public class UsuariosController : Controller
             .OrderBy(e => e.Ordem)
             .ThenBy(e => e.Nome)
             .ToListAsync();
+        await CarregarEscolasViewBag();
 
         return View(usuario);
     }

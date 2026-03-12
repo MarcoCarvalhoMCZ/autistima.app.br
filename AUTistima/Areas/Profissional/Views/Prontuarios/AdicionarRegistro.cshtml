@@ -1,0 +1,65 @@
+@model AUTistima.Models.RegistroEstudante
+@{
+    ViewData["Title"] = "Adicionar Registro";
+    var estudante = ViewBag.Estudante as AUTistima.Models.Child;
+}
+
+<div class="container py-4" style="max-width:640px">
+    <div class="mb-3">
+        <a asp-action="VerProntuario" asp-route-id="@Model.ChildId"
+           class="text-decoration-none text-muted small">
+            <i class="bi bi-arrow-left me-1"></i>Voltar ao prontuário
+        </a>
+    </div>
+
+    <h1 class="h4 mb-1">
+        <i class="bi bi-journal-plus me-2 text-salmon"></i>Adicionar Registro
+    </h1>
+    @if (estudante != null)
+    {
+        <p class="text-muted small mb-4">Estudante: <strong>@estudante.Nome</strong> — <code>@estudante.CodigoUnico</code></p>
+    }
+
+    <form asp-action="AdicionarRegistro" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="ChildId">
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="TipoRegistro" class="form-label"></label>
+                        <select asp-for="TipoRegistro" class="form-select"
+                                asp-items="Html.GetEnumSelectList<AUTistima.Models.Enums.TipoRegistroEstudante>()">
+                        </select>
+                        <span asp-validation-for="TipoRegistro" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Titulo" class="form-label"></label>
+                        <input asp-for="Titulo" class="form-control"
+                               placeholder="Ex: Avaliação psicopedagógica — março 2026">
+                        <span asp-validation-for="Titulo" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Conteudo" class="form-label"></label>
+                        <textarea asp-for="Conteudo" class="form-control" rows="6"
+                                  placeholder="Registre suas observações, avaliações ou encaminhamentos..."></textarea>
+                        <span asp-validation-for="Conteudo" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <a asp-action="VerProntuario" asp-route-id="@Model.ChildId"
+               class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-salmon">
+                <i class="bi bi-journal-check me-2"></i>Salvar Registro
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="~/Views/Shared/_ValidationScriptsPartial.cshtml" />
+}

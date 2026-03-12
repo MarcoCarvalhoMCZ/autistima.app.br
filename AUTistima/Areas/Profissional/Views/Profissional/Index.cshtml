@@ -78,6 +78,27 @@
             </div>
         </div>
 
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-journal-medical text-success fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@(ViewBag.TotalProntuariosAprovados ?? 0)</h2>
+                            <p class="text-muted mb-0">Prontuários com Acesso Aprovado</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-area="Profissional" asp-controller="Prontuarios" asp-action="Index" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-eye me-1"></i>Ver Prontuários
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Ações Rápidas Saúde -->
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -86,22 +107,28 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <a asp-area="" asp-controller="Saude" asp-action="Create" class="btn btn-outline-primary w-100 py-3">
                                 <i class="bi bi-plus-circle d-block fs-3 mb-2"></i>
                                 Cadastrar Novo Serviço
                             </a>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <a asp-action="Triagens" class="btn btn-outline-success w-100 py-3">
                                 <i class="bi bi-clipboard-check d-block fs-3 mb-2"></i>
                                 Ver Triagens Pendentes
                             </a>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <a asp-area="" asp-controller="Manejos" asp-action="Create" class="btn btn-outline-info w-100 py-3">
                                 <i class="bi bi-lightbulb d-block fs-3 mb-2"></i>
                                 Validar Manejos
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-area="Profissional" asp-controller="Prontuarios" asp-action="Index" class="btn btn-outline-warning w-100 py-3">
+                                <i class="bi bi-journal-medical d-block fs-3 mb-2"></i>
+                                Prontuários SEMED
                             </a>
                         </div>
                     </div>
@@ -154,6 +181,27 @@
             </div>
         </div>
 
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                            <i class="bi bi-journal-medical text-success fs-3"></i>
+                        </div>
+                        <div>
+                            <h2 class="mb-0">@(ViewBag.TotalProntuariosAprovados ?? 0)</h2>
+                            <p class="text-muted mb-0">Prontuários com Acesso Aprovado</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a asp-area="Profissional" asp-controller="Prontuarios" asp-action="Index" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-eye me-1"></i>Ver Prontuários
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Ações Rápidas Educação -->
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -162,22 +210,28 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <a asp-area="" asp-controller="Triagem" asp-action="Create" class="btn btn-outline-primary w-100 py-3">
                                 <i class="bi bi-plus-circle d-block fs-3 mb-2"></i>
                                 Nova Solicitação de Triagem
                             </a>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <a asp-action="Triagens" class="btn btn-outline-success w-100 py-3">
                                 <i class="bi bi-clipboard-check d-block fs-3 mb-2"></i>
                                 Acompanhar Triagens
                             </a>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <a asp-area="" asp-controller="Glossario" asp-action="Index" class="btn btn-outline-info w-100 py-3">
                                 <i class="bi bi-book d-block fs-3 mb-2"></i>
                                 Consultar Glossário
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-area="Profissional" asp-controller="Prontuarios" asp-action="Index" class="btn btn-outline-warning w-100 py-3">
+                                <i class="bi bi-journal-medical d-block fs-3 mb-2"></i>
+                                Prontuários SEMED
                             </a>
                         </div>
                     </div>

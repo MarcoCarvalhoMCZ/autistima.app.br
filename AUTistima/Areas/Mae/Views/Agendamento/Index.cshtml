@@ -1,0 +1,91 @@
+@model List<AUTistima.Models.ServiceRequest>
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Minhas Solicitações";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-calendar2-check me-2 text-salmon"></i>Minhas Solicitações</h1>
+            <small class="text-muted">Agendamentos e solicitações de atendimento</small>
+        </div>
+        <a asp-action="Solicitar" class="btn btn-salmon btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Nova Solicitação
+        </a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-calendar2-plus display-4 mb-3 d-block"></i>
+            <p>Nenhuma solicitação ainda.</p>
+            <a asp-action="Solicitar" class="btn btn-outline-salmon">Fazer primeira solicitação</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var s in Model)
+            {
+                var statusClass = s.Status switch {
+                    StatusServiceRequest.Pendente => "bg-warning text-dark",
+                    StatusServiceRequest.EmAnalise => "bg-info text-dark",
+                    StatusServiceRequest.Agendado => "bg-success",
+                    StatusServiceRequest.Concluido => "bg-secondary",
+                    StatusServiceRequest.Cancelado => "bg-danger",
+                    _ => "bg-secondary"
+                };
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start justify-content-between mb-2">
+                                <div>
+                                    @if (s.Servico != null)
+                                    {
+                                        <strong class="small">@s.Servico.NomeProfissional</strong>
+                                    }
+                                    else
+                                    {
+                                        <strong class="small">Serviço não especificado</strong>
+                                    }
+                                    @if (s.Filho != null)
+                                    {
+                                        <div class="text-muted small">Para: @s.Filho.Nome</div>
+                                    }
+                                </div>
+                                <span class="badge @statusClass small">@s.Status</span>
+                            </div>
+                            <p class="small text-muted mb-2">@s.Observacoes</p>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <small class="text-muted">@s.CriadoEm.ToString("dd/MM/yyyy")</small>
+                                @if (s.Status == StatusServiceRequest.Pendente)
+                                {
+                                    <form asp-action="Cancelar" asp-route-id="@s.Id" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-link btn-sm text-danger p-0 small"
+                                                onclick="return confirm('Cancelar esta solicitação?')">Cancelar</button>
+                                    </form>
+                                }
+                            </div>
+                            @if (s.Agendamentos.Any())
+                            {
+                                var ag = s.Agendamentos.OrderByDescending(a => a.DataHora).First();
+                                <div class="mt-2 pt-2 border-top small text-success">
+                                    <i class="bi bi-calendar-check me-1"></i>
+                                    Agendado para @ag.DataHora.ToString("dd/MM/yyyy HH:mm")
+                                    @if (!string.IsNullOrEmpty(ag.Local)) { <span>— @ag.Local</span> }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

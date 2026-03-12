@@ -1,0 +1,165 @@
+@model AUTistima.Areas.Escola.Controllers.CadastrarEstudanteViewModel
+@{
+    ViewData["Title"] = "Cadastrar Estudante";
+    var escolas = ViewBag.Escolas as IEnumerable<AUTistima.Models.School>;
+    var escolaVinculadaId = ViewBag.EscolaVinculadaId as int?;
+}
+
+<div class="container py-4" style="max-width:720px">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-arrow-left me-1"></i>Voltar ao painel
+        </a>
+        <h1 class="h3 mt-2 mb-0"><i class="bi bi-person-plus me-2 text-salmon"></i>Cadastrar Estudante</h1>
+    </div>
+
+    <form asp-action="CadastrarEstudante" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <!-- === DADOS DO ESTUDANTE === -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-person me-2"></i>Dados do Estudante
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label asp-for="NomeEstudante" class="form-label"></label>
+                        <input asp-for="NomeEstudante" class="form-control" autocomplete="off">
+                        <span asp-validation-for="NomeEstudante" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DataNascimento" class="form-label"></label>
+                        <input asp-for="DataNascimento" class="form-control" type="date">
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Comorbidades" class="form-label">Comorbidades / Condições</label>
+                        <input type="hidden" name="Comorbidades" id="comorb_hidden" value="0">
+                        <div class="row g-2">
+                            @foreach (AUTistima.Models.Enums.TipoComorbidade c in Enum.GetValues(typeof(AUTistima.Models.Enums.TipoComorbidade)))
+                            {
+                                if (c == AUTistima.Models.Enums.TipoComorbidade.Nenhuma) continue;
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input comorb-check" type="checkbox"
+                                               value="@((int)c)" id="comorb_@((int)c)">
+                                        <label class="form-check-label small" for="comorb_@((int)c)">
+                                            @c.GetDisplayName()
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="OutrasCondicoes" class="form-label"></label>
+                        <input asp-for="OutrasCondicoes" class="form-control" placeholder="Descreva outras condições relevantes...">
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="NivelSuporte" class="form-label"></label>
+                        <select asp-for="NivelSuporte" class="form-select"
+                                asp-items="Html.GetEnumSelectList<AUTistima.Models.Enums.NivelSuporte>()">
+                            <option value="">Não informado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input asp-for="PossuiDiagnostico" class="form-check-input" type="checkbox">
+                            <label asp-for="PossuiDiagnostico" class="form-check-label">Diagnóstico formal?</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="DataDiagnostico" class="form-label"></label>
+                        <input asp-for="DataDiagnostico" class="form-control" type="date">
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input asp-for="PossuiPAE" class="form-check-input" type="checkbox">
+                            <label asp-for="PossuiPAE" class="form-check-label">Possui PAE (Plano de Atendimento Educacional)?</label>
+                        </div>
+                    </div>
+
+                    @if (escolaVinculadaId == null && escolas != null)
+                    {
+                        <div class="col-12">
+                            <label asp-for="EscolaId" class="form-label">Escola</label>
+                            <select asp-for="EscolaId" class="form-select">
+                                <option value="">Selecione a escola...</option>
+                                @foreach (var esc in escolas)
+                                {
+                                    <option value="@esc.Id">@esc.Nome</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="EscolaId" value="@escolaVinculadaId">
+                    }
+
+                    <div class="col-12">
+                        <label asp-for="Observacoes" class="form-label"></label>
+                        <textarea asp-for="Observacoes" class="form-control" rows="3"
+                                  placeholder="Informações relevantes para o acompanhamento..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === DADOS DO RESPONSÁVEL === -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-person-heart me-2"></i>Responsável (Mãe / Familiar)
+                <small class="text-muted fw-normal ms-2">— uma conta será criada automaticamente</small>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="ResponsavelNome" class="form-label"></label>
+                        <input asp-for="ResponsavelNome" class="form-control">
+                        <span asp-validation-for="ResponsavelNome" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="ResponsavelCPF" class="form-label"></label>
+                        <input asp-for="ResponsavelCPF" class="form-control" placeholder="000.000.000-00">
+                        <span asp-validation-for="ResponsavelCPF" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="ResponsavelTelefone" class="form-label"></label>
+                        <input asp-for="ResponsavelTelefone" class="form-control" placeholder="(82) 99999-9999">
+                    </div>
+                </div>
+                <div class="alert alert-light border mt-3 mb-0 small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Se o responsável já tiver cadastro (mesmo CPF), a conta existente será vinculada ao estudante.
+                    Caso contrário, uma nova conta é criada e a senha temporária será exibida.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-salmon px-4">
+                <i class="bi bi-person-check me-2"></i>Cadastrar Estudante
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="~/Views/Shared/_ValidationScriptsPartial.cshtml" />
+    <script>
+    // Flags de comorbidade: checkboxes não têm name para não enviar múltiplos valores.
+    // Um único hidden acumula o OR bit a bit de todos os marcados.
+    (function () {
+        const hidden = document.getElementById('comorb_hidden');
+        function recalc() {
+            const total = Array.from(document.querySelectorAll('.comorb-check:checked'))
+                .reduce((acc, el) => acc | parseInt(el.value), 0);
+            hidden.value = total;
+        }
+        document.querySelectorAll('.comorb-check').forEach(cb => cb.addEventListener('change', recalc));
+        recalc(); // inicializa
+    })();
+    </script>
+}

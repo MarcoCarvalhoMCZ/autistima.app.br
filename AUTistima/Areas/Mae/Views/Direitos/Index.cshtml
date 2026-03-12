@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Meus Direitos";
+    var elegibilidades = ViewBag.Elegibilidades as List<AUTistima.Models.BenefitEligibility> ?? new();
+    var checklistItems = ViewBag.ChecklistItems as List<AUTistima.Models.BenefitChecklistItem> ?? new();
+    var beneficiosPorTipo = checklistItems.GroupBy(c => c.TipoBeneficio).ToDictionary(g => g.Key, g => g.ToList());
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-shield-star me-2 text-salmon"></i>Meus Direitos</h1>
+            <small class="text-muted">Benefícios e direitos para famílias com TEA</small>
+        </div>
+        <a asp-action="Triagem" class="btn btn-salmon btn-sm">
+            <i class="bi bi-clipboard-check me-1"></i>Fazer Triagem
+        </a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    @if (!elegibilidades.Any())
+    {
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-clipboard-check display-4 text-muted mb-3 d-block"></i>
+                <h5>Descubra seus direitos</h5>
+                <p class="text-muted">Responda algumas perguntas sobre sua família e veja quais benefícios e direitos você pode ter acesso.</p>
+                <a asp-action="Triagem" class="btn btn-salmon">
+                    <i class="bi bi-play-circle me-1"></i>Iniciar triagem gratuita
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Resultados de elegibilidade -->
+            <div class="col-12">
+                <h5 class="mb-3">Resultado da Triagem</h5>
+                <div class="row g-3">
+                    @foreach (var e in elegibilidades)
+                    {
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm @(e.Elegivel ? "border-start border-success border-3" : "border-start border-secondary border-3")">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge @(e.Elegivel ? "bg-success" : "bg-secondary")">
+                                            @(e.Elegivel ? "Elegível" : "Verificar")
+                                        </span>
+                                        <strong class="small">@e.TipoBeneficio</strong>
+                                    </div>
+                                    <p class="small text-muted mb-0">@e.Justificativa</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="mt-2">
+                    <a asp-action="Triagem" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-repeat me-1"></i>Refazer triagem
+                    </a>
+                </div>
+            </div>
+
+            <!-- Checklists de documentos -->
+            @if (checklistItems.Any())
+            {
+                <div class="col-12">
+                    <h5 class="mb-3">Checklist de Documentos</h5>
+                    @foreach (var grupo in beneficiosPorTipo)
+                    {
+                        var total = grupo.Value.Count;
+                        var concluidos = grupo.Value.Count(i => i.Concluido);
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-transparent">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="mb-0 small">@grupo.Key</h6>
+                                    <span class="badge bg-light text-dark">@concluidos/@total</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-success" style="width: @(total > 0 ? (double)concluidos / total * 100 : 0)%"></div>
+                                </div>
+                            </div>
+                            <div class="card-body py-2">
+                                @foreach (var item in grupo.Value)
+                                {
+                                    <form asp-action="ToggleChecklist" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-check mb-1">
+                                            <button type="submit" class="btn btn-link p-0 border-0 w-100 text-start">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <input type="checkbox" class="form-check-input" @(item.Concluido ? "checked" : "") disabled />
+                                                    <span class="small @(item.Concluido ? "text-decoration-line-through text-muted" : "")">
+                                                        @item.Item
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

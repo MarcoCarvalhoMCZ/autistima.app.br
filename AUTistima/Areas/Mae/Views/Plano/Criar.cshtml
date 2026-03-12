@@ -1,0 +1,68 @@
+@model AUTistima.Models.ChildCarePlan
+@{
+    ViewData["Title"] = "Novo Plano de Cuidado";
+    var filho = ViewBag.Filho as AUTistima.Models.Child;
+}
+
+<div class="container py-4" style="max-width: 720px;">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-chevron-left me-1"></i>Planos de Cuidado
+        </a>
+        <h1 class="h3 mt-2"><i class="bi bi-journal-plus me-2 text-salmon"></i>Novo Plano de Cuidado</h1>
+        @if (filho != null)
+        {
+            <span class="badge bg-salmon-subtle text-salmon">@filho.Nome</span>
+        }
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form asp-action="Criar" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ChildId" />
+
+                <div class="mb-3">
+                    <label asp-for="Titulo" class="form-label fw-semibold">Título do plano *</label>
+                    <input asp-for="Titulo" class="form-control" placeholder="Ex: Plano de terapia ABA 2025" />
+                    <span asp-validation-for="Titulo" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Objetivos" class="form-label fw-semibold">Objetivos</label>
+                    <textarea asp-for="Objetivos" class="form-control" rows="4"
+                              placeholder="Descreva os objetivos de desenvolvimento e aprendizado..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Intervencoes" class="form-label fw-semibold">Intervenções e estratégias</label>
+                    <textarea asp-for="Intervencoes" class="form-control" rows="4"
+                              placeholder="Descreva as intervenções e estratégias de apoio..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Terapias" class="form-label fw-semibold">Terapias</label>
+                    <input asp-for="Terapias" class="form-control" placeholder="Ex: Fonoaudiologia, TO, Psicologia..." />
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="DataInicio" class="form-label fw-semibold">Data de início</label>
+                        <input asp-for="DataInicio" type="date" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DataRevisao" class="form-label fw-semibold">Data de revisão</label>
+                        <input asp-for="DataRevisao" type="date" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-salmon">
+                        <i class="bi bi-check-lg me-1"></i>Salvar Plano
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

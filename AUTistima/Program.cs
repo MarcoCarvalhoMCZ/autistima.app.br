@@ -61,6 +61,7 @@ builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddScoped<IPanicService, PanicService>();
 builder.Services.AddScoped<IActivityTrackingService, ActivityTrackingService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 // Adicionar sessão para rastreamento
 builder.Services.AddDistributedMemoryCache();
@@ -176,6 +177,33 @@ using (var scope = app.Services.CreateScope())
             {
                 var logger = services.GetRequiredService<ILogger<Program>>();
                 logger.LogInformation("Usuário administrador criado: {Email}", adminEmail2);
+            }
+        }
+
+        // Criar usuário Escola de demonstração (vinculado à 1ª escola cadastrada, se existir)
+        var dbCtx = services.GetRequiredService<ApplicationDbContext>();
+        var escolaDemo = "escola.demo@autistima.app.br";
+        var escolaUser = await userManager.FindByEmailAsync(escolaDemo);
+        if (escolaUser == null)
+        {
+            var primeiraEscola = dbCtx.Schools.OrderBy(s => s.Id).FirstOrDefault();
+            escolaUser = new ApplicationUser
+            {
+                UserName = escolaDemo,
+                Email = escolaDemo,
+                NomeCompleto = "Demo Escola Municipal",
+                TipoPerfil = TipoPerfil.Escola,
+                EmailConfirmed = true,
+                Ativo = true,
+                DataCadastro = DateTime.UtcNow,
+                EscolaVinculadaId = primeiraEscola?.Id
+            };
+            var resultEscola = await userManager.CreateAsync(escolaUser, "EscolaDemo@2026");
+            if (resultEscola.Succeeded)
+            {
+                var loggerSeed = services.GetRequiredService<ILogger<Program>>();
+                loggerSeed.LogInformation("Usuário Escola demo criado: {Email}, EscolaId={Id}",
+                    escolaDemo, primeiraEscola?.Id);
             }
         }
     }

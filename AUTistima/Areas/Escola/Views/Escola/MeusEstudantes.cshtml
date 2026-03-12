@@ -1,0 +1,160 @@
+@model IEnumerable<AUTistima.Models.Child>
+@{
+    ViewData["Title"] = "Meus Estudantes";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-people me-2"></i>Estudantes</h1>
+            <small class="text-muted">@ViewBag.Total estudante(s) cadastrado(s)</small>
+        </div>
+        <a asp-action="CadastrarEstudante" class="btn btn-salmon">
+            <i class="bi bi-person-plus me-2"></i>Novo Estudante
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="busca" value="@ViewBag.Busca" class="form-control" placeholder="Nome ou código do estudante...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="comorbidade" class="form-select">
+                        <option value="">Todas as condições</option>
+                        @foreach (AUTistima.Models.Enums.TipoComorbidade c in Enum.GetValues(typeof(AUTistima.Models.Enums.TipoComorbidade)))
+                        {
+                            if (c == AUTistima.Models.Enums.TipoComorbidade.Nenhuma) continue;
+                            <option value="@((int)c)" selected="@(ViewBag.Comorbidade == c)">@c.GetDisplayName()</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-people display-4 d-block mb-3"></i>
+            <p>Nenhum estudante cadastrado ainda.</p>
+            <a asp-action="CadastrarEstudante" class="btn btn-salmon">Cadastrar Primeiro Estudante</a>
+        </div>
+    }
+    else
+    {
+        <!-- Mobile: cards -->
+        <div class="d-md-none">
+            @foreach (var e in Model)
+            {
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>@e.Nome</strong>
+                                @if (!string.IsNullOrEmpty(e.CodigoUnico))
+                                {
+                                    <span class="badge bg-light text-dark ms-1">@e.CodigoUnico</span>
+                                }
+                            </div>
+                            <a asp-action="ProntuarioEstudante" asp-route-id="@e.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-folder2-open"></i>
+                            </a>
+                        </div>
+                        @if (e.Comorbidades != AUTistima.Models.Enums.TipoComorbidade.Nenhuma)
+                        {
+                            <div class="mt-1">
+                                @foreach (AUTistima.Models.Enums.TipoComorbidade c in Enum.GetValues(typeof(AUTistima.Models.Enums.TipoComorbidade)))
+                                {
+                                    if (c != AUTistima.Models.Enums.TipoComorbidade.Nenhuma && e.Comorbidades.HasFlag(c))
+                                    {
+                                        <span class="badge bg-info text-dark me-1">@c.GetDisplayName()</span>
+                                    }
+                                }
+                            </div>
+                        }
+                        <div class="text-muted small mt-1">
+                            Resp.: @(e.Usuario?.NomeCompleto ?? "—") · @e.DataCadastro.ToString("dd/MM/yyyy")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Desktop: tabela -->
+        <div class="d-none d-md-block card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nome</th>
+                            <th>Comorbidades</th>
+                            <th>Responsável</th>
+                            <th>Cadastro</th>
+                            <th width="100">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model)
+                        {
+                            <tr>
+                                <td><code>@(e.CodigoUnico ?? "—")</code></td>
+                                <td><strong>@e.Nome</strong></td>
+                                <td>
+                                    @foreach (AUTistima.Models.Enums.TipoComorbidade c in Enum.GetValues(typeof(AUTistima.Models.Enums.TipoComorbidade)))
+                                    {
+                                        if (c != AUTistima.Models.Enums.TipoComorbidade.Nenhuma && e.Comorbidades.HasFlag(c))
+                                        {
+                                            <span class="badge bg-info text-dark me-1 small">@c.GetDisplayName()</span>
+                                        }
+                                    }
+                                </td>
+                                <td>@(e.Usuario?.NomeCompleto ?? "—")</td>
+                                <td>@e.DataCadastro.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <a asp-action="ProntuarioEstudante" asp-route-id="@e.Id"
+                                       class="btn btn-sm btn-outline-primary" title="Ver Prontuário">
+                                        <i class="bi bi-folder2-open"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginação -->
+        @if ((int)ViewBag.TotalPaginas > 1)
+        {
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center">
+                    @for (int p = 1; p <= (int)ViewBag.TotalPaginas; p++)
+                    {
+                        <li class="page-item @(p == (int)ViewBag.PaginaAtual ? "active" : "")">
+                            <a class="page-link" asp-action="MeusEstudantes"
+                               asp-route-pagina="@p" asp-route-busca="@ViewBag.Busca">@p</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+    document.querySelectorAll('.badge[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
+    });
+    </script>
+}

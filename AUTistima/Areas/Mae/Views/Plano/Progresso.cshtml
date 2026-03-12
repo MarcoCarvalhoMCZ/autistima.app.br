@@ -1,0 +1,121 @@
+@model List<AUTistima.Models.ChildProgress>
+@{
+    ViewData["Title"] = "Progresso";
+    var filho = ViewBag.Filho as AUTistima.Models.Child;
+    var planos = ViewBag.Planos as List<AUTistima.Models.ChildCarePlan> ?? new();
+    var tiposRegistro = new[] { "Observação geral", "Conquista", "Dificuldade", "Terapia", "Consulta médica", "Comportamento", "Sono", "Alimentação" };
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-chevron-left me-1"></i>Planos de Cuidado
+        </a>
+        <h1 class="h3 mt-2"><i class="bi bi-graph-up me-2 text-salmon"></i>Progresso de @filho?.Nome</h1>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row g-4">
+        <!-- Formulário de novo registro -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Novo Registro</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AdicionarProgresso" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ChildId" value="@filho?.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tipo de registro *</label>
+                            <select name="TipoRegistro" class="form-select form-select-sm" required>
+                                <option value="">Selecione...</option>
+                                @foreach (var tipo in tiposRegistro)
+                                {
+                                    <option value="@tipo">@tipo</option>
+                                }
+                            </select>
+                        </div>
+
+                        @if (planos.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Plano associado</label>
+                                <select name="CarePlanId" class="form-select form-select-sm">
+                                    <option value="">Nenhum</option>
+                                    @foreach (var p in planos)
+                                    {
+                                        <option value="@p.Id">@p.Titulo</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Observação *</label>
+                            <textarea name="Observacao" class="form-control form-control-sm" rows="4"
+                                      placeholder="Descreva o que observou..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-salmon btn-sm w-100">
+                            <i class="bi bi-plus-circle me-1"></i>Adicionar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Linha do tempo -->
+        <div class="col-md-8">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-journal-text display-4 mb-3 d-block"></i>
+                    <p>Nenhum registro de progresso ainda. Comece adicionando o primeiro!</p>
+                </div>
+            }
+            else
+            {
+                <div class="timeline">
+                    @foreach (var r in Model)
+                    {
+                        var iconClass = r.TipoRegistro switch {
+                            "Conquista" => "bi-trophy-fill text-warning",
+                            "Dificuldade" => "bi-exclamation-triangle-fill text-danger",
+                            "Terapia" => "bi-heart-pulse-fill text-primary",
+                            "Consulta médica" => "bi-hospital-fill text-info",
+                            _ => "bi-journal-text text-secondary"
+                        };
+                        <div class="d-flex gap-3 mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                    <i class="bi @iconClass"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body py-2 px-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="badge bg-light text-dark small">@r.TipoRegistro</span>
+                                            <small class="text-muted">@r.Data.ToString("dd/MM/yyyy")</small>
+                                        </div>
+                                        <p class="mb-1 small">@r.Observacao</p>
+                                        @if (r.PlanoAssociado != null)
+                                        {
+                                            <div class="text-muted x-small"><i class="bi bi-journal-medical me-1"></i>@r.PlanoAssociado.Titulo</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

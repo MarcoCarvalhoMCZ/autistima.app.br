@@ -35,14 +35,22 @@ else
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                         <span class="fw-semibold">@filho.Nome</span>
-                        @if (filho.PossuiDiagnostico)
-                        {
-                            <span class="badge" style="background-color: #F28B82;">Diagnóstico</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Em investigação</span>
-                        }
+                        <div class="d-flex align-items-center gap-1">
+                            @if (!string.IsNullOrEmpty(filho.CodigoUnico))
+                            {
+                                <span class="badge bg-primary-subtle text-primary font-monospace" style="font-size:.75rem">
+                                    <i class="bi bi-qr-code me-1"></i>@filho.CodigoUnico
+                                </span>
+                            }
+                            @if (filho.PossuiDiagnostico)
+                            {
+                                <span class="badge" style="background-color: #F28B82;">Diagnóstico</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Em investigação</span>
+                            }
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
@@ -64,6 +72,21 @@ else
                             }
                         </div>
 
+                        @if (!string.IsNullOrEmpty(filho.CodigoUnico))
+                        {
+                            <div class="alert alert-info py-2 mb-3" role="alert">
+                                <small class="d-block text-muted mb-1">
+                                    <i class="bi bi-info-circle me-1"></i>Código para compartilhar com profissionais
+                                </small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <code class="fs-6 text-primary" id="cod-@filho.Id">@filho.CodigoUnico</code>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0"
+                                            onclick="navigator.clipboard.writeText('@filho.CodigoUnico');this.innerHTML='<i class=&quot;bi bi-check&quot;></i>';setTimeout(()=>this.innerHTML='<i class=&quot;bi bi-clipboard&quot;></i>',1500)">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
                         @if (filho.Escola != null || !string.IsNullOrEmpty(filho.EscolaNome))
                         {
                             <div class="mb-3">
@@ -96,6 +119,10 @@ else
                             <a asp-area="" asp-controller="Filhos" asp-action="Details" asp-route-id="@filho.Id" 
                                class="btn btn-outline-secondary">
                                 <i class="bi bi-eye me-1"></i>Detalhes
+                            </a>
+                            <a asp-area="Mae" asp-controller="Mae" asp-action="ProntuarioFilho" asp-route-id="@filho.Id"
+                               class="btn btn-outline-info">
+                                <i class="bi bi-journal-text me-1"></i>Prontuário
                             </a>
                         </div>
                     </div>

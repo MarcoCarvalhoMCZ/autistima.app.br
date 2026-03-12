@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Solicitar Acesso ao Prontuário";
+}
+
+<div class="container py-4" style="max-width:480px">
+    <div class="mb-3">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+    <h1 class="h4 mb-1"><i class="bi bi-person-plus me-2 text-salmon"></i>Solicitar Acesso</h1>
+    <p class="text-muted small mb-4">
+        Informe o código único do estudante para solicitar acesso ao prontuário.
+        A administração analisará e aprovará ou rejeitará o pedido.
+    </p>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success"><i class="bi bi-check-circle me-2"></i>@TempData["Sucesso"]</div>
+    }
+
+    <form asp-action="SolicitarAcesso" method="post">
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+        @Html.AntiForgeryToken()
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <label for="codigoEstudante" class="form-label fw-semibold">
+                    Código do Estudante
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
+                    <input type="text" id="codigoEstudante" name="codigoEstudante"
+                           class="form-control text-uppercase" placeholder="ALU-2026-000001"
+                           required maxlength="20" autocomplete="off">
+                </div>
+                <small class="text-muted">O código é fornecido pela escola no momento do cadastro.</small>
+            </div>
+        </div>
+
+        <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-salmon py-2">
+                <i class="bi bi-send me-2"></i>Enviar Solicitação
+            </button>
+        </div>
+    </form>
+</div>

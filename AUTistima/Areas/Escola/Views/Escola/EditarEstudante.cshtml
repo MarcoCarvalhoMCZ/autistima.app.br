@@ -1,0 +1,153 @@
+@model AUTistima.Areas.Escola.Controllers.EditarEstudanteViewModel
+@using AUTistima.Models.Enums
+@using AUTistima.Extensions
+@{
+    ViewData["Title"] = "Editar Estudante";
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-3">
+        <a asp-action="ProntuarioEstudante" asp-route-id="@Model.Id" class="text-decoration-none text-muted small">
+            <i class="bi bi-arrow-left me-1"></i>Voltar ao prontuário
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-pencil me-2"></i>Editar Dados do Estudante
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditarEstudante" method="post">
+                        <input asp-for="Id" type="hidden">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" role="alert"></div>
+
+                        <div class="row g-3">
+                            <!-- Nome e Nascimento -->
+                            <div class="col-md-8">
+                                <label asp-for="NomeEstudante" class="form-label"></label>
+                                <input asp-for="NomeEstudante" class="form-control">
+                                <span asp-validation-for="NomeEstudante" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="DataNascimento" class="form-label"></label>
+                                <input asp-for="DataNascimento" class="form-control" type="date">
+                            </div>
+
+                            <!-- Escola -->
+                            <div class="col-md-6">
+                                <label asp-for="EscolaId" class="form-label"></label>
+                                <select asp-for="EscolaId" class="form-select">
+                                    <option value="">— selecione —</option>
+                                    @if (ViewBag.Escolas is IEnumerable<AUTistima.Models.School> escolas)
+                                    {
+                                        @foreach (var e in escolas)
+                                        {
+                                            <option value="@e.Id" selected="@(Model.EscolaId == e.Id)">@e.Nome</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NivelSuporte" class="form-label"></label>
+                                <select asp-for="NivelSuporte" class="form-select">
+                                    <option value="">— não informado —</option>
+                                    @foreach (NivelSuporte ns in Enum.GetValues(typeof(NivelSuporte)))
+                                    {
+                                        <option value="@((int)ns)" selected="@(Model.NivelSuporte == ns)">@ns.GetDisplayName()</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Diagnóstico e PAE -->
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input asp-for="PossuiDiagnostico" class="form-check-input" id="diagCheck">
+                                    <label class="form-check-label" asp-for="PossuiDiagnostico"></label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="DataDiagnostico" class="form-label"></label>
+                                <input asp-for="DataDiagnostico" class="form-control" type="date">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input asp-for="PossuiPAE" class="form-check-input">
+                                    <label class="form-check-label" asp-for="PossuiPAE"></label>
+                                </div>
+                            </div>
+
+                            <!-- Comorbidades -->
+                            <div class="col-12">
+                                <label class="form-label">Comorbidades / Condições</label>
+                                <input type="hidden" name="Comorbidades" id="comorb_hidden" value="@((int)Model.Comorbidades)">
+                                <div class="row g-2">
+                                    @foreach (TipoComorbidade c in Enum.GetValues(typeof(TipoComorbidade)))
+                                    {
+                                        if (c == TipoComorbidade.Nenhuma) continue;
+                                        <div class="col-12 col-sm-6 col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input comorb-check" type="checkbox"
+                                                       value="@((int)c)" id="comorb_@((int)c)"
+                                                       checked="@(Model.Comorbidades.HasFlag(c))">
+                                                <label class="form-check-label small" for="comorb_@((int)c)">
+                                                    @c.GetDisplayName()
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Outras condições -->
+                            <div class="col-12">
+                                <label asp-for="OutrasCondicoes" class="form-label"></label>
+                                <input asp-for="OutrasCondicoes" class="form-control" placeholder="Descreva outras condições relevantes...">
+                            </div>
+
+                            <!-- Estratégias para crises -->
+                            <div class="col-12">
+                                <label asp-for="EstrategiasCrise" class="form-label"></label>
+                                <textarea asp-for="EstrategiasCrise" class="form-control" rows="3"
+                                          placeholder="Descreva estratégias que ajudam em momentos de crise..."></textarea>
+                            </div>
+
+                            <!-- Observações -->
+                            <div class="col-12">
+                                <label asp-for="Observacoes" class="form-label"></label>
+                                <textarea asp-for="Observacoes" class="form-control" rows="3"
+                                          placeholder="Observações gerais..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-salmon">
+                                <i class="bi bi-check-lg me-1"></i>Salvar Alterações
+                            </button>
+                            <a asp-action="ProntuarioEstudante" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="~/Views/Shared/_ValidationScriptsPartial.cshtml" />
+    <script>
+    (function () {
+        const hidden = document.getElementById('comorb_hidden');
+        function recalc() {
+            const total = Array.from(document.querySelectorAll('.comorb-check:checked'))
+                .reduce((acc, el) => acc | parseInt(el.value), 0);
+            hidden.value = total;
+        }
+        document.querySelectorAll('.comorb-check').forEach(cb => cb.addEventListener('change', recalc));
+        recalc();
+    })();
+    </script>
+}

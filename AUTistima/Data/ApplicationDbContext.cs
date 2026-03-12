@@ -36,7 +36,42 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StatisticSnapshot> StatisticSnapshots { get; set; } = null!;
     public DbSet<PanicAlert> PanicAlerts { get; set; } = null!;
     public DbSet<BroadcastMessage> BroadcastMessages { get; set; } = null!;
-    
+    public DbSet<RegistroEstudante> RegistrosEstudante { get; set; } = null!;
+    public DbSet<SolicitacaoAcessoPerfil> SolicitacoesAcessoPerfil { get; set; } = null!;
+
+    // Módulo 1: LGPD / Privacidade / Auditoria
+    public DbSet<ConsentLog> ConsentLogs { get; set; } = null!;
+    public DbSet<AuditEvent> AuditEvents { get; set; } = null!;
+    public DbSet<DataExportRequest> DataExportRequests { get; set; } = null!;
+    public DbSet<DataDeletionRequest> DataDeletionRequests { get; set; } = null!;
+
+    // Módulo 2: Plano de Cuidado da Criança
+    public DbSet<ChildCarePlan> ChildCarePlans { get; set; } = null!;
+    public DbSet<ChildProgress> ChildProgresses { get; set; } = null!;
+    public DbSet<AppointmentReminder> AppointmentReminders { get; set; } = null!;
+
+    // Módulo 3: Agendamento de Serviços
+    public DbSet<ServiceRequest> ServiceRequests { get; set; } = null!;
+    public DbSet<ServiceAppointment> ServiceAppointments { get; set; } = null!;
+
+    // Módulo 4: Direitos e Benefícios
+    public DbSet<BenefitEligibility> BenefitEligibilities { get; set; } = null!;
+    public DbSet<BenefitChecklistItem> BenefitChecklistItems { get; set; } = null!;
+
+    // Módulo 5: Segurança Familiar
+    public DbSet<SafetyPlan> SafetyPlans { get; set; } = null!;
+    public DbSet<EmergencyContact> EmergencyContacts { get; set; } = null!;
+
+    // Módulo 6: Acessibilidade
+    public DbSet<AccessibilityPreference> AccessibilityPreferences { get; set; } = null!;
+
+    // Módulo 7: Moderação e Denúncias
+    public DbSet<Report> Reports { get; set; } = null!;
+
+    // Módulo 9: Empresas / Empregabilidade
+    public DbSet<InclusiveJob> InclusiveJobs { get; set; } = null!;
+    public DbSet<CompanyBadge> CompanyBadges { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -56,6 +91,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.Especialidade)
                 .WithMany()
                 .HasForeignKey(e => e.EspecialidadeId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.EscolaVinculada)
+                .WithMany()
+                .HasForeignKey(e => e.EscolaVinculadaId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -90,6 +130,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             entity.ToTable("Children");
             entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.CodigoUnico).IsUnique().HasFilter("[CodigoUnico] IS NOT NULL");
             
             entity.HasOne(e => e.Usuario)
                 .WithMany(u => u.Filhos)
@@ -99,6 +140,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.Escola)
                 .WithMany(s => s.Alunos)
                 .HasForeignKey(e => e.EscolaId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.CadastradoPorEscolaUsuario)
+                .WithMany()
+                .HasForeignKey(e => e.CadastradoPorEscolaUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
         
@@ -360,7 +406,203 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Seed de dados iniciais para o Glossário
+        // RegistroEstudante - Prontuário do estudante
+        builder.Entity<RegistroEstudante>(entity =>
+        {
+            entity.ToTable("RegistrosEstudante");
+            entity.HasIndex(e => e.ChildId);
+            entity.HasIndex(e => e.AutorId);
+            entity.HasIndex(e => e.DataRegistro);
+            entity.HasIndex(e => new { e.ChildId, e.Ativo });
+
+            entity.HasOne(e => e.Estudante)
+                .WithMany(c => c.Registros)
+                .HasForeignKey(e => e.ChildId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Autor)
+                .WithMany()
+                .HasForeignKey(e => e.AutorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // SolicitacaoAcessoPerfil - Pedidos de acesso ao prontuário
+        builder.Entity<SolicitacaoAcessoPerfil>(entity =>
+        {
+            entity.ToTable("SolicitacoesAcessoPerfil");
+            entity.HasIndex(e => e.ChildId);
+            entity.HasIndex(e => e.ProfissionalId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => new { e.ProfissionalId, e.ChildId }).IsUnique();
+
+            entity.HasOne(e => e.Estudante)
+                .WithMany(c => c.SolicitacoesAcesso)
+                .HasForeignKey(e => e.ChildId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Profissional)
+                .WithMany()
+                .HasForeignKey(e => e.ProfissionalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AprovadoPorAdmin)
+                .WithMany()
+                .HasForeignKey(e => e.AprovadoPorAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ── Módulo 1: LGPD ──────────────────────────────────────────────────
+        builder.Entity<ConsentLog>(entity =>
+        {
+            entity.ToTable("ConsentLogs");
+            entity.HasIndex(e => e.UserId);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AuditEvent>(entity =>
+        {
+            entity.ToTable("AuditEvents");
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.Data);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<DataExportRequest>(entity =>
+        {
+            entity.ToTable("DataExportRequests");
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<DataDeletionRequest>(entity =>
+        {
+            entity.ToTable("DataDeletionRequests");
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Módulo 2: Plano de Cuidado ───────────────────────────────────────
+        builder.Entity<ChildCarePlan>(entity =>
+        {
+            entity.ToTable("ChildCarePlans");
+            entity.HasIndex(e => e.ChildId);
+            entity.HasOne(e => e.Filho).WithMany().HasForeignKey(e => e.ChildId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ChildProgress>(entity =>
+        {
+            entity.ToTable("ChildProgresses");
+            entity.HasIndex(e => e.ChildId);
+            entity.HasOne(e => e.Filho).WithMany().HasForeignKey(e => e.ChildId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.PlanoAssociado).WithMany(p => p.Progressos)
+                .HasForeignKey(e => e.CarePlanId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<AppointmentReminder>(entity =>
+        {
+            entity.ToTable("AppointmentReminders");
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.DataHora);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Filho).WithMany().HasForeignKey(e => e.ChildId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ── Módulo 3: Agendamento de Serviços ───────────────────────────────
+        builder.Entity<ServiceRequest>(entity =>
+        {
+            entity.ToTable("ServiceRequests");
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.Status);
+            entity.HasOne(e => e.Solicitante).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Servico).WithMany().HasForeignKey(e => e.ServiceId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Filho).WithMany().HasForeignKey(e => e.ChildId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<ServiceAppointment>(entity =>
+        {
+            entity.ToTable("ServiceAppointments");
+            entity.HasOne(e => e.Solicitacao).WithMany(r => r.Agendamentos)
+                .HasForeignKey(e => e.RequestId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Módulo 4: Direitos e Benefícios ─────────────────────────────────
+        builder.Entity<BenefitEligibility>(entity =>
+        {
+            entity.ToTable("BenefitEligibilities");
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<BenefitChecklistItem>(entity =>
+        {
+            entity.ToTable("BenefitChecklistItems");
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Módulo 5: Segurança Familiar ────────────────────────────────────
+        builder.Entity<SafetyPlan>(entity =>
+        {
+            entity.ToTable("SafetyPlans");
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<EmergencyContact>(entity =>
+        {
+            entity.ToTable("EmergencyContacts");
+            entity.HasIndex(e => e.UserId);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Módulo 6: Acessibilidade ─────────────────────────────────────────
+        builder.Entity<AccessibilityPreference>(entity =>
+        {
+            entity.ToTable("AccessibilityPreferences");
+            entity.HasIndex(e => e.UserId).IsUnique();
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Módulo 7: Denúncias / Moderação ─────────────────────────────────
+        builder.Entity<Report>(entity =>
+        {
+            entity.ToTable("Reports");
+            entity.HasIndex(e => e.Status);
+            entity.HasOne(e => e.Denunciante).WithMany().HasForeignKey(e => e.ReporterId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.ResolvidoPor).WithMany().HasForeignKey(e => e.ResolvidoPorId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ── Módulo 9: Vagas Inclusivas ───────────────────────────────────────
+        builder.Entity<InclusiveJob>(entity =>
+        {
+            entity.ToTable("InclusiveJobs");
+            entity.HasIndex(e => e.EmpresaId);
+            entity.HasIndex(e => e.Status);
+            entity.Property(e => e.SalarioMin).HasColumnType("decimal(10,2)");
+            entity.Property(e => e.SalarioMax).HasColumnType("decimal(10,2)");
+            entity.HasOne(e => e.Empresa).WithMany().HasForeignKey(e => e.EmpresaId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<CompanyBadge>(entity =>
+        {
+            entity.ToTable("CompanyBadges");
+            entity.HasOne(e => e.Empresa).WithMany().HasForeignKey(e => e.EmpresaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
         SeedGlossaryTerms(builder);
         
         // Seed de CAPS de Maceió

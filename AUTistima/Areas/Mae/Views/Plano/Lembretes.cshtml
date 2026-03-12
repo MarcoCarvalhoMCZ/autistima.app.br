@@ -1,0 +1,140 @@
+@model List<AUTistima.Models.AppointmentReminder>
+@{
+    ViewData["Title"] = "Lembretes de Consultas";
+    var filhos = ViewBag.Filhos as List<AUTistima.Models.Child> ?? new();
+    var proximos = Model.Where(r => r.DataHora >= DateTime.Today).ToList();
+    var passados = Model.Where(r => r.DataHora < DateTime.Today).ToList();
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-alarm me-2 text-salmon"></i>Lembretes de Consultas</h1>
+            <small class="text-muted">Terapias, consultas e compromissos</small>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-journal-medical me-1"></i>Planos de Cuidado
+        </a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row g-4">
+        <!-- Formulário -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Novo Lembrete</h6>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AdicionarLembrete" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Título *</label>
+                            <input type="text" name="Titulo" class="form-control form-control-sm"
+                                   placeholder="Ex: Fonoaudiologia" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Filho(a)</label>
+                            <select name="ChildId" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                @foreach (var f in filhos)
+                                {
+                                    <option value="@f.Id">@f.Nome</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Data e hora *</label>
+                            <input type="datetime-local" name="DataHora" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Local</label>
+                            <input type="text" name="Local" class="form-control form-control-sm" placeholder="Clínica, UBS..." />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Observação</label>
+                            <textarea name="Descricao" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-salmon btn-sm w-100">
+                            <i class="bi bi-alarm-fill me-1"></i>Adicionar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de lembretes -->
+        <div class="col-md-8">
+            @if (proximos.Any())
+            {
+                <h6 class="text-muted mb-3"><i class="bi bi-clock me-1"></i>Próximos</h6>
+                @foreach (var r in proximos)
+                {
+                    var urgente = r.DataHora <= DateTime.Today.AddDays(2);
+                    <div class="card border-0 shadow-sm mb-3 @(urgente ? "border-start border-warning border-3" : "")">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div>
+                                    <strong class="small">@r.Titulo</strong>
+                                    @if (r.Filho != null)
+                                    {
+                                        <span class="badge bg-salmon-subtle text-salmon ms-2 small">@r.Filho.Nome</span>
+                                    }
+                                    <div class="text-muted small">
+                                        <i class="bi bi-calendar3 me-1"></i>@r.DataHora.ToString("dd/MM/yyyy HH:mm")
+                                        @if (!string.IsNullOrEmpty(r.Local))
+                                        {
+                                            <span class="ms-2"><i class="bi bi-geo-alt me-1"></i>@r.Local</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(r.Descricao))
+                                    {
+                                        <div class="text-muted x-small mt-1">@r.Descricao</div>
+                                    }
+                                </div>
+                                <form asp-action="RemoverLembrete" asp-route-id="@r.Id" method="post" class="ms-2">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0" title="Remover">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            @if (passados.Any())
+            {
+                <h6 class="text-muted mb-3 mt-3"><i class="bi bi-check2-circle me-1"></i>Passados</h6>
+                @foreach (var r in passados.Take(5))
+                {
+                    <div class="card border-0 bg-light mb-2">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="text-muted small text-decoration-line-through">@r.Titulo</span>
+                                    <small class="text-muted ms-2">@r.DataHora.ToString("dd/MM/yyyy")</small>
+                                </div>
+                                <form asp-action="RemoverLembrete" asp-route-id="@r.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link btn-sm text-muted p-0"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-alarm display-4 mb-3 d-block"></i>
+                    <p>Nenhum lembrete cadastrado.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

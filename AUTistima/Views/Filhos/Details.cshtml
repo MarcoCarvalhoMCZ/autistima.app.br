@@ -21,6 +21,20 @@
                         </div>
                         <div>
                             <h2 class="fw-bold mb-2">@Model.Nome</h2>
+                            @if (!string.IsNullOrEmpty(Model.CodigoUnico))
+                            {
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-primary font-monospace fs-6 px-3 py-2">
+                                        <i class="bi bi-qr-code me-2"></i>@Model.CodigoUnico
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            title="Copiar código"
+                                            onclick="navigator.clipboard.writeText('@Model.CodigoUnico');this.innerHTML='<i class=&quot;bi bi-check-lg&quot;></i> Copiado!';setTimeout(()=>this.innerHTML='<i class=&quot;bi bi-clipboard&quot;></i> Copiar',1800)">
+                                        <i class="bi bi-clipboard"></i> Copiar
+                                    </button>
+                                </div>
+                                <small class="text-muted">Compartilhe este código com profissionais para solicitar acesso ao prontuário.</small>
+                            }
                             @if (Model.DataNascimento.HasValue)
                             {
                                 var idade = DateTime.Now.Year - Model.DataNascimento.Value.Year;

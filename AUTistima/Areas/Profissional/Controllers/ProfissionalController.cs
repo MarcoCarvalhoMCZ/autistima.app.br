@@ -49,6 +49,10 @@ public class ProfissionalController : Controller
                 .CountAsync(s => s.ProfessorSolicitanteId == user.Id);
             ViewBag.TotalEscolas = await _context.Schools.CountAsync();
         }
+
+        ViewBag.TotalProntuariosAprovados = await _context.SolicitacoesAcessoPerfil
+            .CountAsync(s => s.ProfissionalId == user!.Id
+                          && s.Status == AUTistima.Models.Enums.StatusSolicitacaoAcesso.Aprovado);
         
         ViewBag.TipoProfissional = user?.TipoPerfil;
         

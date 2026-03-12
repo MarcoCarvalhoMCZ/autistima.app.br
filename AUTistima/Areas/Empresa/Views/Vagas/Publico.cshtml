@@ -1,0 +1,80 @@
+@model List<AUTistima.Models.InclusiveJob>
+@{
+    ViewData["Title"] = "Vagas Inclusivas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string? busca = ViewBag.Busca;
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0"><i class="bi bi-briefcase me-2 text-salmon"></i>Vagas Inclusivas</h1>
+        <small class="text-muted">Oportunidades para pessoas com TEA e outras deficiências</small>
+    </div>
+
+    <form class="row g-2 mb-4" method="get">
+        <div class="col">
+            <input type="text" name="busca" value="@busca" class="form-control"
+                   placeholder="Buscar por título ou descrição..." />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-salmon">
+                <i class="bi bi-search me-1"></i>Buscar
+            </button>
+            @if (!string.IsNullOrEmpty(busca))
+            {
+                <a asp-action="Publico" class="btn btn-outline-secondary ms-1">Limpar</a>
+            }
+        </div>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-briefcase-fill display-4 mb-3 d-block"></i>
+            <p>Nenhuma vaga encontrada.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var v in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title fs-6 mb-1">@v.Titulo</h5>
+                            @if (v.Empresa != null)
+                            {
+                                <div class="text-muted small mb-2">@v.Empresa.NomeCompleto</div>
+                            }
+                            <p class="small text-muted mb-2">@(v.Descricao.Length > 130 ? v.Descricao[..130] + "…" : v.Descricao)</p>
+                            @if (!string.IsNullOrEmpty(v.Acomodacoes))
+                            {
+                                <div class="alert alert-info py-1 px-2 small mb-2">
+                                    <i class="bi bi-heart me-1"></i>@(v.Acomodacoes.Length > 80 ? v.Acomodacoes[..80] + "…" : v.Acomodacoes)
+                                </div>
+                            }
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                @if (!string.IsNullOrEmpty(v.Localizacao))
+                                {
+                                    <span class="badge bg-light text-dark small"><i class="bi bi-geo-alt me-1"></i>@v.Localizacao</span>
+                                }
+                                @if (!string.IsNullOrEmpty(v.Regime))
+                                {
+                                    <span class="badge bg-light text-dark small">@v.Regime</span>
+                                }
+                                @if (v.SalarioMin.HasValue)
+                                {
+                                    <span class="badge bg-success-subtle text-success small">
+                                        A partir de @v.SalarioMin.Value.ToString("C0")
+                                    </span>
+                                }
+                            </div>
+                            <div class="text-muted small">Publicada em @v.CriadoEm.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

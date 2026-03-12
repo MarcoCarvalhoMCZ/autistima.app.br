@@ -135,9 +135,11 @@ public class EscolasController : Controller
         var escola = await _context.Schools.FindAsync(id);
         if (escola != null)
         {
-            _context.Schools.Remove(escola);
+            // Soft delete — não excluir escolas com alunos vinculados
+            escola.Ativo = false;
+            _context.Schools.Update(escola);
             await _context.SaveChangesAsync();
-            TempData["Mensagem"] = "Escola excluída com sucesso!";
+            TempData["Mensagem"] = "Escola desativada com sucesso!";
         }
 
         return RedirectToAction(nameof(Index));

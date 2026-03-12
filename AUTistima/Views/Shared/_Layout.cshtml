@@ -620,6 +620,7 @@
             AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao => "Profissional de Educação",
             AUTistima.Models.Enums.TipoPerfil.Empresa => "Empresa Parceira",
             AUTistima.Models.Enums.TipoPerfil.Governo => "Gestor Público",
+            AUTistima.Models.Enums.TipoPerfil.Escola => "Escola Municipal",
             _ => "Visitante"
         };
         
@@ -631,6 +632,7 @@
             AUTistima.Models.Enums.TipoPerfil.ProfissionalEducacao => "profissional",
             AUTistima.Models.Enums.TipoPerfil.Empresa => "empresa",
             AUTistima.Models.Enums.TipoPerfil.Governo => "governo",
+            AUTistima.Models.Enums.TipoPerfil.Escola => "escola",
             _ => ""
         };
 
@@ -652,6 +654,7 @@
                 new("Painel Admin", "bi-speedometer2", "Admin", "Admin", "Index", "admin", Array.Empty<TipoPerfil>(), "Resumo do sistema"),
                 new("Usuários", "bi-people", "Admin", "Usuarios", "Index", "admin", Array.Empty<TipoPerfil>(), "Gestão e bloqueios"),
                 new("Postagens", "bi-chat-heart", "Admin", "Posts", "Index", "admin", Array.Empty<TipoPerfil>(), "Moderação de posts"),
+                new("Moderação", "bi-flag", "Admin", "Moderacao", "Index", "admin", Array.Empty<TipoPerfil>(), "Denúncias pendentes"),
                 new("Manejos", "bi-lightbulb", "Admin", "Manejos", "Index", "admin", Array.Empty<TipoPerfil>(), "Curadoria de dicas"),
                 new("Escolas", "bi-building", "Admin", "Escolas", "Index", "admin", Array.Empty<TipoPerfil>(), "Rede escolar"),
                 new("Serviços", "bi-hospital", "Admin", "Servicos", "Index", "admin", Array.Empty<TipoPerfil>(), "Profissionais e CAPS"),
@@ -659,6 +662,9 @@
                 new("Glossário", "bi-journal-text", "Admin", "Glossario", "Index", "admin", Array.Empty<TipoPerfil>(), "Termos e categorias"),
                 new("Oportunidades", "bi-briefcase-fill", "Admin", "Oportunidades", "Index", "admin", Array.Empty<TipoPerfil>(), "Curadoria de vagas"),
                 new("Estatísticas", "bi-graph-up", "Admin", "Estatisticas", "Index", "admin", Array.Empty<TipoPerfil>(), "Indicadores diários"),
+                new("Est. Estudantes", "bi-people-fill", "Admin", "Estatisticas", "Estudantes", "admin", Array.Empty<TipoPerfil>(), "Relatório da rede escolar"),
+                new("Acessos Prontuário", "bi-person-lock", "Admin", "AcessosEstudante", "Index", "admin", Array.Empty<TipoPerfil>(), "Aprovar solicitações"),
+                new("Auditoria LGPD", "bi-shield-lock", "Admin", "Auditoria", "Index", "admin", Array.Empty<TipoPerfil>(), "Eventos e solicitações"),
                 new("Configurações", "bi-gear", "Admin", "Configuracoes", "Index", "admin", Array.Empty<TipoPerfil>(), "Parâmetros gerais"),
                 new("Avisos", "bi-megaphone", "Admin", "Avisos", "Index", "admin", Array.Empty<TipoPerfil>(), "Enviar avisos em massa"),
             },
@@ -668,16 +674,25 @@
                 new("Meus Filhos", "bi-people-fill", null, "Filhos", "Index", "mae", Array.Empty<TipoPerfil>(), "Cadastre e acompanhe"),
                 new("Compartilhar Manejo", "bi-pencil-heart", null, "Manejos", "Create", "mae", Array.Empty<TipoPerfil>(), "Divida suas dicas"),
                 new("Triagem Escolar", "bi-clipboard-check", null, "Triagem", "Index", "mae", Array.Empty<TipoPerfil>(), "Status das solicitações"),
+                new("Plano de Cuidado", "bi-journal-medical", "Mae", "Plano", "Index", "mae", Array.Empty<TipoPerfil>(), "Objetivos e progresso"),
+                new("Agendamentos", "bi-calendar-check", "Mae", "Agendamento", "Index", "mae", Array.Empty<TipoPerfil>(), "Solicitar serviços"),
+                new("Meus Direitos", "bi-shield-check", "Mae", "Direitos", "Index", "mae", Array.Empty<TipoPerfil>(), "Benefícios e elegibilidade"),
+                new("Segurança Familiar", "bi-shield-lock", "Mae", "Seguranca", "Index", "mae", Array.Empty<TipoPerfil>(), "Plano de emergência"),
+                new("Acessibilidade", "bi-universal-access", "Mae", "Acessibilidade", "Index", "mae", Array.Empty<TipoPerfil>(), "Preferências visuais"),
+                new("Meus Dados (LGPD)", "bi-lock", "Mae", "Privacidade", "Index", "mae", Array.Empty<TipoPerfil>(), "Privacidade e consentimentos"),
             },
             [TipoPerfil.ProfissionalSaude] = new()
             {
                 new("Meu Painel", "bi-person-badge", "Profissional", "Profissional", "Index", "profissional", Array.Empty<TipoPerfil>(), "Agenda e indicadores"),
                 new("Meus Serviços", "bi-activity", "Profissional", "Profissional", "MeusServicos", "profissional", Array.Empty<TipoPerfil>(), "Ofertas cadastradas"),
+                new("Prontuários", "bi-journal-medical", "Profissional", "Prontuarios", "Index", "profissional", Array.Empty<TipoPerfil>(), "Estudantes com acesso aprovado"),
                 new("Triagens", "bi-clipboard-pulse", "Profissional", "Profissional", "Triagens", "profissional", Array.Empty<TipoPerfil>(), "Encaminhamentos pendentes"),
+                new("Atendimentos", "bi-calendar2-check", "Profissional", "Atendimento", "Index", "profissional", Array.Empty<TipoPerfil>(), "Solicitações de serviço"),
             },
             [TipoPerfil.ProfissionalEducacao] = new()
             {
                 new("Meu Painel", "bi-mortarboard", "Profissional", "Profissional", "Index", "profissional", Array.Empty<TipoPerfil>(), "Visão da escola"),
+                new("Prontuários", "bi-journal-medical", "Profissional", "Prontuarios", "Index", "profissional", Array.Empty<TipoPerfil>(), "Estudantes com acesso aprovado"),
                 new("Minhas Triagens", "bi-journal-check", "Profissional", "Profissional", "Triagens", "profissional", Array.Empty<TipoPerfil>(), "Solicitações enviadas"),
             },
             [TipoPerfil.Empresa] = new()
@@ -685,6 +700,7 @@
                 new("Painel da Empresa", "bi-building", "Empresa", "Empresa", "Index", "empresa", Array.Empty<TipoPerfil>(), "Indicadores e selo"),
                 new("Minhas Oportunidades", "bi-briefcase", "Empresa", "Empresa", "MinhasOportunidades", "empresa", Array.Empty<TipoPerfil>(), "Vagas publicadas"),
                 new("Nova Oportunidade", "bi-plus-circle", "Empresa", "Empresa", "NovaOportunidade", "empresa", Array.Empty<TipoPerfil>(), "Registrar oportunidade"),
+                new("Vagas Inclusivas", "bi-person-check", "Empresa", "Vagas", "Index", "empresa", Array.Empty<TipoPerfil>(), "Gerencie vagas inclusivas"),
             },
             [TipoPerfil.Governo] = new()
             {
@@ -692,6 +708,13 @@
                 new("Estatísticas", "bi-graph-up-arrow", "Governo", "Governo", "Estatisticas", "governo", Array.Empty<TipoPerfil>(), "Métricas detalhadas"),
                 new("Triagens", "bi-clipboard-data", "Governo", "Governo", "Triagens", "governo", Array.Empty<TipoPerfil>(), "Filtrar por status"),
                 new("Rede Escolar", "bi-building-check", "Governo", "Governo", "Escolas", "governo", Array.Empty<TipoPerfil>(), "Cobertura e contatos"),
+                new("Indicadores TEA", "bi-bar-chart", "Governo", "Indicadores", "Index", "governo", Array.Empty<TipoPerfil>(), "Métricas agregadas"),
+            },
+            [TipoPerfil.Escola] = new()
+            {
+                new("Painel da Escola", "bi-building-check", "Escola", "Escola", "Index", "escola", Array.Empty<TipoPerfil>(), "Visão geral"),
+                new("Estudantes", "bi-people", "Escola", "Escola", "MeusEstudantes", "escola", Array.Empty<TipoPerfil>(), "Lista de estudantes"),
+                new("Novo Estudante", "bi-person-plus", "Escola", "Escola", "CadastrarEstudante", "escola", Array.Empty<TipoPerfil>(), "Cadastrar novo estudante"),
             }
         };
 
@@ -707,6 +730,7 @@
             TipoPerfil.ProfissionalEducacao => "📚 Área da Educação",
             TipoPerfil.Empresa => "🏢 Área da Empresa",
             TipoPerfil.Governo => "🏛️ Gestão Pública",
+            TipoPerfil.Escola => "🏫 Área da Escola",
             _ => string.Empty
         };
 
@@ -758,6 +782,7 @@
             TipoPerfil.ProfissionalEducacao => "Educadores",
             TipoPerfil.Empresa => "Empresas",
             TipoPerfil.Governo => "Gestão",
+            TipoPerfil.Escola => "Escolas",
             _ => "Usuários"
         };
 
@@ -810,6 +835,14 @@
                 new("Painel", "bi-bank", "Governo", "Governo", "Index", "governo", Array.Empty<TipoPerfil>()),
                 new("Triagens", "bi-clipboard-data", "Governo", "Governo", "Triagens", "governo", Array.Empty<TipoPerfil>()),
                 new("Escolas", "bi-building-check", "Governo", "Governo", "Escolas", "governo", Array.Empty<TipoPerfil>()),
+                new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
+                new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
+            },
+            TipoPerfil.Escola => new List<SidebarItem>
+            {
+                new("Painel", "bi-building-check", "Escola", "Escola", "Index", "escola", Array.Empty<TipoPerfil>()),
+                new("Estudantes", "bi-people", "Escola", "Escola", "MeusEstudantes", "escola", Array.Empty<TipoPerfil>()),
+                new("Novo", "bi-person-plus", "Escola", "Escola", "CadastrarEstudante", "escola", Array.Empty<TipoPerfil>()),
                 new("Avisos", "bi-bell", null, "Notificacoes", "Index", "", Array.Empty<TipoPerfil>()),
                 new("Perfil", "bi-person-circle", null, "Account", "Profile", "", Array.Empty<TipoPerfil>())
             },

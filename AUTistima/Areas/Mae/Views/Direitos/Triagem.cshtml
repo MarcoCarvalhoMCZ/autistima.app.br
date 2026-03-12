@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Triagem de Direitos";
+}
+
+<div class="container py-4" style="max-width: 640px;">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-chevron-left me-1"></i>Meus Direitos
+        </a>
+        <h1 class="h3 mt-2"><i class="bi bi-clipboard-check me-2 text-salmon"></i>Triagem de Direitos</h1>
+        <p class="text-muted small">Responda as perguntas abaixo para identificar quais benefícios e direitos sua família pode acessar.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form asp-action="Triagem" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="temFilhoAutista" value="true" class="form-check-input" id="chkAutista" />
+                        <label class="form-check-label" for="chkAutista">
+                            <strong>Tenho filho(a) com diagnóstico de TEA</strong>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="temLaudoMedico" value="true" class="form-check-input" id="chkLaudo" />
+                        <label class="form-check-label" for="chkLaudo">
+                            Meu filho(a) possui laudo médico com CID-10
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="rendaBPC" value="true" class="form-check-input" id="chkRenda" />
+                        <label class="form-check-label" for="chkRenda">
+                            Renda familiar per capita é de até 1/4 do salário mínimo
+                            <div class="text-muted small">Para verificar: renda total ÷ número de pessoas na casa</div>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="frequentaEscola" value="true" class="form-check-input" id="chkEscola" />
+                        <label class="form-check-label" for="chkEscola">
+                            Meu filho(a) frequenta ou irá frequentar escola regular
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="precisaTerapia" value="true" class="form-check-input" id="chkTerapia" />
+                        <label class="form-check-label" for="chkTerapia">
+                            Meu filho(a) necessita ou realiza terapias (ABA, fonoaudiologia, TO etc.)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="alert alert-info small">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Esta triagem é informativa e não substitui assessoria jurídica. Consulte o CRAS ou uma defensoria pública para orientação especializada.
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-salmon">
+                        <i class="bi bi-search me-1"></i>Ver meus direitos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,90 @@
+@model List<AUTistima.Models.AuditEvent>
+@{
+    ViewData["Title"] = "Auditoria de Eventos";
+    int totalPaginas = ViewBag.TotalPaginas ?? 1;
+    int paginaAtual = ViewBag.PaginaAtual ?? 1;
+    string? userId = ViewBag.UserId;
+    string? acao = ViewBag.Acao;
+    int total = ViewBag.Total ?? 0;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-clipboard-data me-2"></i>Auditoria de Eventos</h1>
+            <small class="text-muted">@total evento(s) registrado(s)</small>
+        </div>
+        <a asp-action="Solicitacoes" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-person-exclamation me-1"></i>Solicitações LGPD
+        </a>
+    </div>
+
+    <form class="row g-2 mb-4" method="get">
+        <div class="col-md-4">
+            <input type="text" name="userId" value="@userId" placeholder="ID do usuário" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="acao" value="@acao" placeholder="Ação (ex: LGPD, LOGIN)" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filtrar</button>
+        </div>
+        @if (!string.IsNullOrEmpty(userId) || !string.IsNullOrEmpty(acao))
+        {
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">Limpar</a>
+            </div>
+        }
+    </form>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0" aria-label="Eventos de auditoria">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Usuário</th>
+                        <th>Ação</th>
+                        <th>Recurso</th>
+                        <th>IP</th>
+                        <th>Detalhes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum evento encontrado.</td></tr>
+                    }
+                    @foreach (var evento in Model)
+                    {
+                        <tr>
+                            <td class="small text-nowrap">@evento.Data.ToString("dd/MM/yy HH:mm")</td>
+                            <td class="small text-truncate" style="max-width:120px;" title="@evento.UserId">@evento.UserId</td>
+                            <td><span class="badge bg-secondary small">@evento.Acao</span></td>
+                            <td class="small text-muted">@evento.Recurso</td>
+                            <td class="small text-muted">@evento.IpAddress</td>
+                            <td class="small text-muted">@evento.Detalhes</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (totalPaginas > 1)
+    {
+        <nav class="mt-3" aria-label="Paginação de auditoria">
+            <ul class="pagination pagination-sm justify-content-center">
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="page-item @(i == paginaAtual ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pagina="@i"
+                           asp-route-userId="@userId"
+                           asp-route-acao="@acao">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>

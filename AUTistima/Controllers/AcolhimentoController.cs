@@ -274,4 +274,42 @@ public class AcolhimentoController : Controller
         TempData["Mensagem"] = "Comentário removido com sucesso.";
         return RedirectToAction(nameof(Details), new { id = postId });
     }
+
+    // POST: Acolhimento/Denunciar
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Denunciar(string targetType, int targetId, string motivo, int? postId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Challenge();
+
+        // Evitar denúncias duplicadas do mesmo usuário para o mesmo conteúdo
+        var jaDenunciou = await _context.Reports.AnyAsync(r =>
+            r.ReporterId == userId && r.TargetType == targetType && r.TargetId == targetId
+            && r.Status == Models.Enums.StatusModeracao.Pendente);
+
+        if (!jaDenunciou && !string.IsNullOrWhiteSpace(motivo))
+        {
+            _context.Reports.Add(new Models.Report
+            {
+                ReporterId = userId,
+                TargetType = targetType,
+                TargetId = targetId,
+                Motivo = motivo,
+                Status = Models.Enums.StatusModeracao.Pendente
+            });
+            await _context.SaveChangesAsync();
+            TempData["Mensagem"] = "Denúncia enviada. Nossa equipe irá analisar o conteúdo.";
+        }
+        else
+        {
+            TempData["Aviso"] = "Você já denunciou este conteúdo anteriormente.";
+        }
+
+        if (postId.HasValue)
+            return RedirectToAction(nameof(Details), new { id = postId.Value });
+
+        return RedirectToAction(nameof(Index));
+    }
 }

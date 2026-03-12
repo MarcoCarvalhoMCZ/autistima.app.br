@@ -1,0 +1,201 @@
+@model IEnumerable<AUTistima.Models.SolicitacaoAcessoPerfil>
+@{
+    ViewData["Title"] = "Solicitações de Acesso ao Prontuário";
+    var statusAtual = (AUTistima.Models.Enums.StatusSolicitacaoAcesso)ViewBag.StatusFiltro;
+    int paginaAtual = (int)ViewBag.PaginaAtual;
+    int totalPaginas = (int)ViewBag.TotalPaginas;
+    int statusFiltroInt = (int)ViewBag.StatusFiltro;
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0"><i class="bi bi-person-lock me-2"></i>Acessos ao Prontuário</h1>
+        <small class="text-muted">Aprovação de solicitações de profissionais para visualizar histórico de estudantes</small>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Sucesso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Aviso"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Aviso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtro de status -->
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+        @foreach (AUTistima.Models.Enums.StatusSolicitacaoAcesso s in Enum.GetValues(typeof(AUTistima.Models.Enums.StatusSolicitacaoAcesso)))
+        {
+            <a asp-action="Index" asp-route-status="@((int)s)"
+               class="btn btn-sm @(statusAtual == s ? "btn-salmon" : "btn-outline-secondary")">
+                @s.GetDisplayName()
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-patch-check display-4 d-block mb-3"></i>
+                <p>Nenhuma solicitação @(statusAtual == AUTistima.Models.Enums.StatusSolicitacaoAcesso.Pendente ? "pendente" : "encontrada").</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Profissional</th>
+                            <th>Estudante</th>
+                            <th>Código Informado</th>
+                            <th>Status</th>
+                            <th width="160">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            <tr>
+                                <td class="small">@s.DataSolicitacao.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <strong>@(s.Profissional?.NomeCompleto ?? "—")</strong>
+                                    <div class="text-muted small">@s.Profissional?.TipoPerfil.GetDisplayName()</div>
+                                </td>
+                                <td>
+                                    <strong>@(s.Estudante?.Nome ?? "—")</strong>
+                                    <div class="text-muted small"><code>@s.Estudante?.CodigoUnico</code></div>
+                                </td>
+                                <td><code>@s.CodigoEstudanteInformado</code></td>
+                                <td>
+                                    @{
+                                        var badgeClass = s.Status switch
+                                        {
+                                            AUTistima.Models.Enums.StatusSolicitacaoAcesso.Pendente => "badge bg-warning text-dark",
+                                            AUTistima.Models.Enums.StatusSolicitacaoAcesso.Aprovado => "badge bg-success",
+                                            AUTistima.Models.Enums.StatusSolicitacaoAcesso.Rejeitado => "badge bg-danger",
+                                            _ => "badge bg-secondary"
+                                        };
+                                    }
+                                    <span class="@badgeClass">@s.Status.GetDisplayName()</span>
+                                    @if (!string.IsNullOrEmpty(s.MotivoRejeicao))
+                                    {
+                                        <div class="text-muted small">@s.MotivoRejeicao</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (s.Status == AUTistima.Models.Enums.StatusSolicitacaoAcesso.Pendente)
+                                    {
+                                        <form asp-action="Aprovar" asp-route-id="@s.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success me-1" title="Aprovar">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                data-bs-toggle="modal" data-bs-target="#rejeitarModal"
+                                                data-id="@s.Id" title="Rejeitar">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    }
+                                    else if (s.Status == AUTistima.Models.Enums.StatusSolicitacaoAcesso.Aprovado)
+                                    {
+                                        <div class="d-flex flex-column align-items-start gap-1">
+                                            <span class="text-muted small">@s.DataDecisao?.ToString("dd/MM HH:mm")</span>
+                                            <form asp-action="Revogar" asp-route-id="@s.Id" method="post"
+                                                  onsubmit="return confirm('Revogar acesso deste profissional ao prontuário?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Revogar acesso">
+                                                    <i class="bi bi-slash-circle me-1"></i>Revogar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">@s.DataDecisao?.ToString("dd/MM HH:mm")</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Rejeitar -->
+<div class="modal fade" id="rejeitarModal" tabindex="-1" aria-labelledby="rejeitarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formRejeitar" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h6 class="modal-title" id="rejeitarModalLabel">Rejeitar Solicitação</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="motivo" class="form-label">Motivo da rejeição:</label>
+                    <textarea name="motivo" id="motivo" class="form-control" rows="3"
+                              placeholder="Informe o motivo para o profissional..." required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Rejeitar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Paginação -->
+    @if (totalPaginas > 1)
+    {
+        <nav aria-label="Paginação" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(paginaAtual == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-status="@statusFiltroInt"
+                       asp-route-pagina="@(paginaAtual - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                @for (int p = 1; p <= totalPaginas; p++)
+                {
+                    <li class="page-item @(p == paginaAtual ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-status="@statusFiltroInt"
+                           asp-route-pagina="@p">@p</a>
+                    </li>
+                }
+                <li class="page-item @(paginaAtual == totalPaginas ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-status="@statusFiltroInt"
+                       asp-route-pagina="@(paginaAtual + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+@section Scripts {
+    <script>
+    document.getElementById('rejeitarModal').addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        const id = btn.getAttribute('data-id');
+        document.getElementById('formRejeitar').action = `/Admin/AcessosEstudante/Rejeitar/${id}`;
+    });
+    </script>
+}

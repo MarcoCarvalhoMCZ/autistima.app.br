@@ -1,0 +1,175 @@
+@model AUTistima.Models.ApplicationUser
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Privacidade e Dados";
+    var consentimentos = ViewBag.Consentimentos as List<AUTistima.Models.ConsentLog> ?? new();
+    var exportRequests = ViewBag.ExportRequests as List<AUTistima.Models.DataExportRequest> ?? new();
+    var deletionRequests = ViewBag.DeletionRequests as List<AUTistima.Models.DataDeletionRequest> ?? new();
+
+    var tiposConsentimento = new[] { "Comunicações por e-mail", "Notificações Push", "Uso de dados para melhorias", "Dados para pesquisa anônima" };
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0"><i class="bi bi-shield-check me-2 text-salmon"></i>Privacidade e Dados</h1>
+        <small class="text-muted">Gerencie seus consentimentos e solicite seus dados (LGPD)</small>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Sucesso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Aviso"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Aviso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Consentimentos -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-toggles me-2"></i>Consentimentos</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Configure quais tipos de dados e comunicação você autoriza.</p>
+                    <div class="row g-3">
+                        @foreach (var tipo in tiposConsentimento)
+                        {
+                            var ultimoConsentimento = consentimentos.FirstOrDefault(c => c.TipoConsentimento == tipo);
+                            var aceito = ultimoConsentimento?.Aceite ?? false;
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center justify-content-between p-3 border rounded">
+                                    <div>
+                                        <strong class="small">@tipo</strong>
+                                        @if (ultimoConsentimento != null)
+                                        {
+                                            <div class="text-muted x-small">Última atualização: @ultimoConsentimento.Data.ToString("dd/MM/yyyy")</div>
+                                        }
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        @if (!aceito)
+                                        {
+                                            <form asp-action="RegistrarConsentimento" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="tipoConsentimento" value="@tipo" />
+                                                <input type="hidden" name="aceite" value="true" />
+                                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                                    <i class="bi bi-check-lg me-1"></i>Aceitar
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Aceito</span>
+                                            <form asp-action="RegistrarConsentimento" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="tipoConsentimento" value="@tipo" />
+                                                <input type="hidden" name="aceite" value="false" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary btn-sm">Revogar</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exportar dados -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-download me-2"></i>Exportar Meus Dados</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Você tem o direito de receber seus dados em formato portátil (LGPD Art. 18, V).</p>
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <a asp-action="ExportarDadosJSON" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-file-code me-1"></i>Exportar JSON agora
+                        </a>
+                        <form asp-action="SolicitarExportacao" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-envelope me-1"></i>Solicitar via e-mail
+                            </button>
+                        </form>
+                    </div>
+                    @if (exportRequests.Any())
+                    {
+                        <div class="small text-muted">
+                            Última solicitação: @exportRequests.First().RequestedAt.ToString("dd/MM/yyyy") —
+                            <span class="badge bg-secondary">@exportRequests.First().Status</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Excluir dados -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-danger border-opacity-25">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0 text-danger"><i class="bi bi-trash me-2"></i>Excluir / Anonimizar Dados</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Solicite a exclusão ou anonimização dos seus dados pessoais (LGPD Art. 18, VI).</p>
+                    @if (deletionRequests.Any(d => d.Status == StatusRequisicaoLGPD.Pendente))
+                    {
+                        <div class="alert alert-info small py-2">
+                            <i class="bi bi-hourglass-split me-1"></i>
+                            Solicitação pendente desde @deletionRequests.First(d => d.Status == StatusRequisicaoLGPD.Pendente).RequestedAt.ToString("dd/MM/yyyy").
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-action="SolicitarExclusao" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash me-1"></i>Solicitar exclusão dos dados
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de consentimentos -->
+        @if (consentimentos.Any())
+        {
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Histórico de Consentimentos</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr><th>Data</th><th>Tipo</th><th>Decisão</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in consentimentos.Take(10))
+                                {
+                                    <tr>
+                                        <td class="small">@c.Data.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="small">@c.TipoConsentimento</td>
+                                        <td>
+                                            <span class="badge @(c.Aceite ? "bg-success" : "bg-secondary")">
+                                                @(c.Aceite ? "Aceito" : "Revogado")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

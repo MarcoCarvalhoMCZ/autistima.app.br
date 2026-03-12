@@ -1,0 +1,157 @@
+@model AUTistima.Models.Child
+@{
+    ViewData["Title"] = $"Prontuário — {Model.Nome}";
+    var registros = Model.Registros?.Where(r => r.Ativo).OrderByDescending(r => r.DataRegistro).ToList()
+                    ?? new List<AUTistima.Models.RegistroEstudante>();
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-3">
+        <a asp-action="MeusEstudantes" class="text-decoration-none text-muted small">
+            <i class="bi bi-arrow-left me-1"></i>Voltar à lista
+        </a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Sucesso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["CodigoEstudante"] != null)
+    {
+        <div class="alert alert-primary alert-dismissible fade show" role="alert">
+            <i class="bi bi-qr-code me-2"></i>
+            <strong>Código único do estudante:</strong> <code class="fs-5">@TempData["CodigoEstudante"]</code>
+            <br><small>Compartilhe este código com profissionais que atendem o estudante.</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Informações do estudante -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-person me-2"></i>@Model.Nome
+                </div>
+                <div class="card-body small">
+                    <dl class="row mb-0">
+                        <dt class="col-5">Código:</dt>
+                        <dd class="col-7"><code>@(Model.CodigoUnico ?? "—")</code></dd>
+
+                        <dt class="col-5">Nascimento:</dt>
+                        <dd class="col-7">@(Model.DataNascimento?.ToString("dd/MM/yyyy") ?? "—")</dd>
+
+                        <dt class="col-5">Escola:</dt>
+                        <dd class="col-7">@(Model.Escola?.Nome ?? Model.EscolaNome ?? "—")</dd>
+
+                        <dt class="col-5">Diagnóstico:</dt>
+                        <dd class="col-7">@(Model.PossuiDiagnostico ? "Sim" : "Não")</dd>
+
+                        @if (Model.PossuiDiagnostico && Model.DataDiagnostico.HasValue)
+                        {
+                            <dt class="col-5">Data Diag.:</dt>
+                            <dd class="col-7">@Model.DataDiagnostico.Value.ToString("dd/MM/yyyy")</dd>
+                        }
+
+                        <dt class="col-5">PAE:</dt>
+                        <dd class="col-7">@(Model.PossuiPAE ? "Sim" : "Não")</dd>
+
+                        @if (Model.NivelSuporte.HasValue)
+                        {
+                            <dt class="col-5">Nível Suporte:</dt>
+                            <dd class="col-7">@Model.NivelSuporte.Value.GetDisplayName()</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Comorbidades -->
+            @if (Model.Comorbidades != AUTistima.Models.Enums.TipoComorbidade.Nenhuma)
+            {
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white fw-semibold small">
+                        <i class="bi bi-clipboard2-pulse me-2"></i>Condições Registradas
+                    </div>
+                    <div class="card-body">
+                        @foreach (AUTistima.Models.Enums.TipoComorbidade c in Enum.GetValues(typeof(AUTistima.Models.Enums.TipoComorbidade)))
+                        {
+                            if (c != AUTistima.Models.Enums.TipoComorbidade.Nenhuma && Model.Comorbidades.HasFlag(c))
+                            {
+                                <span class="badge bg-info text-dark me-1 mb-1">@c.GetDisplayName()</span>
+                            }
+                        }
+                        @if (!string.IsNullOrEmpty(Model.OutrasCondicoes))
+                        {
+                            <p class="small text-muted mt-2 mb-0">@Model.OutrasCondicoes</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Responsável -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold small">
+                    <i class="bi bi-person-heart me-2"></i>Responsável
+                </div>
+                <div class="card-body small">
+                    <strong>@(Model.Usuario?.NomeCompleto ?? "—")</strong>
+                    @if (!string.IsNullOrEmpty(Model.Usuario?.PhoneNumber))
+                    {
+                        <div class="text-muted">@Model.Usuario.PhoneNumber</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Prontuário / Registros -->
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Prontuário</h5>
+                <div class="d-flex gap-2">
+                    <a asp-action="EditarEstudante" asp-route-id="@Model.Id"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Editar Dados
+                    </a>
+                    <a asp-action="AdicionarRegistro" asp-route-id="@Model.Id"
+                       class="btn btn-sm btn-salmon">
+                        <i class="bi bi-plus me-1"></i>Adicionar Registro
+                    </a>
+                </div>
+            </div>
+
+            @if (!registros.Any())
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5 text-muted">
+                        <i class="bi bi-journal display-4 d-block mb-3"></i>
+                        <p>Nenhum registro no prontuário ainda.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var reg in registros)
+                {
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <span class="badge bg-secondary me-2">@reg.TipoRegistro.GetDisplayName()</span>
+                                <strong class="small">@reg.Titulo</strong>
+                            </div>
+                            <small class="text-muted">
+                                @reg.Autor?.NomeCompleto · @reg.DataRegistro.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 small" style="white-space:pre-wrap">@reg.Conteudo</p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

@@ -33,5 +33,10 @@ public enum TipoPerfil
     /// <summary>
     /// Governo/Administração pública
     /// </summary>
-    Governo = 5
+    Governo = 5,
+
+    /// <summary>
+    /// Escola da rede municipal — cadastra e acompanha estudantes
+    /// </summary>
+    Escola = 6
 }

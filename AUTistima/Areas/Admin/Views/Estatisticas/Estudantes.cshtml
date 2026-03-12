@@ -1,0 +1,219 @@
+@using AUTistima.Services
+@model RelatorioEstudantesMetrics
+@{
+    ViewData["Title"] = "Relatório de Estudantes";
+    int dias = ViewBag.DiasAnalise ?? 90;
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-people me-2"></i>Relatório de Estudantes</h1>
+            <small class="text-muted">Mapeamento das demandas educacionais da rede municipal</small>
+        </div>
+        <div class="d-flex gap-2">
+            @foreach (var d in new[] { 30, 90, 180, 365 })
+            {
+                <a asp-action="Estudantes" asp-route-dias="@d"
+                   class="btn btn-sm @(d == dias ? "btn-salmon" : "btn-outline-secondary")">
+                    @d dias
+                </a>
+            }
+            <a asp-action="ExportarEstudantesCSV" class="btn btn-sm btn-success ms-2">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar CSV (todas)
+            </a>
+            @if (ViewBag.Escolas != null)
+            {
+                <div class="dropdown ms-1">
+                    <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-building me-1"></i>CSV por Escola
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" style="max-height:300px;overflow-y:auto">
+                        @foreach (var esc in (IEnumerable<dynamic>)ViewBag.Escolas)
+                        {
+                            <li>
+                                <a class="dropdown-item small" asp-action="ExportarEstudantesCSV" asp-route-escolaId="@esc.Id">
+                                    @esc.Nome
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Cards resumo -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-salmon">@Model.TotalEstudantes</div>
+                <div class="text-muted small">Total de Estudantes</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-primary">@Model.CadastradosNoPeriodo</div>
+                <div class="text-muted small">Cadastrados nos últimos @dias dias</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-success">@Model.AcessosAprovados</div>
+                <div class="text-muted small">Acessos aprovados a prontuários</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-warning">@Model.AcessosPendentes</div>
+                <div class="text-muted small">Acessos pendentes</div>
+                @if (Model.AcessosPendentes > 0)
+                {
+                    <a asp-controller="AcessosEstudante" asp-action="Index"
+                       class="btn btn-sm btn-warning mt-1">Ver agora</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards PAE / Diagnóstico -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-info">@Model.TotalComPAE</div>
+                <div class="text-muted small">Com PAE</div>
+                @if (Model.TotalEstudantes > 0)
+                {
+                    <div class="text-muted x-small">
+                        @(((double)Model.TotalComPAE / Model.TotalEstudantes * 100).ToString("F1"))% do total
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-secondary">@Model.TotalSemPAE</div>
+                <div class="text-muted small">Sem PAE</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-success">@Model.TotalComDiagnostico</div>
+                <div class="text-muted small">Com Diagnóstico Formal</div>
+                @if (Model.TotalEstudantes > 0)
+                {
+                    <div class="text-muted x-small">
+                        @(((double)Model.TotalComDiagnostico / Model.TotalEstudantes * 100).ToString("F1"))% do total
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="display-6 fw-bold text-danger">@Model.TotalSemDiagnostico</div>
+                <div class="text-muted small">Sem Diagnóstico Formal</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Por comorbidade -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-clipboard2-pulse me-2"></i>Estudantes por Condição
+                </div>
+                <div class="card-body">
+                    @if (!Model.EstudantesPorComorbidade.Any() || Model.EstudantesPorComorbidade.Values.All(v => v == 0))
+                    {
+                        <p class="text-muted text-center py-3">Nenhum dado disponível.</p>
+                    }
+                    else
+                    {
+                        @foreach (var (cond, total) in Model.EstudantesPorComorbidade.OrderByDescending(x => x.Value))
+                        {
+                            if (total == 0) continue;
+                            var pct = Model.TotalEstudantes > 0 ? (int)((double)total / Model.TotalEstudantes * 100) : 0;
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>@cond</span>
+                                    <strong>@total (@pct%)</strong>
+                                </div>
+                                <div class="progress" style="height:8px">
+                                    <div class="progress-bar bg-salmon" style="width:@pct%"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Por escola -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-building me-2"></i>Estudantes por Escola (Top 10)
+                </div>
+                <div class="card-body">
+                    @if (!Model.EstudantesPorEscola.Any())
+                    {
+                        <p class="text-muted text-center py-3">Nenhum dado disponível.</p>
+                    }
+                    else
+                    {
+                        var maxEscola = Model.EstudantesPorEscola.Max(e => e.Value);
+                        @foreach (var escola in Model.EstudantesPorEscola.Take(10))
+                        {
+                            var pct = maxEscola > 0 ? (int)((double)escola.Value / maxEscola * 100) : 0;
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-truncate" style="max-width:200px" title="@escola.Label">@escola.Label</span>
+                                    <strong>@escola.Value</strong>
+                                </div>
+                                <div class="progress" style="height:6px">
+                                    <div class="progress-bar bg-primary" style="width:@pct%"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Registros de prontuário por tipo -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold">
+                    <i class="bi bi-journal-text me-2"></i>Registros de Prontuário por Tipo
+                    <span class="badge bg-secondary ms-2">Total: @Model.TotalRegistrosProntuario</span>
+                </div>
+                <div class="card-body">
+                    @if (!Model.RegistrosPorTipo.Any())
+                    {
+                        <p class="text-muted text-center py-3">Nenhum registro inserido ainda.</p>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            @foreach (var (tipo, total) in Model.RegistrosPorTipo.OrderByDescending(x => x.Value))
+                            {
+                                <div class="col-6 col-md-4 col-lg-3 text-center">
+                                    <div class="fw-bold fs-4">@total</div>
+                                    <div class="text-muted small">@tipo</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <a asp-action="Exportar" asp-route-formato="csv" asp-route-dias="@dias"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i>Exportar CSV
+        </a>
+    </div>
+</div>

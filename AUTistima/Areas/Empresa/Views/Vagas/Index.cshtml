@@ -1,0 +1,124 @@
+@model List<AUTistima.Models.InclusiveJob>
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Vagas Inclusivas";
+    var selo = ViewBag.Selo as AUTistima.Models.CompanyBadge;
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-briefcase me-2 text-salmon"></i>Vagas Inclusivas</h1>
+            <small class="text-muted">Gestão de vagas para pessoas com TEA e outras deficiências</small>
+        </div>
+        <a asp-action="Criar" class="btn btn-salmon btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Nova Vaga
+        </a>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <!-- Selo de Inclusão -->
+    @if (selo != null)
+    {
+        var seloColor = selo.Nivel switch { "Ouro" => "text-warning", "Prata" => "text-secondary", _ => "text-warning-emphasis" };
+        <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+            <i class="bi bi-award-fill display-6 @seloColor"></i>
+            <div>
+                <strong>Empresa com Selo @selo.Nivel de Inclusão!</strong>
+                <div class="small text-muted">Conquistado em @selo.ConquistadoEm.ToString("dd/MM/yyyy")</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info small mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            Publique vagas inclusivas e acumule pontos para obter o <strong>Selo de Empresa Inclusiva</strong>!
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-briefcase-fill display-4 mb-3 d-block"></i>
+            <p>Nenhuma vaga publicada ainda.</p>
+            <a asp-action="Criar" class="btn btn-outline-salmon">Publicar primeira vaga</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var v in Model)
+            {
+                var statusBadge = v.Status switch {
+                    StatusInclusiveJob.Ativa => "bg-success",
+                    StatusInclusiveJob.Pausada => "bg-warning text-dark",
+                    StatusInclusiveJob.Encerrada => "bg-secondary",
+                    _ => "bg-secondary"
+                };
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start justify-content-between mb-2">
+                                <h5 class="card-title fs-6 mb-0">@v.Titulo</h5>
+                                <span class="badge @statusBadge small ms-2">@v.Status</span>
+                            </div>
+                            <p class="small text-muted mb-2">@(v.Descricao.Length > 150 ? v.Descricao[..150] + "…" : v.Descricao)</p>
+                            @if (!string.IsNullOrEmpty(v.Localizacao))
+                            {
+                                <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>@v.Localizacao</div>
+                            }
+                            @if (!string.IsNullOrEmpty(v.Regime))
+                            {
+                                <div class="small text-muted mb-1"><i class="bi bi-clock me-1"></i>@v.Regime</div>
+                            }
+                            @if (v.SalarioMin.HasValue || v.SalarioMax.HasValue)
+                            {
+                                <div class="small text-success mb-2">
+                                    <i class="bi bi-currency-dollar me-1"></i>
+                                    @if (v.SalarioMin.HasValue && v.SalarioMax.HasValue)
+                                    { <span>@v.SalarioMin.Value.ToString("C0") — @v.SalarioMax.Value.ToString("C0")</span> }
+                                    else if (v.SalarioMin.HasValue)
+                                    { <span>A partir de @v.SalarioMin.Value.ToString("C0")</span> }
+                                    else
+                                    { <span>Até @v.SalarioMax.Value.ToString("C0")</span> }
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-action="Editar" asp-route-id="@v.Id" class="btn btn-outline-primary btn-sm">Editar</a>
+                                @if (v.Status == StatusInclusiveJob.Ativa)
+                                {
+                                    <form asp-action="AlterarStatus" asp-route-id="@v.Id" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="status" value="@StatusInclusiveJob.Pausada" />
+                                        <button type="submit" class="btn btn-outline-warning btn-sm">Pausar</button>
+                                    </form>
+                                }
+                                else if (v.Status == StatusInclusiveJob.Pausada)
+                                {
+                                    <form asp-action="AlterarStatus" asp-route-id="@v.Id" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="status" value="@StatusInclusiveJob.Ativa" />
+                                        <button type="submit" class="btn btn-outline-success btn-sm">Reativar</button>
+                                    </form>
+                                    <form asp-action="AlterarStatus" asp-route-id="@v.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="status" value="@StatusInclusiveJob.Encerrada" />
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                                onclick="return confirm('Encerrar definitivamente esta vaga?')">Encerrar</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

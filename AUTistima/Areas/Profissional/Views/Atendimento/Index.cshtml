@@ -1,0 +1,124 @@
+@model List<AUTistima.Models.ServiceRequest>
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Painel de Solicitações";
+    var statusFiltro = ViewBag.StatusFiltro as StatusServiceRequest?;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-inbox me-2"></i>Painel de Solicitações</h1>
+            <small class="text-muted">@Model.Count solicitação(ões)</small>
+        </div>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <!-- Filtros -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <a asp-action="Index" class="btn btn-@(statusFiltro == null ? "primary" : "outline-secondary") btn-sm">Todos</a>
+        <a asp-action="Index" asp-route-status="@StatusServiceRequest.Pendente" class="btn btn-@(statusFiltro == StatusServiceRequest.Pendente ? "warning" : "outline-secondary") btn-sm">Pendentes</a>
+        <a asp-action="Index" asp-route-status="@StatusServiceRequest.Agendado" class="btn btn-@(statusFiltro == StatusServiceRequest.Agendado ? "success" : "outline-secondary") btn-sm">Agendados</a>
+        <a asp-action="Index" asp-route-status="@StatusServiceRequest.Concluido" class="btn btn-@(statusFiltro == StatusServiceRequest.Concluido ? "secondary" : "outline-secondary") btn-sm">Concluídos</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4 mb-3 d-block"></i>
+            <p>Nenhuma solicitação encontrada.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var s in Model)
+            {
+                var prioClass = s.Prioridade >= 3 ? "border-danger" : s.Prioridade == 2 ? "border-warning" : "";
+                var statusBadge = s.Status switch {
+                    StatusServiceRequest.Pendente => "bg-warning text-dark",
+                    StatusServiceRequest.EmAnalise => "bg-info text-dark",
+                    StatusServiceRequest.Agendado => "bg-success",
+                    StatusServiceRequest.Concluido => "bg-secondary",
+                    _ => "bg-danger"
+                };
+                <div class="col-md-6 col-xl-4">
+                    <div class="card border-0 shadow-sm h-100 @(prioClass != "" ? "border-start border-3 " + prioClass : "")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div class="fw-semibold small">@(s.Servico?.NomeProfissional ?? "Serviço geral")</div>
+                                    <div class="text-muted small">@s.Solicitante?.NomeCompleto</div>
+                                    @if (s.Filho != null)
+                                    {
+                                        <div class="text-muted small">Para: @s.Filho.Nome</div>
+                                    }
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge @statusBadge small">@s.Status</span>
+                                    @if (s.Prioridade >= 2)
+                                    {
+                                        <div class="small text-danger mt-1">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            @(s.Prioridade >= 3 ? "Urgente" : "Alta prioridade")
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-3">@s.Observacoes</p>
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-calendar3 me-1"></i>@s.CriadoEm.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+
+                            @if (s.Status == StatusServiceRequest.Pendente)
+                            {
+                                <button class="btn btn-outline-primary btn-sm w-100 mb-2"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#agendar-@s.Id">
+                                    <i class="bi bi-calendar-plus me-1"></i>Agendar
+                                </button>
+                                <div class="collapse" id="agendar-@s.Id">
+                                    <form asp-action="Agendar" asp-route-id="@s.Id" method="post" class="border rounded p-2 bg-light small">
+                                        @Html.AntiForgeryToken()
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Data e hora *</label>
+                                            <input type="datetime-local" name="dataHora" class="form-control form-control-sm" required />
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1">Canal</label>
+                                            <select name="canal" class="form-select form-select-sm">
+                                                <option>Presencial</option>
+                                                <option>Teleconsulta</option>
+                                                <option>Domiciliar</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="text" name="local" class="form-control form-control-sm" placeholder="Local / endereço" />
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="url" name="linkTeleatendimento" class="form-control form-control-sm" placeholder="Link (se teleconsulta)" />
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm w-100">Confirmar agendamento</button>
+                                    </form>
+                                </div>
+                            }
+                            @if (s.Status == StatusServiceRequest.Agendado)
+                            {
+                                <form asp-action="Concluir" asp-route-id="@s.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                        <i class="bi bi-check2-circle me-1"></i>Marcar como concluído
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

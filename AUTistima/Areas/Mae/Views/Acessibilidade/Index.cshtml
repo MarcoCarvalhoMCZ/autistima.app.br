@@ -1,0 +1,105 @@
+@model AUTistima.Models.AccessibilityPreference
+@{
+    ViewData["Title"] = "Acessibilidade";
+}
+
+<div class="container py-4" style="max-width: 640px;">
+    <div class="mb-4">
+        <h1 class="h3 mb-0"><i class="bi bi-universal-access me-2 text-salmon"></i>Acessibilidade</h1>
+        <small class="text-muted">Personalize a aparência e a experiência do AUTistima</small>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form asp-action="Salvar" method="post" id="formAcessibilidade">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <h6 class="mb-3">Visual</h6>
+
+                    <div class="d-flex align-items-center justify-content-between py-3 border-bottom">
+                        <div>
+                            <strong class="small">Alto Contraste</strong>
+                            <div class="text-muted small">Aumenta o contraste das cores para maior legibilidade</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" name="altoContraste" value="true" class="form-check-input"
+                                   id="chkContraste" @(Model.AltoContraste ? "checked" : "")
+                                   onchange="this.form.submit()" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between py-3 border-bottom">
+                        <div>
+                            <strong class="small">Modo Leitura Fácil</strong>
+                            <div class="text-muted small">Simplifica o layout e aumenta espaçamento do texto</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" name="modoLeituraFacil" value="true" class="form-check-input"
+                                   id="chkLeitura" @(Model.ModoLeituraFacil ? "checked" : "")
+                                   onchange="this.form.submit()" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between py-3 border-bottom">
+                        <div>
+                            <strong class="small">Tamanho da Fonte</strong>
+                        </div>
+                        <select name="tamanhoFonte" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                                @if (Model.TamanhoFonte == "normal") { <option value="normal" selected>Normal</option> } else { <option value="normal">Normal</option> }
+                                @if (Model.TamanhoFonte == "grande") { <option value="grande" selected>Grande</option> } else { <option value="grande">Grande</option> }
+                                @if (Model.TamanhoFonte == "extra-grande") { <option value="extra-grande" selected>Extra Grande</option> } else { <option value="extra-grande">Extra Grande</option> }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="mb-3">Conteúdo</h6>
+
+                    <div class="d-flex align-items-center justify-content-between py-3 border-bottom">
+                        <div>
+                            <strong class="small">Pictogramas</strong>
+                            <div class="text-muted small">Exibe pictogramas junto ao texto para melhor compreensão</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" name="usarPictogramas" value="true" class="form-check-input"
+                                   id="chkPicto" @(Model.UsarPictogramas ? "checked" : "")
+                                   onchange="this.form.submit()" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between py-3">
+                        <div>
+                            <strong class="small">Audiodescrição</strong>
+                            <div class="text-muted small">Habilita descrições de áudio em elementos visuais</div>
+                        </div>
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" name="audioDescricao" value="true" class="form-check-input"
+                                   id="chkAudio" @(Model.AudioDescricao ? "checked" : "")
+                                   onchange="this.form.submit()" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão explícito para formulários sem JS -->
+                <noscript>
+                    <button type="submit" class="btn btn-salmon w-100">
+                        <i class="bi bi-save me-1"></i>Salvar preferências
+                    </button>
+                </noscript>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.AtualizadoEm != default)
+    {
+        <div class="text-muted small mt-2 text-center">
+            Última atualização: @Model.AtualizadoEm.ToString("dd/MM/yyyy HH:mm")
+        </div>
+    }
+</div>

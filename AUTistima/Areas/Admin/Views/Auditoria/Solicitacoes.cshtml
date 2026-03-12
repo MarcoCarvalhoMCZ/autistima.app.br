@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Solicitações LGPD";
+    var exportacoes = ViewBag.Exportacoes as List<AUTistima.Models.DataExportRequest> ?? new();
+    var exclusoes = ViewBag.Exclusoes as List<AUTistima.Models.DataDeletionRequest> ?? new();
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-chevron-left me-1"></i>Auditoria
+        </a>
+        <h1 class="h3 mt-2"><i class="bi bi-person-exclamation me-2 text-warning"></i>Solicitações LGPD</h1>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Sucesso"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row g-4">
+        <!-- Solicitações de Exclusão -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger bg-opacity-10">
+                    <h5 class="mb-0 text-danger"><i class="bi bi-trash me-2"></i>Solicitações de Exclusão de Dados</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Data</th><th>Usuário</th><th>Motivo</th><th>Status</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (!exclusoes.Any())
+                            {
+                                <tr><td colspan="5" class="text-center py-3 text-muted">Nenhuma solicitação.</td></tr>
+                            }
+                            @foreach (var s in exclusoes)
+                            {
+                                <tr>
+                                    <td class="small">@s.RequestedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="small">@s.Usuario?.Email</td>
+                                    <td class="small text-muted">@(s.Motivo ?? "—")</td>
+                                    <td>
+                                        <span class="badge @(s.Status == AUTistima.Models.Enums.StatusRequisicaoLGPD.Pendente ? "bg-warning text-dark" : s.Status == AUTistima.Models.Enums.StatusRequisicaoLGPD.Concluido ? "bg-success" : "bg-secondary")">
+                                            @s.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (s.Status == AUTistima.Models.Enums.StatusRequisicaoLGPD.Pendente)
+                                        {
+                                            <div class="d-flex gap-1">
+                                                <form asp-action="ProcessarExclusao" method="post" class="d-inline"
+                                                      onsubmit="return confirm('Confirmar EXCLUSÃO dos dados de @s.Usuario?.Email?')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@s.Id" />
+                                                    <input type="hidden" name="decisao" value="aprovar" />
+                                                    <button class="btn btn-danger btn-sm">Aprovar</button>
+                                                </form>
+                                                <form asp-action="ProcessarExclusao" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@s.Id" />
+                                                    <input type="hidden" name="decisao" value="rejeitar" />
+                                                    <button class="btn btn-outline-secondary btn-sm">Rejeitar</button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">@s.ProcessedAt?.ToString("dd/MM/yyyy")</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solicitações de Exportação -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary bg-opacity-10">
+                    <h5 class="mb-0 text-primary"><i class="bi bi-download me-2"></i>Solicitações de Exportação</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Data</th><th>Usuário</th><th>Status</th><th>URL Download</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (!exportacoes.Any())
+                            {
+                                <tr><td colspan="4" class="text-center py-3 text-muted">Nenhuma solicitação.</td></tr>
+                            }
+                            @foreach (var e in exportacoes)
+                            {
+                                <tr>
+                                    <td class="small">@e.RequestedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="small">@e.Usuario?.Email</td>
+                                    <td><span class="badge bg-secondary small">@e.Status</span></td>
+                                    <td class="small">@(e.DownloadUrl ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

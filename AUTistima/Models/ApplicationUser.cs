@@ -104,6 +104,13 @@ public class ApplicationUser : IdentityUser
 
     [ForeignKey("EspecialidadeId")]
     public EspecialidadeProfissional? Especialidade { get; set; }
+
+    /// <summary>Escola vinculada ao usuário com perfil Escola</summary>
+    [Display(Name = "Escola Vinculada")]
+    public int? EscolaVinculadaId { get; set; }
+
+    [ForeignKey("EscolaVinculadaId")]
+    public virtual School? EscolaVinculada { get; set; }
     
     // Status de Aprovação do Perfil
     [Display(Name = "Status de Aprovação")]

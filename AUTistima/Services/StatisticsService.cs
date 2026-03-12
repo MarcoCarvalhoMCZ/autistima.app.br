@@ -1,4 +1,5 @@
 using AUTistima.Data;
+using AUTistima.Extensions;
 using AUTistima.Models;
 using AUTistima.Models.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,7 @@ public interface IStatisticsService
     Task GerarSnapshotDiario();
     Task<List<StatisticSnapshot>> ObterHistoricoSnapshots(int dias = 30);
     Task<List<ChartDataPoint>> ObterDadosGraficoTemporal(string metrica, int dias = 30);
+    Task<RelatorioEstudantesMetrics> ObterRelatorioEstudantes(DateTime? dataInicio = null, DateTime? dataFim = null);
 }
 
 /// <summary>
@@ -508,6 +510,82 @@ public class StatisticsService : IStatisticsService
             }
         }).ToList();
     }
+
+    public async Task<RelatorioEstudantesMetrics> ObterRelatorioEstudantes(DateTime? dataInicio = null, DateTime? dataFim = null)
+    {
+        var inicio = dataInicio ?? DateTime.UtcNow.AddMonths(-1);
+        var fim = dataFim ?? DateTime.UtcNow;
+
+        var estudantes = _context.Children.AsQueryable();
+
+        var totalEstudantes = await _context.Children.CountAsync();
+        var cadastradosNoPeriodo = await _context.Children.CountAsync(c => c.DataCadastro >= inicio && c.DataCadastro <= fim);
+
+        // Contagem por escola
+        var porEscola = await _context.Children
+            .Where(c => c.EscolaId != null)
+            .GroupBy(c => c.EscolaId)
+            .Select(g => new { EscolaId = g.Key, Total = g.Count() })
+            .ToListAsync();
+
+        var escolasIds = porEscola.Select(e => e.EscolaId).ToList();
+        var escolas = await _context.Schools
+            .Where(e => escolasIds.Contains(e.Id))
+            .Select(e => new { e.Id, e.Nome })
+            .ToListAsync();
+
+        var estudantesPorEscola = porEscola
+            .Join(escolas, p => p.EscolaId, e => e.Id, (p, e) => new ChartDataPoint { Label = e.Nome, Value = p.Total })
+            .OrderByDescending(x => x.Value)
+            .Take(20)
+            .ToList();
+
+        // Contagem por comorbidade (flags)
+        var allChildren = await _context.Children.Select(c => c.Comorbidades).ToListAsync();
+        var porComorbidade = new Dictionary<string, int>();
+        foreach (TipoComorbidade c in Enum.GetValues(typeof(TipoComorbidade)))
+        {
+            if (c == TipoComorbidade.Nenhuma) continue;
+            porComorbidade[c.GetDisplayName()] = allChildren.Count(x => x.HasFlag(c));
+        }
+
+        // Acessos pendentes
+        var acessosPendentes = await _context.SolicitacoesAcessoPerfil
+            .CountAsync(s => s.Status == StatusSolicitacaoAcesso.Pendente);
+        var acessosAprovados = await _context.SolicitacoesAcessoPerfil
+            .CountAsync(s => s.Status == StatusSolicitacaoAcesso.Aprovado);
+
+        // Registros de prontuário
+        var totalRegistros = await _context.RegistrosEstudante.CountAsync(r => r.Ativo);
+        var registrosPorTipo = await _context.RegistrosEstudante
+            .Where(r => r.Ativo)
+            .GroupBy(r => r.TipoRegistro)
+            .Select(g => new { Tipo = g.Key, Total = g.Count() })
+            .ToListAsync();
+
+        var totalComPae = await _context.Children.CountAsync(c => c.PossuiPAE);
+        var totalComDiagnostico = await _context.Children.CountAsync(c => c.PossuiDiagnostico);
+
+        return new RelatorioEstudantesMetrics
+        {
+            PeriodoInicio = inicio,
+            PeriodoFim = fim,
+            TotalEstudantes = totalEstudantes,
+            CadastradosNoPeriodo = cadastradosNoPeriodo,
+            EstudantesPorEscola = estudantesPorEscola,
+            EstudantesPorComorbidade = porComorbidade,
+            AcessosPendentes = acessosPendentes,
+            AcessosAprovados = acessosAprovados,
+            TotalRegistrosProntuario = totalRegistros,
+            RegistrosPorTipo = registrosPorTipo.ToDictionary(
+                r => r.Tipo.GetDisplayName(),
+                r => r.Total),
+            TotalComPAE = totalComPae,
+            TotalSemPAE = totalEstudantes - totalComPae,
+            TotalComDiagnostico = totalComDiagnostico,
+            TotalSemDiagnostico = totalEstudantes - totalComDiagnostico
+        };
+    }
 }
 
 #region DTOs para métricas
@@ -587,6 +665,24 @@ public class TriagemMetrics
     public List<ChartDataPoint> TriagensPorMes { get; set; } = new();
     public Dictionary<string, int> EscolasComMaisTriagens { get; set; } = new();
     public double TempoMedioConclusaoDias { get; set; }
+}
+
+public class RelatorioEstudantesMetrics
+{
+    public DateTime PeriodoInicio { get; set; }
+    public DateTime PeriodoFim { get; set; }
+    public int TotalEstudantes { get; set; }
+    public int CadastradosNoPeriodo { get; set; }
+    public List<ChartDataPoint> EstudantesPorEscola { get; set; } = new();
+    public Dictionary<string, int> EstudantesPorComorbidade { get; set; } = new();
+    public int AcessosPendentes { get; set; }
+    public int AcessosAprovados { get; set; }
+    public int TotalRegistrosProntuario { get; set; }
+    public Dictionary<string, int> RegistrosPorTipo { get; set; } = new();
+    public int TotalComPAE { get; set; }
+    public int TotalSemPAE { get; set; }
+    public int TotalComDiagnostico { get; set; }
+    public int TotalSemDiagnostico { get; set; }
 }
 
 public class PostResumo

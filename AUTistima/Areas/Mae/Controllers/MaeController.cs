@@ -133,4 +133,25 @@ public class MaeController : Controller
 
         return RedirectToAction(nameof(Perfil));
     }
+
+    // GET: Mae/ProntuarioFilho/5
+    public async Task<IActionResult> ProntuarioFilho(int id)
+    {
+        if (!await IsMae())
+            return RedirectToAction("Index", "Home", new { area = "" });
+
+        var user = await _userManager.GetUserAsync(User);
+
+        var filho = await _context.Children
+            .Include(c => c.Escola)
+            .Include(c => c.Registros.Where(r => r.Ativo))
+                .ThenInclude(r => r.Autor)
+            .Include(c => c.SolicitacoesAcesso)
+                .ThenInclude(s => s.Profissional)
+            .FirstOrDefaultAsync(c => c.Id == id && c.UserId == user!.Id);
+
+        if (filho == null) return Forbid();
+
+        return View(filho);
+    }
 }

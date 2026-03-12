@@ -260,4 +260,86 @@ public class EstatisticasController : Controller
             return File(bytes, "application/json", $"relatorio_autistima_{DateTime.Now:yyyyMMdd}.json");
         }
     }
+
+    // GET: Admin/Estatisticas/Estudantes
+    public async Task<IActionResult> Estudantes(int dias = 90)
+    {
+        if (!await IsAdmin())
+            return RedirectToAction("Index", "Home", new { area = "" });
+
+        var dataInicio = DateTime.UtcNow.AddDays(-dias);
+        var metrics = await _statisticsService.ObterRelatorioEstudantes(dataInicio);
+        ViewBag.DiasAnalise = dias;
+        ViewBag.Escolas = await _context.Schools
+            .Where(s => s.Ativo)
+            .OrderBy(s => s.Nome)
+            .Select(s => new { s.Id, Nome = s.Nome })
+            .ToListAsync<object>();
+        return View(metrics);
+    }
+
+    // GET: Admin/Estatisticas/ExportarEstudantesCSV
+    public async Task<IActionResult> ExportarEstudantesCSV(int? escolaId = null)
+    {
+        if (!await IsAdmin())
+            return RedirectToAction("Index", "Home", new { area = "" });
+
+        var query = _context.Children
+            .Include(c => c.Usuario)          // mãe/responsável
+            .Include(c => c.Escola)            // escola vinculada
+            .AsQueryable();
+
+        if (escolaId.HasValue)
+            query = query.Where(c => c.EscolaId == escolaId.Value);
+
+        var estudantes = await query
+            .OrderBy(c => c.EscolaNome)
+            .ThenBy(c => c.Nome)
+            .ToListAsync();
+
+        var sb = new StringBuilder();
+        // Cabeçalho
+        sb.AppendLine("Código;Nome do Estudante;Data de Nascimento;Escola;Nível de Suporte;" +
+                      "Diagnóstico;Data Diagnóstico;PAE;Comorbidades;Outras Condições;" +
+                      "Responsável;E-mail Responsável;Telefone Responsável;Data de Cadastro");
+
+        foreach (var e in estudantes)
+        {
+            var comorbLabels = Enum.GetValues(typeof(TipoComorbidade))
+                .Cast<TipoComorbidade>()
+                .Where(c => c != TipoComorbidade.Nenhuma && e.Comorbidades.HasFlag(c))
+                .Select(c => c.GetDisplayName());
+
+            sb.AppendLine(string.Join(";",
+                Csv(e.CodigoUnico),
+                Csv(e.Nome),
+                e.DataNascimento?.ToString("dd/MM/yyyy") ?? "",
+                Csv(e.EscolaNome),
+                Csv(e.NivelSuporte?.GetDisplayName()),
+                e.PossuiDiagnostico ? "Sim" : "Não",
+                e.DataDiagnostico?.ToString("dd/MM/yyyy") ?? "",
+                e.PossuiPAE ? "Sim" : "Não",
+                Csv(string.Join(" | ", comorbLabels)),
+                Csv(e.OutrasCondicoes),
+                Csv(e.Usuario?.NomeCompleto),
+                Csv(e.Usuario?.Email),
+                Csv(e.Usuario?.PhoneNumber),
+                e.DataCadastro.ToString("dd/MM/yyyy")
+            ));
+        }
+
+        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        var sufixoEscola = escolaId.HasValue ? $"_escola{escolaId}" : "_todas";
+        var nomeArquivo = $"estudantes_semed{sufixoEscola}_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+        return File(bytes, "text/csv; charset=utf-8", nomeArquivo);
+    }
+
+    // Escapa valor para CSV (envolve em aspas se contém ponto-e-vírgula ou aspas)
+    private static string Csv(string? valor)
+    {
+        if (string.IsNullOrEmpty(valor)) return string.Empty;
+        if (valor.Contains(';') || valor.Contains('"') || valor.Contains('\n'))
+            return $"\"{ valor.Replace("\"", "\"\"") }\"";
+        return valor;
+    }
 }

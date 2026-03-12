@@ -1,0 +1,65 @@
+@model AUTistima.Models.SafetyPlan
+@{
+    ViewData["Title"] = "Editar Plano de Segurança";
+}
+
+<div class="container py-4" style="max-width: 720px;">
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small">
+            <i class="bi bi-chevron-left me-1"></i>Segurança Familiar
+        </a>
+        <h1 class="h3 mt-2"><i class="bi bi-shield-heart me-2 text-salmon"></i>Editar Plano de Segurança</h1>
+        <p class="text-muted small">Um plano de segurança ajuda a identificar sinais de crise e preparar respostas eficazes.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form asp-action="EditarPlano" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <label asp-for="SinaisAlerta" class="form-label fw-semibold">
+                        <i class="bi bi-exclamation-triangle text-danger me-1"></i>Sinais de Alerta
+                    </label>
+                    <p class="text-muted small mb-2">Quais comportamentos indicam que a crise está se aproximando?</p>
+                    <textarea asp-for="SinaisAlerta" class="form-control" rows="4"
+                              placeholder="Ex: agitação motora, autoagressão, recusa alimentar, choro excessivo..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="EstrategiasDesescalada" class="form-label fw-semibold">
+                        <i class="bi bi-lightbulb text-warning me-1"></i>Estratégias de Desescalada
+                    </label>
+                    <p class="text-muted small mb-2">O que ajuda a acalmar a situação?</p>
+                    <textarea asp-for="EstrategiasDesescalada" class="form-control" rows="4"
+                              placeholder="Ex: ambiente silencioso, objeto de conforto, atividade preferida, espaço seguro..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="RecursosLocais" class="form-label fw-semibold">
+                        <i class="bi bi-building text-info me-1"></i>Recursos Locais
+                    </label>
+                    <p class="text-muted small mb-2">Quais serviços, espaços e recursos você tem disponíveis?</p>
+                    <textarea asp-for="RecursosLocais" class="form-control" rows="3"
+                              placeholder="Ex: CAPS (endereço/telefone), UBS próxima, sala sensorial na escola, vizinho de confiança..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="PlanoAposIntervencao" class="form-label fw-semibold">
+                        <i class="bi bi-check2-circle text-success me-1"></i>Plano Pós-Intervenção
+                    </label>
+                    <p class="text-muted small mb-2">O que fazer após a situação de crise?</p>
+                    <textarea asp-for="PlanoAposIntervencao" class="form-control" rows="3"
+                              placeholder="Ex: descanso de 30min, registro no diário, contato com terapeuta, revisão do plano..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-salmon">
+                        <i class="bi bi-check-lg me-1"></i>Salvar Plano
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

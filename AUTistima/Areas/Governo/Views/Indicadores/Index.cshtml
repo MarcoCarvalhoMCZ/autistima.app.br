@@ -1,0 +1,185 @@
+@using AUTistima.Models.Enums
+@{
+    ViewData["Title"] = "Indicadores e Métricas";
+
+    var usuariosPorPerfil = ViewBag.UsuariosPorPerfil as List<dynamic> ?? new();
+    var solicitacoesPorStatus = ViewBag.SolicitacoesPorStatus as List<dynamic> ?? new();
+
+    int totalCriancas = ViewBag.TotalCriancas ?? 0;
+    int totalServicos = ViewBag.TotalServicos ?? 0;
+    int totalPosts = ViewBag.TotalPostsComunidade ?? 0;
+    int postsMes = ViewBag.PostsEstesMes ?? 0;
+    int totalAcolhimentos = ViewBag.TotalAcolhimentos ?? 0;
+    int usuariosMes = ViewBag.UsuariosNovosMes ?? 0;
+    int usuariosAno = ViewBag.UsuariosNovosAno ?? 0;
+    int denunciasPendentes = ViewBag.DenunciasPendentes ?? 0;
+    int planosTotal = ViewBag.TotalPlanosCuidado ?? 0;
+    int solicitacoesMes = ViewBag.SolicitacoesMes ?? 0;
+}
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-0"><i class="bi bi-bar-chart-line me-2"></i>Indicadores e Métricas</h1>
+        <small class="text-muted">Dados agregados e anônimos da plataforma — @DateTime.Now.ToString("MMMM/yyyy")</small>
+    </div>
+
+    <!-- Cards de resumo -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="card-body">
+                    <div class="h2 text-salmon mb-0">@totalCriancas</div>
+                    <div class="small text-muted">Crianças cadastradas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="card-body">
+                    <div class="h2 text-primary mb-0">@totalServicos</div>
+                    <div class="small text-muted">Serviços ativos</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="card-body">
+                    <div class="h2 text-success mb-0">@solicitacoesMes</div>
+                    <div class="small text-muted">Solicitações este mês</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="card-body">
+                    <div class="h2 text-warning mb-0">@usuariosMes</div>
+                    <div class="small text-muted">Novos usuários/mês</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Usuários por perfil -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-people me-2"></i>Usuários por Perfil</h6>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in usuariosPorPerfil)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">@item.Perfil</span>
+                            <span class="badge bg-light text-dark">@item.Total</span>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <span class="small fw-semibold">Total</span>
+                        <span class="badge bg-primary">@usuariosPorPerfil.Sum(i => (int)i.Total)</span>
+                    </div>
+                    <hr class="my-3" />
+                    <div class="row text-center g-2">
+                        <div class="col-6">
+                            <div class="fw-semibold">@usuariosAno</div>
+                            <div class="text-muted small">Novos este ano</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-semibold">@usuariosMes</div>
+                            <div class="text-muted small">Novos este mês</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solicitações de serviço por status -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-calendar2-check me-2"></i>Solicitações por Status</h6>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in solicitacoesPorStatus)
+                    {
+                        var barClass = ((StatusServiceRequest)item.Status) switch {
+                            StatusServiceRequest.Pendente => "bg-warning",
+                            StatusServiceRequest.Agendado => "bg-success",
+                            StatusServiceRequest.Concluido => "bg-primary",
+                            StatusServiceRequest.Cancelado => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+                        var total = (int)solicitacoesPorStatus.Sum(i => (int)i.Total);
+                        var pct = total > 0 ? (int)((double)(int)item.Total / total * 100) : 0;
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small">@item.Status</span>
+                                <span class="small text-muted">@item.Total</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar @barClass" style="width: @pct%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Comunidade e moderação -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-chat-heart me-2"></i>Comunidade</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 text-center">
+                            <div class="h4 text-info">@totalPosts</div>
+                            <div class="small text-muted">Posts totais</div>
+                        </div>
+                        <div class="col-6 text-center">
+                            <div class="h4 text-salmon">@postsMes</div>
+                            <div class="small text-muted">Posts/mês</div>
+                        </div>
+                        <div class="col-6 text-center">
+                            <div class="h4 text-warning">@totalAcolhimentos</div>
+                            <div class="small text-muted">Acolhimentos</div>
+                        </div>
+                        <div class="col-6 text-center">
+                            <div class="h4 @(denunciasPendentes > 0 ? "text-danger" : "text-success")">@denunciasPendentes</div>
+                            <div class="small text-muted">Denúncias pend.</div>
+                        </div>
+                    </div>
+                    @if (denunciasPendentes > 0)
+                    {
+                        <div class="mt-3">
+                            <a asp-area="Admin" asp-controller="Moderacao" asp-action="Index" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="bi bi-flag me-1"></i>Ver denúncias pendentes
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Planos de cuidado e programas -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-journal-medical me-2"></i>Programas de Cuidado</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-2">
+                        <div class="h3 text-primary">@planosTotal</div>
+                        <div class="text-muted small">Planos de cuidado ativos</div>
+                    </div>
+                    <hr />
+                    <div class="text-muted small text-center">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Dados apresentados de forma agregada e anônima conforme LGPD
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
